@@ -758,11 +758,16 @@ export type Database = {
       formulaire_inscriptions: {
         Row: {
           bde_id: string
+          caution_mode: string | null
+          caution_montant: number | null
+          caution_swikly_url: string | null
           champs: Json
           created_at: string
           description: string | null
           evenement_id: string
           id: string
+          mode_paiement: string | null
+          paiement_details: Json | null
           prix_total: number | null
           publie: boolean
           publie_le: string | null
@@ -771,11 +776,16 @@ export type Database = {
         }
         Insert: {
           bde_id: string
+          caution_mode?: string | null
+          caution_montant?: number | null
+          caution_swikly_url?: string | null
           champs?: Json
           created_at?: string
           description?: string | null
           evenement_id: string
           id?: string
+          mode_paiement?: string | null
+          paiement_details?: Json | null
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null
@@ -784,11 +794,16 @@ export type Database = {
         }
         Update: {
           bde_id?: string
+          caution_mode?: string | null
+          caution_montant?: number | null
+          caution_swikly_url?: string | null
           champs?: Json
           created_at?: string
           description?: string | null
           evenement_id?: string
           id?: string
+          mode_paiement?: string | null
+          paiement_details?: Json | null
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null

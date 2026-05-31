@@ -221,6 +221,27 @@ export async function marquerPayeTotal(id: string): Promise<ActionResult<Inscrip
   return { data, error: null }
 }
 
+// ─── Caution ──────────────────────────────────────────────────────────────────
+
+export async function marquerCautionRecue(id: string): Promise<ActionResult<Inscription>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('inscriptions')
+    .update({ caution_payee: true })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('marquerCautionRecue error:', error)
+    return { data: null, error: error?.message ?? 'Erreur.' }
+  }
+
+  revalidatePath('/bde/inscriptions')
+  return { data, error: null }
+}
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export async function exporterInscriptionsExcel(
@@ -243,7 +264,7 @@ export async function creerInscription(
 
   const { data: formulaire, error: formError } = await supabase
     .from('formulaire_inscriptions')
-    .select('evenement_id, bde_id, prix_total, publie')
+    .select('evenement_id, bde_id, prix_total, publie, caution_montant')
     .eq('id', formulaireId)
     .single()
 
@@ -286,6 +307,7 @@ export async function creerInscription(
       email,
       reponses: reponses as Database['public']['Tables']['inscriptions']['Insert']['reponses'],
       montant_total: formulaire.prix_total ?? 0,
+      caution_montant: formulaire.caution_montant ?? null,
       statut: 'en_attente',
       statut_paiement: 'en_attente',
     })

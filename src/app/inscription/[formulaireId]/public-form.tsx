@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { creerInscription } from '@/lib/actions/inscriptions'
-import type { ChampFormulaire } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
@@ -26,6 +26,11 @@ interface Props {
     date_fin: string | null
     nb_places_max: number | null
   } | null
+  modePaiement: string | null
+  paiementDetails: PaiementDetails | null
+  cautionMontant: number | null
+  cautionMode: string | null
+  cautionSwiklyUrl: string | null
 }
 
 // ─── Rendu d'un champ ─────────────────────────────────────────────────────────
@@ -258,6 +263,11 @@ export function PublicInscriptionForm({
   prixTotal,
   champs,
   evenement,
+  modePaiement,
+  paiementDetails,
+  cautionMontant,
+  cautionMode,
+  cautionSwiklyUrl,
 }: Props) {
   const [values, setValues] = useState<Record<string, string | string[]>>({})
   const [prenom, setPrenom] = useState('')
@@ -305,6 +315,30 @@ export function PublicInscriptionForm({
   // ─── Page de confirmation ─────────────────────────────────────────────────
 
   if (submitted) {
+    // Instructions de paiement dynamiques
+    const paiementMsg = (() => {
+      if (!modePaiement || prixTotal <= 0) return null
+      const p = paiementDetails ?? {}
+      switch (modePaiement) {
+        case 'virement':
+          return p.iban
+            ? `Veuillez effectuer un virement de ${fmt(prixTotal)} à l'IBAN suivant : ${p.iban}`
+            : `Veuillez effectuer un virement de ${fmt(prixTotal)}. L'IBAN vous sera communiqué par le BDE.`
+        case 'cheque':
+          return p.ordre
+            ? `Veuillez déposer un chèque de ${fmt(prixTotal)} à l'ordre de ${p.ordre} au bureau du BDE.`
+            : `Veuillez déposer un chèque de ${fmt(prixTotal)} au bureau du BDE.`
+        case 'lydia':
+          return p.lydia
+            ? `Veuillez envoyer ${fmt(prixTotal)} sur Lydia au numéro ${p.lydia}.`
+            : `Veuillez régler ${fmt(prixTotal)} via Lydia. Le numéro vous sera communiqué par le BDE.`
+        case 'helloasso':
+          return null // handled separately with a link
+        default:
+          return null
+      }
+    })()
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm max-w-md w-full p-8 text-center">
@@ -315,15 +349,65 @@ export function PublicInscriptionForm({
           </div>
           <h1 className="text-xl font-bold text-navy mb-2">Inscription envoyée !</h1>
           <p className="text-sm text-gray-500 leading-relaxed">
-            Votre inscription a bien été reçue. Le BDE organisateur la traitera dans les plus brefs délais et vous contactera par email.
+            Votre inscription a bien été reçue. Le BDE organisateur la traitera dans les plus brefs délais.
           </p>
-          <p className="mt-4 text-sm text-gray-500 leading-relaxed">
-            Les informations de paiement vous seront communiquées par email par le BDE organisateur.
-          </p>
+
+          {/* Instructions paiement */}
           {prixTotal > 0 && (
-            <p className="mt-2 text-sm font-semibold text-navy">
-              Montant à régler : {fmt(prixTotal)}
-            </p>
+            <div className="mt-5 text-left bg-brand/5 border border-brand/20 rounded-xl px-4 py-4 space-y-1">
+              <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-2">Paiement</p>
+              {paiementMsg && (
+                <p className="text-sm text-navy leading-relaxed">{paiementMsg}</p>
+              )}
+              {modePaiement === 'helloasso' && paiementDetails?.helloasso && (
+                <p className="text-sm text-navy leading-relaxed">
+                  Veuillez régler votre inscription via HelloAsso :{' '}
+                  <a
+                    href={paiementDetails.helloasso}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand hover:text-brand-light font-medium underline"
+                  >
+                    Accéder au formulaire HelloAsso →
+                  </a>
+                </p>
+              )}
+              {!paiementMsg && modePaiement !== 'helloasso' && (
+                <p className="text-sm text-gray-500">
+                  Les informations de paiement vous seront communiquées par email.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Instructions caution */}
+          {cautionMontant && cautionMontant > 0 && (
+            <div className="mt-3 text-left bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Caution</p>
+              {cautionMode === 'cheque' && (
+                <p className="text-sm text-navy leading-relaxed">
+                  Une caution de {fmt(cautionMontant)} par chèque est demandée. Déposez-le avec votre chèque d&apos;inscription.
+                </p>
+              )}
+              {cautionMode === 'swikly' && cautionSwiklyUrl && (
+                <p className="text-sm text-navy leading-relaxed">
+                  Une caution de {fmt(cautionMontant)} est demandée via Swikly.{' '}
+                  <a
+                    href={cautionSwiklyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-700 hover:text-amber-800 font-medium underline"
+                  >
+                    Cliquez ici pour l&apos;autoriser →
+                  </a>
+                </p>
+              )}
+              {(!cautionMode || (cautionMode === 'swikly' && !cautionSwiklyUrl)) && (
+                <p className="text-sm text-navy leading-relaxed">
+                  Une caution de {fmt(cautionMontant)} vous sera demandée. Le BDE vous contactera pour les modalités.
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

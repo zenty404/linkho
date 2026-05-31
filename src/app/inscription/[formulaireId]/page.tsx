@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { ChampFormulaire } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
 import { PublicInscriptionForm } from './public-form'
 
 type EvenementSnippet = {
@@ -37,6 +37,11 @@ export default async function InscriptionPubliquePage({ params }: Props) {
       prixTotal={formulaire.prix_total ?? 0}
       champs={champs}
       evenement={evenement}
+      modePaiement={formulaire.mode_paiement ?? null}
+      paiementDetails={(formulaire.paiement_details as PaiementDetails) ?? null}
+      cautionMontant={formulaire.caution_montant ?? null}
+      cautionMode={formulaire.caution_mode ?? null}
+      cautionSwiklyUrl={formulaire.caution_swikly_url ?? null}
     />
   )
 }

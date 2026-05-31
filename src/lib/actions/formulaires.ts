@@ -6,6 +6,13 @@ import type { ActionResult } from '@/lib/types/actions'
 
 type Formulaire = Database['public']['Tables']['formulaire_inscriptions']['Row']
 
+export type PaiementDetails = {
+  iban?: string | null
+  ordre?: string | null
+  lydia?: string | null
+  helloasso?: string | null
+}
+
 export type ChampFormulaire = {
   id: string
   type:
@@ -102,12 +109,27 @@ export async function updateFormulaire(
   prix_total: number | null,
   titre: string,
   description: string | null,
+  mode_paiement?: string | null,
+  paiement_details?: PaiementDetails | null,
+  caution_montant?: number | null,
+  caution_mode?: string | null,
+  caution_swikly_url?: string | null,
 ): Promise<ActionResult<Formulaire>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('formulaire_inscriptions')
-    .update({ champs: champs as unknown as Database['public']['Tables']['formulaire_inscriptions']['Row']['champs'], prix_total, titre, description })
+    .update({
+      champs: champs as unknown as Database['public']['Tables']['formulaire_inscriptions']['Row']['champs'],
+      prix_total,
+      titre,
+      description,
+      mode_paiement: mode_paiement ?? null,
+      paiement_details: (paiement_details ?? null) as Database['public']['Tables']['formulaire_inscriptions']['Row']['paiement_details'],
+      caution_montant: caution_montant ?? null,
+      caution_mode: caution_mode ?? null,
+      caution_swikly_url: caution_swikly_url ?? null,
+    })
     .eq('id', id)
     .select()
     .single()

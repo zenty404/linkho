@@ -24,7 +24,7 @@ import {
   Copy, Trash2, Eye, Plus, X, Check, LoaderCircle,
 } from 'lucide-react'
 import { updateFormulaire, publierFormulaire, depublierFormulaire } from '@/lib/actions/formulaires'
-import type { ChampFormulaire } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
 import type { Database } from '@/lib/types/supabase'
 
 type Formulaire = Database['public']['Tables']['formulaire_inscriptions']['Row']
@@ -453,14 +453,30 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
   const [titre, setTitre] = useState(formulaire.titre)
   const [description, setDescription] = useState(formulaire.description ?? '')
   const [prixTotal, setPrixTotal] = useState<number | ''>(formulaire.prix_total ?? '')
+  const [modePaiement, setModePaiement] = useState<string>(formulaire.mode_paiement ?? '')
+  const [paiementDetails, setPaiementDetails] = useState<PaiementDetails>(
+    (formulaire.paiement_details as PaiementDetails) ?? {},
+  )
+  const [cautionActive, setCautionActive] = useState(formulaire.caution_montant != null)
+  const [cautionMontant, setCautionMontant] = useState<number | ''>(formulaire.caution_montant ?? '')
+  const [cautionMode, setCautionMode] = useState<string>(formulaire.caution_mode ?? '')
+  const [cautionSwiklyUrl, setCautionSwiklyUrl] = useState(formulaire.caution_swikly_url ?? '')
   const [publie, setPublie] = useState(formulaire.publie)
   const [activeTab, setActiveTab] = useState<Tab>('editeur')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [isPending, startTransition] = useTransition()
 
   // Always-current ref for auto-save (avoids stale closures)
-  const latestRef = useRef({ champs, titre, description, prixTotal })
-  latestRef.current = { champs, titre, description, prixTotal }
+  const latestRef = useRef({
+    champs, titre, description, prixTotal,
+    modePaiement, paiementDetails,
+    cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+  })
+  latestRef.current = {
+    champs, titre, description, prixTotal,
+    modePaiement, paiementDetails,
+    cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+  }
   const isFirst = useRef(true)
 
   // Auto-save debounce
@@ -472,19 +488,28 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
     setSaveStatus('pending')
     const timer = setTimeout(async () => {
       setSaveStatus('saving')
-      const { champs, titre, description, prixTotal } = latestRef.current
+      const {
+        champs, titre, description, prixTotal,
+        modePaiement, paiementDetails,
+        cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+      } = latestRef.current
       const res = await updateFormulaire(
         formulaire.id,
         champs,
         prixTotal === '' ? null : Number(prixTotal),
         titre,
         description || null,
+        modePaiement || null,
+        Object.keys(paiementDetails).length ? paiementDetails : null,
+        cautionActive ? (cautionMontant === '' ? null : Number(cautionMontant)) : null,
+        cautionActive ? (cautionMode || null) : null,
+        cautionActive && cautionMode === 'swikly' ? (cautionSwiklyUrl || null) : null,
       )
       setSaveStatus(res.error ? 'error' : 'saved')
     }, 1000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [champs, titre, description, prixTotal])
+  }, [champs, titre, description, prixTotal, modePaiement, paiementDetails, cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl])
 
   // DnD
   const sensors = useSensors(
@@ -669,24 +694,34 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
       )}
 
       {activeTab === 'parametres' && (
-        <div className="flex-1 p-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 max-w-md">
+        <div className="flex-1 p-4 space-y-4 max-w-md">
+          {/* Description */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
-              Paramètres du formulaire
+              Général
+            </h2>
+            <div>
+              <label className="text-xs font-medium text-gray-700 block mb-1.5">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Description publique du formulaire…"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Prix et paiement */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
+              Prix et paiement
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Description publique du formulaire…"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">Prix total (€)</label>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                  Prix de l&apos;inscription (€)
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -697,6 +732,156 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
                 />
               </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                  Mode de paiement
+                </label>
+                <select
+                  value={modePaiement}
+                  onChange={(e) => {
+                    setModePaiement(e.target.value)
+                    setPaiementDetails({})
+                  }}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  <option value="">— Sélectionner —</option>
+                  <option value="virement">Virement IBAN</option>
+                  <option value="cheque">Chèque</option>
+                  <option value="lydia">Lydia</option>
+                  <option value="helloasso">HelloAsso</option>
+                </select>
+              </div>
+
+              {modePaiement === 'virement' && (
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">IBAN</label>
+                  <input
+                    type="text"
+                    value={paiementDetails.iban ?? ''}
+                    onChange={(e) => setPaiementDetails((d) => ({ ...d, iban: e.target.value || null }))}
+                    placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              )}
+              {modePaiement === 'cheque' && (
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                    Chèque à l&apos;ordre de
+                  </label>
+                  <input
+                    type="text"
+                    value={paiementDetails.ordre ?? ''}
+                    onChange={(e) => setPaiementDetails((d) => ({ ...d, ordre: e.target.value || null }))}
+                    placeholder="BDE Paris"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              )}
+              {modePaiement === 'lydia' && (
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                    Numéro Lydia
+                  </label>
+                  <input
+                    type="text"
+                    value={paiementDetails.lydia ?? ''}
+                    onChange={(e) => setPaiementDetails((d) => ({ ...d, lydia: e.target.value || null }))}
+                    placeholder="06 00 00 00 00"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              )}
+              {modePaiement === 'helloasso' && (
+                <div>
+                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                    Lien HelloAsso
+                  </label>
+                  <input
+                    type="url"
+                    value={paiementDetails.helloasso ?? ''}
+                    onChange={(e) => setPaiementDetails((d) => ({ ...d, helloasso: e.target.value || null }))}
+                    placeholder="https://www.helloasso.com/…"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Caution étudiant */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
+              Caution étudiant
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-700">Demander une caution</span>
+                <button
+                  type="button"
+                  onClick={() => setCautionActive((v) => !v)}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${cautionActive ? 'bg-brand' : 'bg-gray-200'}`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                      cautionActive ? 'left-0.5 translate-x-4' : 'left-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {cautionActive && (
+                <>
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                      Montant de la caution (€)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={cautionMontant}
+                      onChange={(e) => setCautionMontant(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      placeholder="200.00"
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                      Mode de caution
+                    </label>
+                    <select
+                      value={cautionMode}
+                      onChange={(e) => {
+                        setCautionMode(e.target.value)
+                        if (e.target.value !== 'swikly') setCautionSwiklyUrl('')
+                      }}
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    >
+                      <option value="">— Sélectionner —</option>
+                      <option value="cheque">Chèque physique</option>
+                      <option value="swikly">Swikly — empreinte bancaire</option>
+                    </select>
+                  </div>
+
+                  {cautionMode === 'swikly' && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                        Lien Swikly
+                      </label>
+                      <input
+                        type="url"
+                        value={cautionSwiklyUrl}
+                        onChange={(e) => setCautionSwiklyUrl(e.target.value)}
+                        placeholder="https://swikly.com/…"
+                        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

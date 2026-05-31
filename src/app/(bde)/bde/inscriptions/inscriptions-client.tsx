@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Database } from '@/lib/types/supabase'
 import type { InscriptionWithDetails } from '@/lib/actions/inscriptions'
-import { marquerPayeTotal } from '@/lib/actions/inscriptions'
+import { marquerPayeTotal, marquerCautionRecue } from '@/lib/actions/inscriptions'
 
 type Evenement = Database['public']['Tables']['evenements']['Row']
 
@@ -421,15 +421,25 @@ export function InscriptionsClient({
                     {/* Caution */}
                     <div className="flex justify-center">
                       {i.caution_montant ? (
-                        <span
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                            i.caution_payee
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-gray-100 text-gray-400'
-                          }`}
-                        >
-                          {i.caution_payee ? '✓' : '○'}
-                        </span>
+                        i.caution_payee ? (
+                          <span className="px-2 py-0.5 text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 rounded-full">
+                            Reçue
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isPending}
+                            onClick={() =>
+                              startTransition(async () => {
+                                await marquerCautionRecue(i.id)
+                                router.refresh()
+                              })
+                            }
+                            className="px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200 rounded-full hover:bg-emerald-50 transition-colors disabled:opacity-40"
+                          >
+                            ✓ Reçue
+                          </button>
+                        )
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
                       )}
