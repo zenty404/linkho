@@ -2,6 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/types/supabase'
 
+type UserRole = 'bde' | 'etablissement' | 'admin'
+
+function getDashboardUrl(role: UserRole): string {
+  if (role === 'bde') return '/bde/dashboard'
+  if (role === 'etablissement') return '/etablissement/dashboard'
+  return '/admin/dashboard'
+}
+
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request })
 
@@ -27,15 +35,25 @@ export async function updateSession(request: NextRequest) {
     )
 
     const { data: { user } } = await supabase.auth.getUser()
+    const pathname = request.nextUrl.pathname
 
-    // Routes protégées
-    const protectedRoutes = ['/bde', '/etablissement', '/admin']
-    const isProtected = protectedRoutes.some(route =>
-        request.nextUrl.pathname.startsWith(route)
-    )
+    // Utilisateur non connecté sur une route protégée → /login
+    const protectedRoutes = ['/bde', '/etablissement', '/admin', '/onboarding']
+    const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
 
     if (isProtected && !user) {
         return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Utilisateur connecté sur une page auth → son dashboard
+    const authRoutes = ['/login', '/register']
+    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
+
+    if (isAuthRoute && user) {
+        const role = user.user_metadata?.role as UserRole | undefined
+        if (role && ['bde', 'etablissement', 'admin'].includes(role)) {
+            return NextResponse.redirect(new URL(getDashboardUrl(role), request.url))
+        }
     }
 
     return supabaseResponse
