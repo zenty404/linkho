@@ -14,6 +14,14 @@ export type DevisWithItems = Devis & {
   demande: DemandeDevis & {
     bde: Pick<Database['public']['Tables']['bde_profiles']['Row'], 'nom' | 'ecole'> | null
   }
+  etablissement: Pick<
+    Database['public']['Tables']['etablissement_profiles']['Row'],
+    'nom' | 'ville'
+  > | null
+}
+
+export type DevisAvecBde = Devis & {
+  bde: { nom: string } | null
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -40,7 +48,7 @@ export async function getDevisById(id: string): Promise<ActionResult<DevisWithIt
   const { data, error } = await supabase
     .from('devis')
     .select(
-      `*, items:devis_items(*), demande:demandes_devis(*, bde:bde_profiles(nom, ecole))`,
+      `*, items:devis_items(*), demande:demandes_devis(*, bde:bde_profiles(nom, ecole)), etablissement:etablissement_profiles(nom, ville)`,
     )
     .eq('id', id)
     .order('ordre', { referencedTable: 'devis_items', ascending: true })
@@ -294,4 +302,69 @@ export async function deleteDevisItem(itemId: string): Promise<ActionResult<null
   }
 
   return { data: null, error: null }
+}
+
+// ─── Établissement ──────────────────────────────────────────────────────────
+
+export async function getDevisByEtablissement(): Promise<ActionResult<DevisAvecBde[]>> {
+  const supabase = await createClient()
+
+  const { data: etablissementId, error: rpcError } = await supabase.rpc('get_etablissement_id')
+  if (rpcError || !etablissementId) {
+    console.error('get_etablissement_id error:', rpcError)
+    return { data: null, error: 'Profil établissement introuvable.' }
+  }
+
+  const { data, error } = await supabase
+    .from('devis')
+    .select('*, bde:bde_profiles(nom)')
+    .eq('etablissement_id', etablissementId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('getDevisByEtablissement error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: (data ?? []) as unknown as DevisAvecBde[], error: null }
+}
+
+// ─── Actions BDE ─────────────────────────────────────────────────────────────
+
+export async function accepterDevis(id: string): Promise<ActionResult<Devis>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('devis')
+    .update({ statut: 'accepte' })
+    .eq('id', id)
+    .eq('statut', 'envoye') // garde-fou
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('accepterDevis error:', error)
+    return { data: null, error: error?.message ?? 'Impossible d\'accepter le devis.' }
+  }
+
+  return { data, error: null }
+}
+
+export async function refuserDevis(id: string): Promise<ActionResult<Devis>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('devis')
+    .update({ statut: 'refuse' })
+    .eq('id', id)
+    .eq('statut', 'envoye') // garde-fou
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('refuserDevis error:', error)
+    return { data: null, error: error?.message ?? 'Impossible de refuser le devis.' }
+  }
+
+  return { data, error: null }
 }
