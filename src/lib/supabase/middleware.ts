@@ -56,5 +56,21 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
+    // Profil BDE manquant → /onboarding
+    if (user && pathname.startsWith('/bde/')) {
+        const { data: bdeId } = await supabase.rpc('get_bde_id')
+        if (!bdeId) {
+            return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+    }
+
+    // Profil établissement manquant → /onboarding
+    if (user && pathname.startsWith('/etablissement/')) {
+        const { data: etabId } = await supabase.rpc('get_etablissement_id')
+        if (!etabId) {
+            return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+    }
+
     return supabaseResponse
 }

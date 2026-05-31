@@ -4,6 +4,24 @@ import { useActionState } from 'react'
 import Link from 'next/link'
 import { signUp } from '@/lib/actions/auth'
 
+function GraduationCapIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  )
+}
+
+function BuildingIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+      <path d="M6 22V4a2 2 0 012-2h8a2 2 0 012 2v18zM6 12H4a2 2 0 00-2 2v6a2 2 0 002 2h2M18 9h2a2 2 0 012 2v9a2 2 0 01-2 2h-2" />
+      <path d="M10 6h4M10 10h4M10 14h4M10 18h4" />
+    </svg>
+  )
+}
+
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(signUp, { error: null as string | null })
 
@@ -35,9 +53,14 @@ export default function RegisterPage() {
                   required
                   className="peer sr-only"
                 />
-                <div className="border-2 border-gray-200 rounded-xl p-4 text-center transition-colors peer-checked:border-brand peer-checked:bg-brand/5 hover:border-gray-300">
-                  <p className="font-semibold text-sm text-navy">BDE</p>
-                  <p className="text-xs text-gray-500 mt-1">Association étudiante</p>
+                <div className="border-2 border-gray-200 rounded-xl p-5 text-center transition-all peer-checked:border-brand peer-checked:bg-brand/5 hover:border-gray-300 hover:bg-gray-50">
+                  <div className="flex justify-center mb-3">
+                    <GraduationCapIcon />
+                  </div>
+                  <p className="font-semibold text-sm text-navy">Je suis un BDE</p>
+                  <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                    J&apos;organise des événements pour mes étudiants — WEI, soirées, galas, voyages
+                  </p>
                 </div>
               </label>
 
@@ -48,9 +71,14 @@ export default function RegisterPage() {
                   value="etablissement"
                   className="peer sr-only"
                 />
-                <div className="border-2 border-gray-200 rounded-xl p-4 text-center transition-colors peer-checked:border-brand peer-checked:bg-brand/5 hover:border-gray-300">
-                  <p className="font-semibold text-sm text-navy">Établissement</p>
-                  <p className="text-xs text-gray-500 mt-1">Lieu événementiel</p>
+                <div className="border-2 border-gray-200 rounded-xl p-5 text-center transition-all peer-checked:border-brand peer-checked:bg-brand/5 hover:border-gray-300 hover:bg-gray-50">
+                  <div className="flex justify-center mb-3">
+                    <BuildingIcon />
+                  </div>
+                  <p className="font-semibold text-sm text-navy">Je propose un lieu</p>
+                  <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                    Je mets mon établissement à disposition pour des événements étudiants
+                  </p>
                 </div>
               </label>
             </div>
