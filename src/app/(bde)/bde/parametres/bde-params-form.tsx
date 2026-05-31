@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState } from 'react'
-import { updateProfilBde, PARAM_INIT } from '@/lib/actions/parametres'
+import { updateProfilBde } from '@/lib/actions/parametres'
+import { PARAM_INIT } from '@/lib/types/params'
 import { signOut } from '@/lib/actions/auth'
 import type { Database } from '@/lib/types/supabase'
 

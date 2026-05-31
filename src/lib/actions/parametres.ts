@@ -2,13 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/supabase'
+import type { ActionResult } from '@/lib/types/actions'
+import type { ParamState } from '@/lib/types/params'
 
 type EtabUpdate = Database['public']['Tables']['etablissement_profiles']['Update']
-
-export type ParamState = { success: boolean; error: string | null }
-
-const INIT: ParamState = { success: false, error: null }
-export { INIT as PARAM_INIT }
+type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
 
 // ─── BDE ──────────────────────────────────────────────────────────────────────
 
@@ -54,9 +52,7 @@ export async function updateProfilEtablissement(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Non authentifié.' }
 
-  // Construit le patch à partir des seuls champs présents dans le FormData.
-  // On utilise un Record<string, unknown> pour éviter les conflits entre
-  // champs non-nullables (nom: string) et nullables (adresse: string | null).
+  // Construit le patch dynamiquement — seuls les champs soumis sont mis à jour.
   const raw: Record<string, unknown> = {}
 
   const str = (key: string) => {
@@ -86,6 +82,11 @@ export async function updateProfilEtablissement(
   set('email_contact', str('email_contact'))
   set('site_web', str('site_web'))
 
+  // Type et visibilité
+  set('type_lieu', str('type_lieu'))
+  const visibleRaw = formData.get('visible') as string | null
+  if (visibleRaw !== null) set('visible', visibleRaw === 'true')
+
   // Capacités et tarifs
   set('capacite_max', int('capacite_max'))
   set('nb_couchages', int('nb_couchages'))
@@ -93,6 +94,13 @@ export async function updateProfilEtablissement(
   set('nb_salles_de_bain', int('nb_salles_de_bain'))
   set('superficie_m2', num('superficie_m2'))
   set('prix_base', num('prix_base'))
+
+  // Localisation
+  set('latitude', num('latitude'))
+  set('longitude', num('longitude'))
+
+  // Caution
+  set('caution_montant', num('caution_montant'))
 
   const updates = raw as EtabUpdate
 
@@ -142,4 +150,102 @@ export async function updateIban(
   }
 
   return { success: true, error: null }
+}
+
+// ─── Équipements ──────────────────────────────────────────────────────────────
+
+export async function updateEquipements(
+  equipements: string[],
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { data: null, error: 'Non authentifié.' }
+
+  const { error } = await supabase
+    .from('etablissement_profiles')
+    .update({ equipements })
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('updateEquipements error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
+}
+
+// ─── Photos ───────────────────────────────────────────────────────────────────
+
+export async function getPhotosEtablissement(): Promise<ActionResult<EtabPhoto[]>> {
+  const supabase = await createClient()
+
+  const { data: etabId } = await supabase.rpc('get_etablissement_id')
+  if (!etabId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { data, error } = await supabase
+    .from('etablissement_photos')
+    .select('*')
+    .eq('etablissement_id', etabId)
+    .order('ordre', { ascending: true })
+
+  if (error) return { data: null, error: error.message }
+  return { data: data ?? [], error: null }
+}
+
+export async function ajouterPhoto(
+  url: string,
+  ordre: number,
+): Promise<ActionResult<EtabPhoto>> {
+  const supabase = await createClient()
+
+  const { data: etabId } = await supabase.rpc('get_etablissement_id')
+  if (!etabId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { data, error } = await supabase
+    .from('etablissement_photos')
+    .insert({
+      etablissement_id: etabId,
+      url,
+      ordre,
+      est_principale: ordre === 0,
+    })
+    .select()
+    .single()
+
+  if (error || !data) {
+    console.error('ajouterPhoto error:', error)
+    return { data: null, error: error?.message ?? 'Erreur ajout photo.' }
+  }
+
+  return { data, error: null }
+}
+
+export async function supprimerPhoto(
+  photoId: string,
+  url: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+
+  // Extraire le chemin relatif depuis l'URL publique Supabase Storage
+  const match = url.match(/\/storage\/v1\/object\/public\/etablissement-photos\/(.+)$/)
+  if (match?.[1]) {
+    const { error: storageErr } = await supabase.storage
+      .from('etablissement-photos')
+      .remove([decodeURIComponent(match[1])])
+    if (storageErr) console.error('Storage delete error:', storageErr)
+  }
+
+  const { error } = await supabase
+    .from('etablissement_photos')
+    .delete()
+    .eq('id', photoId)
+
+  if (error) {
+    console.error('supprimerPhoto error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
 }

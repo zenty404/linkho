@@ -450,6 +450,7 @@ export type Database = {
           actif: boolean
           adresse: string | null
           capacite_max: number | null
+          caution_montant: number | null
           code_postal: string | null
           commission_rate: number | null
           created_at: string
@@ -463,6 +464,7 @@ export type Database = {
           equip_salle_soiree: boolean | null
           equip_sonorisation: boolean | null
           equip_wifi: boolean | null
+          equipements: string[] | null
           iban: string | null
           id: string
           latitude: number | null
@@ -476,6 +478,7 @@ export type Database = {
           slug: string | null
           superficie_m2: number | null
           telephone: string | null
+          type_lieu: string | null
           updated_at: string
           user_id: string
           ville: string | null
@@ -485,6 +488,7 @@ export type Database = {
           actif?: boolean
           adresse?: string | null
           capacite_max?: number | null
+          caution_montant?: number | null
           code_postal?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -498,6 +502,7 @@ export type Database = {
           equip_salle_soiree?: boolean | null
           equip_sonorisation?: boolean | null
           equip_wifi?: boolean | null
+          equipements?: string[] | null
           iban?: string | null
           id?: string
           latitude?: number | null
@@ -511,6 +516,7 @@ export type Database = {
           slug?: string | null
           superficie_m2?: number | null
           telephone?: string | null
+          type_lieu?: string | null
           updated_at?: string
           user_id: string
           ville?: string | null
@@ -520,6 +526,7 @@ export type Database = {
           actif?: boolean
           adresse?: string | null
           capacite_max?: number | null
+          caution_montant?: number | null
           code_postal?: string | null
           commission_rate?: number | null
           created_at?: string
@@ -533,6 +540,7 @@ export type Database = {
           equip_salle_soiree?: boolean | null
           equip_sonorisation?: boolean | null
           equip_wifi?: boolean | null
+          equipements?: string[] | null
           iban?: string | null
           id?: string
           latitude?: number | null
@@ -546,6 +554,7 @@ export type Database = {
           slug?: string | null
           superficie_m2?: number | null
           telephone?: string | null
+          type_lieu?: string | null
           updated_at?: string
           user_id?: string
           ville?: string | null
