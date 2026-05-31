@@ -3,6 +3,7 @@
 import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
+import { creerReservation } from '@/lib/actions/reservations'
 import type { DevisWithItems } from '@/lib/actions/devis'
 
 // ─── Utilitaires ─────────────────────────────────────────────────────────────
@@ -78,6 +79,15 @@ export function DevisView({ devis }: Props) {
       const res = await refuserDevis(devis.id)
       if (res.error) setError(res.error)
       else router.refresh()
+    })
+  }
+
+  const handleReserver = () => {
+    setError(null)
+    startTransition(async () => {
+      const res = await creerReservation(devis.id)
+      if (res.error) setError(res.error)
+      else router.push(`/bde/reservations/${res.data!.id}`)
     })
   }
 
@@ -224,28 +234,43 @@ export function DevisView({ devis }: Props) {
           </div>
 
           <div className="px-5 pb-5 pt-2 border-t border-gray-100 space-y-2">
-            <button
-              type="button"
-              onClick={handleAccepter}
-              disabled={!isEnvoye || isPending}
-              className="w-full px-4 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isPending ? 'En cours…' : 'Accepter le devis'}
-            </button>
-            <button
-              type="button"
-              onClick={handleRefuser}
-              disabled={!isEnvoye || isPending}
-              className="w-full px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Refuser le devis
-            </button>
-            {!isEnvoye && (
+            {isEnvoye && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleAccepter}
+                  disabled={isPending}
+                  className="w-full px-4 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isPending ? 'En cours…' : 'Accepter le devis'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRefuser}
+                  disabled={isPending}
+                  className="w-full px-4 py-2.5 text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Refuser le devis
+                </button>
+              </>
+            )}
+
+            {statut === 'accepte' && (
+              <button
+                type="button"
+                onClick={handleReserver}
+                disabled={isPending}
+                className="w-full px-4 py-2.5 text-sm font-bold text-white bg-navy hover:bg-navy-light rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isPending ? 'Création en cours…' : 'Confirmer et réserver'}
+              </button>
+            )}
+
+            {!isEnvoye && statut !== 'accepte' && (
               <p className="text-xs text-gray-400 text-center pt-1">
-                {statut === 'accepte' && 'Vous avez accepté ce devis.'}
                 {statut === 'refuse' && 'Vous avez refusé ce devis.'}
                 {statut === 'brouillon' && 'Ce devis n\'a pas encore été envoyé.'}
-                {statut === 'signe' && 'Ce devis est signé.'}
+                {statut === 'signe' && 'Ce devis est signé — réservation créée.'}
               </p>
             )}
           </div>
