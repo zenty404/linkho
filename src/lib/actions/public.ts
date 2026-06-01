@@ -162,3 +162,80 @@ export async function getReservationsOccupees(
 
   return data ?? []
 }
+
+// ─── Créer une demande de devis + événement ───────────────────────────────────
+
+function mapTypeDemandeDevis(type: string): string {
+  const allowed = ['wei', 'soiree', 'ski', 'gala', 'seminaire', 'sportif', 'autre']
+  if (allowed.includes(type)) return type
+  if (type === 'voyage') return 'autre'
+  if (type === 'culturel') return 'autre'
+  if (type === 'conference') return 'seminaire'
+  if (type === 'atelier') return 'autre'
+  return 'autre'
+}
+
+function mapTypeEvenement(type: string): string {
+  const map: Record<string, string> = {
+    voyage: 'autre',
+    culturel: 'autre',
+    conference: 'seminaire',
+    atelier: 'autre',
+  }
+  return map[type] ?? type
+}
+
+export async function createDemandeEtEvenement(input: {
+  lieuId: string
+  date_debut: string
+  date_fin: string
+  participants: number
+  typeEvenement: string
+  message: string
+}): Promise<ActionResult<{ evenementId: string }>> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { data: null, error: 'Non authentifié.' }
+
+  const { data: bdeId } = await supabase.rpc('get_bde_id')
+  if (!bdeId) return { data: null, error: 'Profil BDE introuvable.' }
+
+  const { data: demande, error: demandeError } = await supabase
+    .from('demandes_devis')
+    .insert({
+      bde_id: bdeId,
+      etablissement_id: input.lieuId,
+      type_evenement: mapTypeDemandeDevis(input.typeEvenement),
+      date_debut: input.date_debut,
+      date_fin: input.date_fin,
+      nb_participants: input.participants,
+      message: input.message || null,
+      statut: 'en_attente',
+    })
+    .select('id')
+    .single()
+
+  if (demandeError || !demande) {
+    return { data: null, error: demandeError?.message ?? 'Erreur lors de la création de la demande.' }
+  }
+
+  const { data: evenement, error: evenementError } = await supabase
+    .from('evenements')
+    .insert({
+      bde_id: bdeId,
+      nom: `Événement du ${input.date_debut} au ${input.date_fin}`,
+      type: mapTypeEvenement(input.typeEvenement),
+      date_debut: input.date_debut,
+      date_fin: input.date_fin,
+      statut: 'brouillon',
+    })
+    .select('id')
+    .single()
+
+  if (evenementError || !evenement) {
+    return { data: null, error: evenementError?.message ?? 'Erreur lors de la création de l\'événement.' }
+  }
+
+  return { data: { evenementId: evenement.id }, error: null }
+}

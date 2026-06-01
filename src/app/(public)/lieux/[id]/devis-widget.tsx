@@ -6,6 +6,7 @@ import type { DateRange } from 'react-day-picker'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { createDemandeEtEvenement } from '@/lib/actions/public'
 
 const TYPES_EVENEMENT = [
   { value: 'soiree', label: 'Soirée' },
@@ -113,16 +114,26 @@ export default function DevisWidget({
         return
       }
 
-      // CAS 3 — BDE : placeholder, server action à brancher dans la feature suivante
-      console.log('Demande de devis:', {
+      // CAS 3 — BDE
+      const toLocalDateString = (d: Date) =>
+        d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0')
+
+      const result = await createDemandeEtEvenement({
         lieuId,
-        date_debut: range!.from!.toISOString().split('T')[0],
-        date_fin: range!.to!.toISOString().split('T')[0],
+        date_debut: toLocalDateString(range!.from!),
+        date_fin: toLocalDateString(range!.to!),
         participants,
         typeEvenement,
         message,
       })
-      setSuccess(true)
+      if (result.error) {
+        setError(result.error)
+        setIsSubmitting(false)
+        return
+      }
+      router.push('/bde/evenements/' + result.data!.evenementId)
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.')
     } finally {
