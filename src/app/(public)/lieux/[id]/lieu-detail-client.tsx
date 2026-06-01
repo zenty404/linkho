@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { LieuDetail, PeriodeOccupee } from '@/lib/actions/public'
+import DevisWidget from './devis-widget'
 
 type Props = {
   lieu: LieuDetail
@@ -11,7 +12,7 @@ type Props = {
   initialDates: { date_debut: string; date_fin: string; participants: string }
 }
 
-export default function LieuDetailClient({ lieu, reservationsOccupees: _reservationsOccupees, initialDates: _initialDates }: Props) {
+export default function LieuDetailClient({ lieu, reservationsOccupees, initialDates }: Props) {
   const router = useRouter()
   const [activePhoto, setActivePhoto] = useState(
     lieu.photos.find((p) => p.est_principale)?.url ?? lieu.photos[0]?.url ?? null,
@@ -203,28 +204,18 @@ export default function LieuDetailClient({ lieu, reservationsOccupees: _reservat
           </div>
 
           {/* ── Widget sticky droite ── */}
-          <aside className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-              <h3 className="text-lg font-bold text-navy">Demander un devis</h3>
-              <p className="text-sm text-gray-500">
-                Sélectionnez vos dates pour continuer.
-              </p>
-              {lieu.prix_base != null && (
-                <p className="text-2xl font-bold text-brand">
-                  {lieu.prix_base.toLocaleString('fr-FR')} €
-                  <span className="text-sm font-normal text-gray-400"> /nuit</span>
-                </p>
-              )}
-              <button
-                disabled
-                className="w-full bg-brand/40 text-navy/40 font-semibold py-3 rounded-lg cursor-not-allowed text-sm"
-              >
-                Configurer ma demande
-              </button>
-              <p className="text-xs text-gray-400 text-center">
-                Disponibilités vérifiées en temps réel
-              </p>
-            </div>
+          <aside className="hidden lg:block w-80 xl:w-auto flex-shrink-0">
+            <DevisWidget
+              lieuId={lieu.id}
+              lieuNom={lieu.nom}
+              prixBase={lieu.prix_base}
+              reservationsOccupees={reservationsOccupees}
+              initialDateDebut={initialDates.date_debut || undefined}
+              initialDateFin={initialDates.date_fin || undefined}
+              initialParticipants={
+                initialDates.participants ? parseInt(initialDates.participants, 10) : undefined
+              }
+            />
           </aside>
         </div>
       </div>

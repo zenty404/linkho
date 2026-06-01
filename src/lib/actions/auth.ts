@@ -34,10 +34,13 @@ export async function signIn(
     return { error: 'Email ou mot de passe incorrect.' }
   }
 
+  const redirectParam = (formData.get('redirect') as string | null) ?? ''
+  const redirectUrl = redirectParam.startsWith('/') ? redirectParam : null
+
   const metaRole = data.user.user_metadata?.role as UserRole | undefined
 
   if (metaRole && ['bde', 'etablissement', 'admin'].includes(metaRole)) {
-    redirect(getDashboardUrl(metaRole))
+    redirect(redirectUrl ?? getDashboardUrl(metaRole))
   }
 
   const { data: userData } = await supabase
@@ -50,7 +53,7 @@ export async function signIn(
     return { error: 'Rôle utilisateur introuvable. Contactez le support.' }
   }
 
-  redirect(getDashboardUrl(userData.role as UserRole))
+  redirect(redirectUrl ?? getDashboardUrl(userData.role as UserRole))
 }
 
 export async function signUp(
