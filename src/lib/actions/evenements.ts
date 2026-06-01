@@ -152,15 +152,14 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
     .single()
   if (evtError || !evt) return { data: null, error: 'Événement introuvable.' }
 
-  const { data: demande } = await supabase
-    .from('demandes_devis')
-    .select('*, etablissement:etablissement_profiles(nom, ville, adresse)')
-    .eq('bde_id', bdeId)
-    .eq('date_debut', evt.date_debut ?? '')
-    .eq('date_fin', evt.date_fin ?? '')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  const evtExtra = evt as typeof evt & { demande_id?: string | null }
+  const { data: demande } = evtExtra.demande_id
+    ? await supabase
+        .from('demandes_devis')
+        .select('*, etablissement:etablissement_profiles(nom, ville, adresse)')
+        .eq('id', evtExtra.demande_id)
+        .maybeSingle()
+    : { data: null }
 
   let devis = null
   if (demande) {
@@ -168,6 +167,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       .from('devis')
       .select('*, items:devis_items(id, libelle, quantite, prix_unitaire)')
       .eq('demande_id', demande.id)
+      .neq('statut', 'refuse')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()

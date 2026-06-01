@@ -237,5 +237,10 @@ export async function createDemandeEtEvenement(input: {
     return { data: null, error: evenementError?.message ?? 'Erreur lors de la création de l\'événement.' }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('evenements') as any)
+    .update({ demande_id: demande.id })
+    .eq('id', evenement.id)
+
   return { data: { evenementId: evenement.id }, error: null }
 }

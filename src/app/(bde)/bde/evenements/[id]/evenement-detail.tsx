@@ -190,16 +190,33 @@ export default function EvenementDetail({ evenement }: Props) {
         )}
       </div>
 
-      {/* SECTION 2 — DEVIS */}
-      {devis && (
+      {/* SECTION 2 — DEVIS : visible dès qu'il y a une demande */}
+      {demande && (
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(2))}`}>
           <SectionHeader step={2} title="Devis" state={stepState(2)} />
+
+          {/* Devis refusé (ou en attente d'un nouveau) */}
+          {!devis ? (
+            <div className="space-y-3">
+              <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
+                Devis refusé
+              </span>
+              <p className="text-sm text-gray-500">
+                L&apos;établissement peut vous proposer un nouveau devis suite à vos échanges.
+              </p>
+              <Link
+                href="/rechercher"
+                className="inline-block px-4 py-2 bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Rechercher un autre lieu
+              </Link>
+            </div>
+          ) : (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-xs text-gray-500 font-mono">{devis.numero}</p>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full
                 ${devis.statut === 'accepte' || devis.statut === 'signe' ? 'bg-green-100 text-green-700' :
-                  devis.statut === 'refuse' ? 'bg-red-100 text-red-700' :
                   devis.statut === 'envoye' ? 'bg-blue-100 text-blue-700' :
                   'bg-gray-100 text-gray-600'}`}>
                 {devis.statut}
@@ -231,7 +248,7 @@ export default function EvenementDetail({ evenement }: Props) {
                 <span>{fmtEuros(devis.sous_total_ht)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>TVA ({devis.tva_taux}%)</span>
+                <span>TVA ({Math.round(devis.tva_taux * 100)}%)</span>
                 <span>{fmtEuros((devis.total_ttc ?? 0) - devis.sous_total_ht)}</span>
               </div>
               <div className="flex justify-between font-bold text-navy border-t border-gray-100 pt-2">
@@ -239,12 +256,12 @@ export default function EvenementDetail({ evenement }: Props) {
                 <span>{fmtEuros(devis.total_ttc ?? 0)}</span>
               </div>
               <div className="flex justify-between text-gray-600 pt-1">
-                <span>Acompte ({devis.acompte_taux}%)</span>
-                <span>{fmtEuros((devis.total_ttc ?? 0) * devis.acompte_taux / 100)}</span>
+                <span>Acompte ({Math.round(devis.acompte_taux * 100)}%)</span>
+                <span>{fmtEuros((devis.total_ttc ?? 0) * devis.acompte_taux)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Solde</span>
-                <span>{fmtEuros((devis.total_ttc ?? 0) * (1 - devis.acompte_taux / 100))}</span>
+                <span>{fmtEuros((devis.total_ttc ?? 0) * (1 - devis.acompte_taux))}</span>
               </div>
             </div>
 
@@ -286,6 +303,7 @@ export default function EvenementDetail({ evenement }: Props) {
               </button>
             )}
           </div>
+          )}
         </div>
       )}
 
