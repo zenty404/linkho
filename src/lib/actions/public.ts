@@ -79,3 +79,86 @@ export async function getLieuxPublics(
 
   return { data: lieux, error: null }
 }
+
+// ─── Détail d'un lieu ─────────────────────────────────────────────────────────
+
+export type LieuPhoto = {
+  id: string
+  url: string
+  est_principale: boolean | null
+  ordre: number | null
+}
+
+export type LieuDetail = {
+  id: string
+  nom: string
+  ville: string | null
+  adresse: string | null
+  code_postal: string | null
+  type_lieu: string | null
+  description: string | null
+  capacite_max: number | null
+  nb_couchages: number | null
+  nb_chambres: number | null
+  nb_salles_de_bain: number | null
+  superficie_m2: number | null
+  prix_base: number | null
+  equipements: string[] | null
+  photos: LieuPhoto[]
+}
+
+export async function getLieuById(id: string): Promise<LieuDetail | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('etablissement_profiles')
+    .select(
+      'id, nom, ville, adresse, code_postal, type_lieu, description, capacite_max, nb_couchages, nb_chambres, nb_salles_de_bain, superficie_m2, prix_base, equipements, actif, visible, etablissement_photos(id, url, est_principale, ordre)',
+    )
+    .eq('id', id)
+    .single()
+
+  if (error || !data || !data.actif || !data.visible) return null
+
+  const photos = (data.etablissement_photos as LieuPhoto[] | null) ?? []
+  photos.sort((a, b) => (a.ordre ?? 999) - (b.ordre ?? 999))
+
+  return {
+    id: data.id,
+    nom: data.nom,
+    ville: data.ville,
+    adresse: data.adresse,
+    code_postal: data.code_postal,
+    type_lieu: data.type_lieu,
+    description: data.description,
+    capacite_max: data.capacite_max,
+    nb_couchages: data.nb_couchages,
+    nb_chambres: data.nb_chambres,
+    nb_salles_de_bain: data.nb_salles_de_bain,
+    superficie_m2: data.superficie_m2,
+    prix_base: data.prix_base,
+    equipements: data.equipements,
+    photos,
+  }
+}
+
+// ─── Périodes occupées ────────────────────────────────────────────────────────
+
+export type PeriodeOccupee = {
+  date_debut: string
+  date_fin: string
+}
+
+export async function getReservationsOccupees(
+  etablissementId: string,
+): Promise<PeriodeOccupee[]> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('reservations')
+    .select('date_debut, date_fin')
+    .eq('etablissement_id', etablissementId)
+    .neq('statut', 'annulee')
+
+  return data ?? []
+}
