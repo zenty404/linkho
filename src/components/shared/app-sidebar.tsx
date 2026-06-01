@@ -16,6 +16,7 @@ import {
   Receipt,
   Star,
   Percent,
+  Search,
   ChevronRight,
   LogOut,
 } from 'lucide-react'
@@ -28,12 +29,7 @@ const NAV_ITEMS: Record<Space, NavItem[]> = {
   bde: [
     { label: 'Tableau de bord', href: '/bde/dashboard', icon: Home },
     { label: 'Événements', href: '/bde/evenements', icon: Calendar },
-    { label: 'Inscriptions', href: '/bde/inscriptions', icon: Users },
-    { label: 'Formulaires', href: '/bde/formulaires', icon: FileText },
-    { label: 'Paiements', href: '/bde/paiements', icon: CreditCard },
-    { label: 'Communications', href: '/bde/communications', icon: MessageSquare },
-    { label: 'Documents', href: '/bde/documents', icon: File },
-    { label: 'Membres', href: '/bde/membres', icon: UsersRound },
+    { label: 'Rechercher un lieu', href: '/rechercher', icon: Search },
     { label: 'Paramètres', href: '/bde/parametres', icon: Settings },
   ],
   etablissement: [
