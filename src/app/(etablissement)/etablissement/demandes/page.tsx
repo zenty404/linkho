@@ -7,27 +7,38 @@ const TYPE_LABELS: Record<string, string> = {
   sportif: 'Sportif', seminaire: 'Séminaire', autre: 'Autre',
 }
 
-const STATUT_STYLES: Record<string, string> = {
-  en_attente: 'bg-amber-100 text-amber-700',
-  acceptee: 'bg-green-100 text-green-700',
-  refusee: 'bg-red-100 text-red-700',
-}
-
-const DEVIS_STATUT_STYLES: Record<string, string> = {
-  brouillon: 'bg-gray-100 text-gray-600',
-  envoye: 'bg-blue-100 text-blue-700',
-  accepte: 'bg-green-100 text-green-700',
-  signe: 'bg-green-100 text-green-700',
-  refuse: 'bg-red-100 text-red-700',
-}
-
-const RES_STATUT_STYLES: Record<string, string> = {
-  devis_signe: 'bg-blue-100 text-blue-700',
-  acompte_confirme: 'bg-amber-100 text-amber-700',
-  confirmee: 'bg-green-100 text-green-700',
-  en_cours: 'bg-green-100 text-green-700',
-  terminee: 'bg-gray-100 text-gray-600',
-  commission_reversee: 'bg-gray-100 text-gray-600',
+function getDisplayStatut(d: DemandeComplete): { label: string; style: string } {
+  if (d.reservation) {
+    const styles: Record<string, string> = {
+      terminee: 'bg-green-100 text-green-700',
+      commission_reversee: 'bg-orange-100 text-orange-700',
+      en_cours: 'bg-green-100 text-green-700',
+      confirmee: 'bg-green-100 text-green-700',
+      acompte_confirme: 'bg-amber-100 text-amber-700',
+      devis_signe: 'bg-blue-100 text-blue-700',
+      annulee: 'bg-red-100 text-red-700',
+    }
+    return {
+      label: d.reservation.statut.replace(/_/g, ' '),
+      style: styles[d.reservation.statut] ?? 'bg-gray-100 text-gray-600',
+    }
+  }
+  if (d.devis) {
+    const styles: Record<string, string> = {
+      brouillon: 'bg-gray-100 text-gray-600',
+      envoye: 'bg-blue-100 text-blue-700',
+      accepte: 'bg-green-100 text-green-700',
+      signe: 'bg-green-100 text-green-700',
+      refuse: 'bg-red-100 text-red-700',
+    }
+    return { label: `Devis ${d.devis.statut}`, style: styles[d.devis.statut] ?? 'bg-gray-100 text-gray-600' }
+  }
+  const demStyles: Record<string, string> = {
+    en_attente: 'bg-amber-100 text-amber-700',
+    acceptee: 'bg-green-100 text-green-700',
+    refusee: 'bg-red-100 text-red-700',
+  }
+  return { label: d.statut, style: demStyles[d.statut] ?? 'bg-gray-100 text-gray-600' }
 }
 
 function fmtDate(s: string) {
@@ -53,19 +64,9 @@ function DemandeCard({ d }: { d: DemandeComplete }) {
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUT_STYLES[d.statut] ?? 'bg-gray-100 text-gray-600'}`}>
-          {d.statut}
-        </span>
-        {d.devis && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${DEVIS_STATUT_STYLES[d.devis.statut] ?? 'bg-gray-100 text-gray-600'}`}>
-            Devis {d.devis.statut}
-          </span>
-        )}
-        {d.reservation && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RES_STATUT_STYLES[d.reservation.statut] ?? 'bg-gray-100 text-gray-600'}`}>
-            Rés. {d.reservation.statut}
-          </span>
-        )}
+        {(() => { const { label, style } = getDisplayStatut(d); return (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${style}`}>{label}</span>
+        )})()}
         <Link
           href={`/etablissement/demandes/${d.id}`}
           className="px-3 py-1.5 text-xs font-semibold text-navy border border-navy/20 rounded-lg hover:bg-navy/5 transition-colors"

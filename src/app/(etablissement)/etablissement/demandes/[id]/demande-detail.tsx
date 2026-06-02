@@ -50,6 +50,37 @@ export default function DemandeDetail({ demande }: Props) {
 
   const { devis, reservation } = demande
 
+  const headerStatut: { label: string; style: string } = (() => {
+    if (reservation) {
+      const styles: Record<string, string> = {
+        terminee: 'bg-green-100 text-green-700',
+        commission_reversee: 'bg-orange-100 text-orange-700',
+        en_cours: 'bg-green-100 text-green-700',
+        confirmee: 'bg-green-100 text-green-700',
+        acompte_confirme: 'bg-amber-100 text-amber-700',
+        devis_signe: 'bg-blue-100 text-blue-700',
+        annulee: 'bg-red-100 text-red-700',
+      }
+      return { label: reservation.statut.replace(/_/g, ' '), style: styles[reservation.statut] ?? 'bg-gray-100 text-gray-600' }
+    }
+    if (devis) {
+      const styles: Record<string, string> = {
+        brouillon: 'bg-gray-100 text-gray-600',
+        envoye: 'bg-blue-100 text-blue-700',
+        accepte: 'bg-green-100 text-green-700',
+        signe: 'bg-green-100 text-green-700',
+        refuse: 'bg-red-100 text-red-700',
+      }
+      return { label: `Devis ${devis.statut}`, style: styles[devis.statut] ?? 'bg-gray-100 text-gray-600' }
+    }
+    const demStyles: Record<string, string> = {
+      en_attente: 'bg-amber-100 text-amber-700',
+      acceptee: 'bg-green-100 text-green-700',
+      refusee: 'bg-red-100 text-red-700',
+    }
+    return { label: demande.statut, style: demStyles[demande.statut] ?? 'bg-gray-100 text-gray-600' }
+  })()
+
   function handleAction(fn: () => Promise<{ data: unknown; error: string | null }>) {
     setError(null)
     startTransition(async () => {
@@ -86,11 +117,8 @@ export default function DemandeDetail({ demande }: Props) {
               </p>
             )}
           </div>
-          <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
-            ${demande.statut === 'acceptee' ? 'bg-green-100 text-green-700' :
-              demande.statut === 'refusee' ? 'bg-red-100 text-red-700' :
-              'bg-amber-100 text-amber-700'}`}>
-            {demande.statut}
+          <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${headerStatut.style}`}>
+            {headerStatut.label}
           </span>
         </div>
       </SectionCard>
@@ -284,7 +312,9 @@ export default function DemandeDetail({ demande }: Props) {
                 <p className="text-xs text-gray-400 mb-0.5">Montant commission ({Math.round((reservation?.commission_taux ?? 0) * 100)}%)</p>
                 <p className="text-lg font-bold text-navy">{fmtEuros(reservation!.commission_montant)}</p>
               </div>
-              {commissionPaiement?.confirme ? (
+              {reservation?.statut === 'terminee' ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">Clôturé ✓</span>
+              ) : commissionPaiement?.confirme ? (
                 <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">En attente de validation LINKHO</span>
               ) : (
                 <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">À reverser</span>
