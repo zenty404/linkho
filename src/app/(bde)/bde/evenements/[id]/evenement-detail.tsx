@@ -6,7 +6,7 @@ import { useState, useTransition } from 'react'
 import type { EvenementComplet } from '@/lib/actions/evenements'
 import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
 import { creerReservation } from '@/lib/actions/reservations'
-import { creerFormulaire } from '@/lib/actions/formulaires'
+import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 
 type Props = { evenement: EvenementComplet }
 
@@ -66,7 +66,7 @@ function getCurrentStep(evt: EvenementComplet): number {
   if (!acompte?.confirme) return 3
   const statut = reservation.statut
   if (statut === 'confirmee') return 4
-  if (['en_cours', 'terminee'].includes(statut)) {
+  if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
     const solde = reservation.paiements.find((p) => p.type === 'solde')
     return solde?.confirme ? 6 : 5
   }
@@ -101,7 +101,7 @@ export default function EvenementDetail({ evenement }: Props) {
 
   const acomptePaiement = reservation?.paiements.find((p) => p.type === 'acompte') ?? null
   const soldePaiement = reservation?.paiements.find((p) => p.type === 'solde') ?? null
-  const showSection4 = reservation != null && ['confirmee', 'en_cours', 'terminee'].includes(reservation.statut)
+  const showSection4 = reservation != null && ['acompte_confirme', 'confirmee', 'en_cours', 'terminee', 'commission_reversee'].includes(reservation.statut)
   const showSection5 = reservation != null && ['en_cours', 'terminee'].includes(reservation.statut)
   const showSection6 = acomptePaiement?.confirme && soldePaiement?.confirme
 
@@ -350,58 +350,110 @@ export default function EvenementDetail({ evenement }: Props) {
       )}
 
       {/* SECTION 4 — FORMULAIRE D'INSCRIPTION */}
-      {showSection4 && (
-        <div className={`rounded-xl border p-6 ${sectionCls(stepState(4))}`}>
-          <SectionHeader step={4} title="Formulaire d'inscription" state={stepState(4)} />
-          {formulaire ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between bg-white rounded-lg border border-gray-100 p-4">
-                <div>
-                  <p className="text-sm font-semibold text-navy">{formulaire.titre}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {formulaire.nb_inscriptions} inscription{formulaire.nb_inscriptions !== 1 ? 's' : ''} ·{' '}
-                    <span className={formulaire.publie ? 'text-green-600' : 'text-amber-600'}>
-                      {formulaire.publie ? 'Publié' : 'Brouillon'}
-                    </span>
-                  </p>
+      {showSection4 && (() => {
+        const publicBase = process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+        const inscriptionUrl = formulaire ? `${publicBase}/inscription/${formulaire.id}` : ''
+
+        return (
+          <div className={`rounded-xl border p-6 ${sectionCls(stepState(4))}`}>
+            <SectionHeader step={4} title="Formulaire d'inscription" state={stepState(4)} />
+
+            {/* CAS 1 — Pas de formulaire */}
+            {!formulaire && (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Aucun formulaire d&apos;inscription créé.</p>
+                <button
+                  onClick={() => {
+                    setActionError(null)
+                    startTransition(async () => {
+                      const res = await creerFormulaire(evenement.id)
+                      if (res.error) { setActionError(res.error); return }
+                      router.push('/bde/formulaires/' + res.data!.id)
+                    })
+                  }}
+                  disabled={isPending}
+                  className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Créer le formulaire d&apos;inscription
+                </button>
+              </div>
+            )}
+
+            {/* CAS 2 — Brouillon */}
+            {formulaire && !formulaire.publie && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-navy">{formulaire.titre}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formulaire.nb_inscriptions} inscription{formulaire.nb_inscriptions !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                    Brouillon
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <Link
+                    href={`/bde/formulaires/${formulaire.id}`}
+                    className="flex-1 py-2.5 text-center bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Configurer le formulaire
+                  </Link>
+                  <button
+                    onClick={() => handleAction(() => publierFormulaire(formulaire.id))}
+                    disabled={isPending}
+                    className="flex-1 py-2.5 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    Publier
+                  </button>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Link
-                  href={`/bde/formulaires/${formulaire.id}`}
-                  className="flex-1 py-2.5 text-center bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
-                >
-                  Gérer le formulaire
-                </Link>
-                <Link
-                  href={`/bde/inscriptions?evenement_id=${evenement.id}`}
-                  className="flex-1 py-2.5 text-center bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Voir les inscrits
-                </Link>
+            )}
+
+            {/* CAS 3 — Publié */}
+            {formulaire && formulaire.publie && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-navy">{formulaire.titre}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formulaire.nb_inscriptions} inscription{formulaire.nb_inscriptions !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">
+                    Publié
+                  </span>
+                </div>
+
+                {/* Lien public */}
+                <div className="bg-white rounded-lg border border-gray-100 p-4">
+                  <p className="text-xs text-gray-400 mb-1.5">Lien d&apos;inscription</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-mono text-navy truncate flex-1">{inscriptionUrl}</p>
+                    <CopyButton text={inscriptionUrl} />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Link
+                    href={`/bde/formulaires/${formulaire.id}`}
+                    className="flex-1 py-2.5 text-center bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Gérer le formulaire
+                  </Link>
+                  <Link
+                    href={`/bde/inscriptions?evenement_id=${evenement.id}`}
+                    className="flex-1 py-2.5 text-center bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    Voir les inscrits ({formulaire.nb_inscriptions})
+                  </Link>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">Aucun formulaire d&apos;inscription créé.</p>
-              <button
-                onClick={() => {
-                  setActionError(null)
-                  startTransition(async () => {
-                    const res = await creerFormulaire(evenement.id)
-                    if (res.error) { setActionError(res.error); return }
-                    router.push('/bde/formulaires/' + res.data!.id)
-                  })
-                }}
-                disabled={isPending}
-                className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
-              >
-                Créer le formulaire
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )
+      })()}
 
       {/* SECTION 5 — PAIEMENT SOLDE */}
       {showSection5 && (
