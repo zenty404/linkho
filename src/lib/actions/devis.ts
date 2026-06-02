@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/supabase'
 import type { ActionResult } from '@/lib/types/actions'
 import { sendEmail, getBdeEmail, getEtabEmail } from '@/lib/emails/send'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { DevisRecuEmail } from '@/emails/devis-recu'
 import { DevisRefuseEmail } from '@/emails/devis-refuse'
 import { DevisAccepteEmail } from '@/emails/devis-accepte'
@@ -210,18 +211,12 @@ export async function envoyerDevis(id: string): Promise<ActionResult<Devis>> {
   }
 
   try {
-    const { data: etabCtx } = await supabase
-      .from('etablissement_profiles')
-      .select('nom')
-      .eq('id', data.etablissement_id)
-      .single()
-    const { data: evt } = await supabase
-      .from('evenements')
-      .select('id')
-      .eq('bde_id', data.bde_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const admin = createAdminClient()
+    const [{ data: etabCtx }, { data: evt }] = await Promise.all([
+      supabase.from('etablissement_profiles').select('nom').eq('id', data.etablissement_id).single(),
+      // evenements appartient au BDE — client admin pour bypasser RLS
+      (admin.from('evenements') as any).select('id').eq('demande_id', data.demande_id).maybeSingle() as Promise<{ data: { id: string } | null }>,
+    ])
     const bdeEmail = await getBdeEmail(data.bde_id)
     if (bdeEmail) {
       await sendEmail(
