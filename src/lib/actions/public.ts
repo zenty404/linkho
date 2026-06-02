@@ -1,7 +1,10 @@
 'use server'
 
+import { createElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type { ActionResult } from '@/lib/types/actions'
+import { sendEmail, getEtabEmail } from '@/lib/emails/send'
+import { NouvelleDemandEmail } from '@/emails/nouvelle-demande'
 
 export type LieuPublic = {
   id: string
@@ -241,6 +244,32 @@ export async function createDemandeEtEvenement(input: {
   await (supabase.from('evenements') as any)
     .update({ demande_id: demande.id })
     .eq('id', evenement.id)
+
+  try {
+    const { data: bdeCtx } = await supabase
+      .from('bde_profiles')
+      .select('nom, ecole')
+      .eq('id', bdeId)
+      .single()
+    const etabEmail = await getEtabEmail(input.lieuId)
+    if (etabEmail) {
+      await sendEmail(
+        etabEmail,
+        `Nouvelle demande de devis — ${bdeCtx?.nom ?? 'BDE'}`,
+        createElement(NouvelleDemandEmail, {
+          bdeNom: bdeCtx?.nom ?? 'BDE',
+          ecole: bdeCtx?.ecole ?? '',
+          typeEvenement: input.typeEvenement,
+          dateDebut: input.date_debut,
+          dateFin: input.date_fin,
+          nbParticipants: input.participants,
+          demandeId: demande.id,
+        }),
+      )
+    }
+  } catch (e) {
+    console.error('[createDemandeEtEvenement] email error:', e)
+  }
 
   return { data: { evenementId: evenement.id }, error: null }
 }
