@@ -224,3 +224,44 @@ export async function confirmerPaiement(paiementId: string): Promise<ActionResul
 
   return { data, error: null }
 }
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+export async function getReservationsAdmin(): Promise<ActionResult<ReservationWithDetails[]>> {
+  const supabase = await createClient()
+
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .select(SELECT)
+    .order('created_at', { ascending: false })
+
+  if (error) return { data: null, error: error.message }
+  return { data: (data ?? []) as unknown as ReservationWithDetails[], error: null }
+}
+
+export async function cloturerReservation(reservationId: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { data: reservation } = await supabase
+    .from('reservations')
+    .select('statut')
+    .eq('id', reservationId)
+    .single()
+
+  if (!reservation) return { data: null, error: 'Réservation introuvable.' }
+  if (reservation.statut !== 'commission_reversee') return { data: null, error: 'Statut invalide.' }
+
+  const { error } = await supabase
+    .from('reservations')
+    .update({ statut: 'terminee' })
+    .eq('id', reservationId)
+
+  if (error) return { data: null, error: error.message }
+  return { data: null, error: null }
+}

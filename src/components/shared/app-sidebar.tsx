@@ -39,10 +39,7 @@ const NAV_ITEMS: Record<Space, NavItem[]> = {
   ],
   admin: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Établissements', href: '/admin/etablissements', icon: Building2 },
-    { label: 'BDE', href: '/admin/bde', icon: Users },
     { label: 'Réservations', href: '/admin/reservations', icon: Bookmark },
-    { label: 'Commissions', href: '/admin/commissions', icon: Percent },
     { label: 'Paramètres', href: '/admin/parametres', icon: Settings },
   ],
 }
