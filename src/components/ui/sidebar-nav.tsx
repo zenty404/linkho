@@ -9,6 +9,7 @@ export type NavItem = {
   label: string
   href: string
   icon: LucideIcon
+  badge?: number
 }
 
 export function SidebarNav({ items }: { items: NavItem[] }) {
@@ -16,7 +17,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
 
   return (
     <nav className="flex flex-col gap-0.5">
-      {items.map(({ label, href, icon: Icon }) => {
+      {items.map(({ label, href, icon: Icon, badge }) => {
         const isActive = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link
@@ -33,7 +34,12 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-brand rounded-r-full" />
             )}
             <Icon size={16} strokeWidth={1.75} className="shrink-0" />
-            <span className="truncate">{label}</span>
+            <span className="truncate flex-1">{label}</span>
+            {badge != null && badge > 0 && (
+              <span className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            )}
           </Link>
         )
       })}

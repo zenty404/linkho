@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { EvenementComplet } from '@/lib/actions/evenements'
 import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
+import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 
@@ -77,6 +78,8 @@ export default function EvenementDetail({ evenement }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [showRefusForm, setShowRefusForm] = useState(false)
+  const [motifRefus, setMotifRefus] = useState('')
 
   const { demande, devis, reservation, formulaire } = evenement
   const currentStep = getCurrentStep(evenement)
@@ -85,6 +88,20 @@ export default function EvenementDetail({ evenement }: Props) {
     if (step < currentStep) return 'completed'
     if (step === currentStep) return 'active'
     return 'future'
+  }
+
+  function handleRefus() {
+    const motif = motifRefus.trim()
+    if (motif.length < 20) return
+    setActionError(null)
+    startTransition(async () => {
+      const res = await refuserDevis(devis!.id)
+      if (res.error) { setActionError(res.error); return }
+      if (evenement.demande?.id) {
+        await sendMessage(evenement.demande.id, `Motif du refus : ${motif}`)
+      }
+      router.push(`/bde/messagerie?conv=${evenement.demande?.id ?? 'support'}`)
+    })
   }
 
   function handleAction(fn: () => Promise<{ data: unknown; error: string | null }>) {
@@ -277,7 +294,7 @@ export default function EvenementDetail({ evenement }: Props) {
             )}
 
             {/* Actions devis */}
-            {devis.statut === 'envoye' && (
+            {devis.statut === 'envoye' && !showRefusForm && (
               <div className="flex gap-3">
                 <button
                   onClick={() => handleAction(() => accepterDevis(devis.id))}
@@ -287,12 +304,48 @@ export default function EvenementDetail({ evenement }: Props) {
                   Accepter
                 </button>
                 <button
-                  onClick={() => handleAction(() => refuserDevis(devis.id))}
+                  onClick={() => setShowRefusForm(true)}
                   disabled={isPending}
                   className="flex-1 py-2.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                 >
                   Refuser
                 </button>
+              </div>
+            )}
+            {devis.statut === 'envoye' && showRefusForm && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">
+                    Motif du refus <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={motifRefus}
+                    onChange={(e) => setMotifRefus(e.target.value)}
+                    placeholder="Expliquez la raison du refus à l'établissement…"
+                    rows={3}
+                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-red-300/30 focus:border-red-300 resize-none"
+                  />
+                  <p className={`text-xs mt-1 ${motifRefus.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                    {motifRefus.trim().length} / 20 caractères minimum
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowRefusForm(false); setMotifRefus('') }}
+                    className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRefus}
+                    disabled={isPending || motifRefus.trim().length < 20}
+                    className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPending ? 'Envoi…' : 'Confirmer le refus'}
+                  </button>
+                </div>
               </div>
             )}
             {devis.statut === 'accepte' && !reservation && (

@@ -20,26 +20,31 @@ import {
   ChevronRight,
   LogOut,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { SidebarNav, type NavItem } from '@/components/ui/sidebar-nav'
 import { signOut } from '@/lib/actions/auth'
+import { getUnreadCount } from '@/lib/actions/messages'
 
 type Space = 'bde' | 'etablissement' | 'admin'
 
-const NAV_ITEMS: Record<Space, NavItem[]> = {
+const BASE_NAV: Record<Space, NavItem[]> = {
   bde: [
     { label: 'Tableau de bord', href: '/bde/dashboard', icon: Home },
     { label: 'Événements', href: '/bde/evenements', icon: Calendar },
+    { label: 'Messagerie', href: '/bde/messagerie', icon: MessageSquare },
     { label: 'Rechercher un lieu', href: '/rechercher', icon: Search },
     { label: 'Paramètres', href: '/bde/parametres', icon: Settings },
   ],
   etablissement: [
     { label: 'Tableau de bord', href: '/etablissement/dashboard', icon: Home },
     { label: 'Demandes', href: '/etablissement/demandes', icon: Inbox },
+    { label: 'Messagerie', href: '/etablissement/messagerie', icon: MessageSquare },
     { label: 'Paramètres', href: '/etablissement/parametres', icon: Settings },
   ],
   admin: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Réservations', href: '/admin/reservations', icon: Bookmark },
+    { label: 'Messagerie', href: '/admin/messagerie', icon: MessageSquare },
     { label: 'Paramètres', href: '/admin/parametres', icon: Settings },
   ],
 }
@@ -76,9 +81,24 @@ type Props = {
 
 export function AppSidebar({ space, displayName }: Props) {
   const { label: spaceLabel, roleLabel } = SPACE_META[space]
-  const items = NAV_ITEMS[space]
+  const [unread, setUnread] = useState(0)
   const initials = getInitials(displayName)
   const palette = getAvatarPalette(displayName)
+
+  useEffect(() => {
+    const refresh = () => getUnreadCount().then(setUnread)
+    refresh()
+    const interval = setInterval(refresh, 30000)
+    window.addEventListener('messages-read', refresh)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('messages-read', refresh)
+    }
+  }, [])
+
+  const items = BASE_NAV[space].map((item) =>
+    item.href.includes('/messagerie') ? { ...item, badge: unread || undefined } : item,
+  )
 
   return (
     <aside className="w-[210px] bg-navy flex flex-col shrink-0 h-screen sticky top-0">
