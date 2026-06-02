@@ -1,49 +1,126 @@
 import Link from 'next/link'
-import { getDemandesByEtablissement } from '@/lib/actions/demandes'
+import { getDemandesEtablissement } from '@/lib/actions/etablissement'
+import type { DemandeComplete } from '@/lib/actions/etablissement'
+
+const TYPE_LABELS: Record<string, string> = {
+  soiree: 'Soirée', gala: 'Gala', wei: 'WEI', ski: 'Ski',
+  sportif: 'Sportif', seminaire: 'Séminaire', autre: 'Autre',
+}
+
+const STATUT_STYLES: Record<string, string> = {
+  en_attente: 'bg-amber-100 text-amber-700',
+  acceptee: 'bg-green-100 text-green-700',
+  refusee: 'bg-red-100 text-red-700',
+}
+
+const DEVIS_STATUT_STYLES: Record<string, string> = {
+  brouillon: 'bg-gray-100 text-gray-600',
+  envoye: 'bg-blue-100 text-blue-700',
+  accepte: 'bg-green-100 text-green-700',
+  signe: 'bg-green-100 text-green-700',
+  refuse: 'bg-red-100 text-red-700',
+}
+
+const RES_STATUT_STYLES: Record<string, string> = {
+  devis_signe: 'bg-blue-100 text-blue-700',
+  acompte_confirme: 'bg-amber-100 text-amber-700',
+  confirmee: 'bg-green-100 text-green-700',
+  en_cours: 'bg-green-100 text-green-700',
+  terminee: 'bg-gray-100 text-gray-600',
+  commission_reversee: 'bg-gray-100 text-gray-600',
+}
+
+function fmtDate(s: string) {
+  return new Date(s + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function getGroupe(d: DemandeComplete): 'action' | 'en_cours' | 'termine' {
+  if (d.reservation?.statut && ['terminee', 'commission_reversee', 'annulee'].includes(d.reservation.statut)) return 'termine'
+  if (d.statut === 'refusee') return 'termine'
+  if (d.devis) return 'en_cours'
+  return 'action'
+}
+
+function DemandeCard({ d }: { d: DemandeComplete }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center gap-4">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-navy truncate">
+          {d.bde?.nom ?? '—'} <span className="font-normal text-gray-400">· {d.bde?.ecole}</span>
+        </p>
+        <p className="text-xs text-gray-500 mt-0.5">
+          {fmtDate(d.date_debut)} → {fmtDate(d.date_fin)} · {d.nb_participants} pers. · {TYPE_LABELS[d.type_evenement] ?? d.type_evenement}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUT_STYLES[d.statut] ?? 'bg-gray-100 text-gray-600'}`}>
+          {d.statut}
+        </span>
+        {d.devis && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${DEVIS_STATUT_STYLES[d.devis.statut] ?? 'bg-gray-100 text-gray-600'}`}>
+            Devis {d.devis.statut}
+          </span>
+        )}
+        {d.reservation && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RES_STATUT_STYLES[d.reservation.statut] ?? 'bg-gray-100 text-gray-600'}`}>
+            Rés. {d.reservation.statut}
+          </span>
+        )}
+        <Link
+          href={`/etablissement/demandes/${d.id}`}
+          className="px-3 py-1.5 text-xs font-semibold text-navy border border-navy/20 rounded-lg hover:bg-navy/5 transition-colors"
+        >
+          Gérer
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 export default async function EtablissementDemandesPage() {
-  const result = await getDemandesByEtablissement()
+  const result = await getDemandesEtablissement()
   const demandes = result.data ?? []
 
+  const actionRequise = demandes.filter((d) => getGroupe(d) === 'action')
+  const enCours = demandes.filter((d) => getGroupe(d) === 'en_cours')
+  const terminees = demandes.filter((d) => getGroupe(d) === 'termine')
+
   return (
-    <div style={{ maxWidth: 700, fontFamily: 'sans-serif' }}>
-      <h1>Demandes reçues</h1>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-lg font-bold text-navy">Demandes reçues</h1>
+        <p className="text-sm text-gray-400 mt-0.5">{demandes.length} demande{demandes.length !== 1 ? 's' : ''}</p>
+      </div>
 
       {result.error && (
-        <p style={{ color: 'red' }}>Erreur chargement : {result.error}</p>
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{result.error}</div>
       )}
 
       {demandes.length === 0 ? (
-        <p>Aucune demande reçue pour l&apos;instant.</p>
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <p className="text-sm text-gray-400">Aucune demande reçue pour le moment.</p>
+        </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Type</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Dates</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Participants</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Statut</th>
-              <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc', padding: '6px 8px' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {demandes.map((d) => (
-              <tr key={d.id}>
-                <td style={{ padding: '6px 8px' }}>{d.type_evenement}</td>
-                <td style={{ padding: '6px 8px' }}>
-                  {d.date_debut} → {d.date_fin}
-                </td>
-                <td style={{ padding: '6px 8px' }}>{d.nb_participants}</td>
-                <td style={{ padding: '6px 8px' }}>{d.statut}</td>
-                <td style={{ padding: '6px 8px' }}>
-                  <Link href={`/etablissement/devis/nouveau?demande_id=${d.id}`}>
-                    Créer un devis
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          {actionRequise.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Action requise ({actionRequise.length})</p>
+              {actionRequise.map((d) => <DemandeCard key={d.id} d={d} />)}
+            </div>
+          )}
+          {enCours.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">En cours ({enCours.length})</p>
+              {enCours.map((d) => <DemandeCard key={d.id} d={d} />)}
+            </div>
+          )}
+          {terminees.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Terminées / Annulées ({terminees.length})</p>
+              {terminees.map((d) => <DemandeCard key={d.id} d={d} />)}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

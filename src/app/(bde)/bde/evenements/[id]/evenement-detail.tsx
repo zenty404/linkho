@@ -195,8 +195,10 @@ export default function EvenementDetail({ evenement }: Props) {
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(2))}`}>
           <SectionHeader step={2} title="Devis" state={stepState(2)} />
 
-          {/* Devis refusé (ou en attente d'un nouveau) */}
+          {/* Pas encore de devis */}
           {!devis ? (
+            <p className="text-sm text-gray-500">En attente du devis de l&apos;établissement.</p>
+          ) : devis.statut === 'refuse' ? (
             <div className="space-y-3">
               <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
                 Devis refusé

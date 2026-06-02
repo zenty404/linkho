@@ -34,14 +34,7 @@ const NAV_ITEMS: Record<Space, NavItem[]> = {
   ],
   etablissement: [
     { label: 'Tableau de bord', href: '/etablissement/dashboard', icon: Home },
-    { label: 'Lieux', href: '/etablissement/lieux', icon: Building2 },
-    { label: 'Calendrier', href: '/etablissement/calendrier', icon: Calendar },
     { label: 'Demandes', href: '/etablissement/demandes', icon: Inbox },
-    { label: 'Devis', href: '/etablissement/devis', icon: FileText },
-    { label: 'Réservations', href: '/etablissement/reservations', icon: Bookmark },
-    { label: 'Factures', href: '/etablissement/factures', icon: Receipt },
-    { label: 'Messages', href: '/etablissement/messages', icon: MessageSquare },
-    { label: 'Avis', href: '/etablissement/avis', icon: Star },
     { label: 'Paramètres', href: '/etablissement/parametres', icon: Settings },
   ],
   admin: [

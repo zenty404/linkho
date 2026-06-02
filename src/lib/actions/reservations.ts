@@ -211,7 +211,8 @@ export async function confirmerPaiement(paiementId: string): Promise<ActionResul
   if (paiement?.reservation_id) {
     let newStatut: string | null = null
     if (paiement.type === 'acompte') newStatut = 'acompte_confirme'
-    else if (paiement.type === 'commission') newStatut = 'terminee'
+    else if (paiement.type === 'solde') newStatut = 'en_cours'
+    else if (paiement.type === 'commission') newStatut = 'commission_reversee'
 
     if (newStatut) {
       await supabase
