@@ -214,6 +214,18 @@ export default function DemandeDetail({ demande }: Props) {
             )}
           </div>
         )}
+
+        {/* Bouton PDF devis — visible dès que le devis existe */}
+        {devis && (
+          <a
+            href={`/api/pdf/devis/${devis.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-xs text-brand hover:underline font-medium"
+          >
+            ↓ Télécharger le devis PDF
+          </a>
+        )}
       </SectionCard>
 
       {/* SECTION 2 — ACOMPTE */}
@@ -254,6 +266,16 @@ export default function DemandeDetail({ demande }: Props) {
                 />
                 <span className="text-sm text-navy">J&apos;ai bien reçu le virement d&apos;acompte</span>
               </label>
+            )}
+            {acomptePaiement?.confirme && reservation && (
+              <a
+                href={`/api/pdf/facture/${reservation.id}/acompte`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs text-brand hover:underline font-medium"
+              >
+                ↓ Télécharger la facture d&apos;acompte
+              </a>
             )}
           </div>
         </SectionCard>
@@ -297,6 +319,16 @@ export default function DemandeDetail({ demande }: Props) {
                 />
                 <span className="text-sm text-navy">J&apos;ai bien reçu le solde</span>
               </label>
+            )}
+            {soldePaiement?.confirme && reservation && (
+              <a
+                href={`/api/pdf/facture/${reservation.id}/solde`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs text-brand hover:underline font-medium"
+              >
+                ↓ Télécharger la facture de solde
+              </a>
             )}
           </div>
         </SectionCard>

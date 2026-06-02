@@ -99,8 +99,21 @@ export async function updateProfilEtablissement(
   set('latitude', num('latitude'))
   set('longitude', num('longitude'))
 
+  // Coordonnées bancaires
+  set('titulaire_compte', str('titulaire_compte'))
+  set('iban', str('iban'))
+  set('bic', str('bic'))
+
   // Caution
   set('caution_montant', num('caution_montant'))
+
+  // Informations légales
+  set('siret', str('siret'))
+  set('forme_juridique', str('forme_juridique'))
+  set('capital_social', str('capital_social'))
+  set('tva_intracommunautaire', str('tva_intracommunautaire'))
+  set('conditions_paiement', str('conditions_paiement'))
+  set('delai_validite_devis', int('delai_validite_devis'))
 
   const updates = raw as EtabUpdate
 

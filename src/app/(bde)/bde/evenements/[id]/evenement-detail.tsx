@@ -304,6 +304,14 @@ export default function EvenementDetail({ evenement }: Props) {
                 Confirmer et réserver
               </button>
             )}
+            <a
+              href={`/api/pdf/devis/${devis.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs text-brand hover:underline font-medium"
+            >
+              ↓ Télécharger le devis PDF
+            </a>
           </div>
           )}
         </div>
@@ -344,6 +352,47 @@ export default function EvenementDetail({ evenement }: Props) {
               </div>
             ) : (
               <p className="text-sm text-gray-500">Référence de virement en cours de génération.</p>
+            )}
+            {(() => {
+              const etab = evenement.demande?.etablissement
+              if (etab?.iban || etab?.titulaire_compte) {
+                return (
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Virement à effectuer</p>
+                    {etab.titulaire_compte && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">Titulaire</span>
+                        <span className="text-navy font-medium">{etab.titulaire_compte}</span>
+                      </div>
+                    )}
+                    {etab.iban && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">IBAN</span>
+                        <span className="text-navy font-mono">{etab.iban}</span>
+                      </div>
+                    )}
+                    {etab.bic && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">BIC</span>
+                        <span className="text-navy font-mono">{etab.bic}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              return (
+                <p className="text-sm text-gray-400">Coordonnées bancaires non renseignées — contactez l&apos;établissement.</p>
+              )
+            })()}
+            {acomptePaiement?.confirme && reservation && (
+              <a
+                href={`/api/pdf/facture/${reservation.id}/acompte`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs text-brand hover:underline font-medium"
+              >
+                ↓ Télécharger la facture d&apos;acompte
+              </a>
             )}
           </div>
         </div>
@@ -490,6 +539,47 @@ export default function EvenementDetail({ evenement }: Props) {
               </div>
             ) : (
               <p className="text-sm text-gray-500">Référence de virement en cours de génération.</p>
+            )}
+            {(() => {
+              const etab = evenement.demande?.etablissement
+              if (etab?.iban || etab?.titulaire_compte) {
+                return (
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-1.5">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Virement à effectuer</p>
+                    {etab.titulaire_compte && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">Titulaire</span>
+                        <span className="text-navy font-medium">{etab.titulaire_compte}</span>
+                      </div>
+                    )}
+                    {etab.iban && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">IBAN</span>
+                        <span className="text-navy font-mono">{etab.iban}</span>
+                      </div>
+                    )}
+                    {etab.bic && (
+                      <div className="flex gap-2 text-sm">
+                        <span className="text-gray-400 w-24 shrink-0">BIC</span>
+                        <span className="text-navy font-mono">{etab.bic}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              return (
+                <p className="text-sm text-gray-400">Coordonnées bancaires non renseignées — contactez l&apos;établissement.</p>
+              )
+            })()}
+            {soldePaiement?.confirme && reservation && (
+              <a
+                href={`/api/pdf/facture/${reservation.id}/solde`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs text-brand hover:underline font-medium"
+              >
+                ↓ Télécharger la facture de solde
+              </a>
             )}
           </div>
         </div>
