@@ -477,6 +477,7 @@ export type Database = {
           site_web: string | null
           slug: string | null
           superficie_m2: number | null
+          taux_commission: number | null
           telephone: string | null
           type_lieu: string | null
           updated_at: string
@@ -515,6 +516,7 @@ export type Database = {
           site_web?: string | null
           slug?: string | null
           superficie_m2?: number | null
+          taux_commission?: number | null
           telephone?: string | null
           type_lieu?: string | null
           updated_at?: string
@@ -553,6 +555,7 @@ export type Database = {
           site_web?: string | null
           slug?: string | null
           superficie_m2?: number | null
+          taux_commission?: number | null
           telephone?: string | null
           type_lieu?: string | null
           updated_at?: string
@@ -943,6 +946,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      linkho_config: {
+        Row: {
+          cle: string
+          id: string
+          updated_at: string
+          valeur: string | null
+        }
+        Insert: {
+          cle: string
+          id?: string
+          updated_at?: string
+          valeur?: string | null
+        }
+        Update: {
+          cle?: string
+          id?: string
+          updated_at?: string
+          valeur?: string | null
+        }
+        Relationships: []
       }
       messages: {
         Row: {

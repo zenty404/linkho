@@ -52,7 +52,15 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
   const montant_ttc = montant_ht + montant_tva
   const acompte_montant = montant_ttc * devis.acompte_taux
   const solde_montant = montant_ttc * (1 - devis.acompte_taux)
-  const commission_montant = montant_ttc * devis.commission_taux
+
+  const { data: etabProfile } = await supabase
+    .from('etablissement_profiles')
+    .select('taux_commission')
+    .eq('id', devis.etablissement_id)
+    .single()
+
+  const commission_taux_pct = (etabProfile?.taux_commission ?? 12) / 100
+  const commission_montant = Math.round(montant_ttc * commission_taux_pct * 100) / 100
 
   const { data: reservation, error: resError } = await supabase
     .from('reservations')
@@ -68,7 +76,7 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
       montant_ttc,
       acompte_montant,
       solde_montant,
-      commission_taux: devis.commission_taux,
+      commission_taux: commission_taux_pct,
       commission_montant,
       reference: `LINKHO-${devis.numero}`,
       statut: 'devis_signe',

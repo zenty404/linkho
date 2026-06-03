@@ -384,6 +384,16 @@ export default function DemandeDetail({ demande }: Props) {
                 <span className="text-sm text-navy">J&apos;ai reversé la commission à LINKHO</span>
               </label>
             )}
+            {reservation && (
+              <a
+                href={`/api/pdf/commission/${reservation.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-xs text-brand hover:underline font-medium"
+              >
+                ↓ Télécharger la facture de commission
+              </a>
+            )}
           </div>
         </SectionCard>
       )}

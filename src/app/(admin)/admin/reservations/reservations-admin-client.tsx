@@ -99,13 +99,23 @@ export default function ReservationsAdminClient({ reservations, error }: Props) 
                   <p className="text-sm font-bold text-navy">{fmtEuros(r.montant_ttc)}</p>
                   <p className="text-xs text-gray-500">Commission : {fmtEuros(r.commission_montant)}</p>
                 </div>
-                <button
-                  onClick={() => handleCloturer(r.id, r.reference)}
-                  disabled={isPending}
-                  className="flex-shrink-0 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-                >
-                  Clôturer
-                </button>
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <a
+                    href={`/api/pdf/commission/${r.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-brand hover:underline font-medium"
+                  >
+                    ↓ Facture commission
+                  </a>
+                  <button
+                    onClick={() => handleCloturer(r.id, r.reference)}
+                    disabled={isPending}
+                    className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    Clôturer
+                  </button>
+                </div>
               </div>
             ))}
           </div>
