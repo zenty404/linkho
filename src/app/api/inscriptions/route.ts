@@ -11,8 +11,6 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { formulaireId, prenom, nom, email, reponses } = body
 
-  console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('SERVICE_KEY défini:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   console.log('formulaireId reçu:', formulaireId)
 
   const { data: formulaire, error: formError } = await supabaseAdmin

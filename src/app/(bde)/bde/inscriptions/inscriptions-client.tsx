@@ -239,7 +239,7 @@ export function InscriptionsClient({
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
           <p className="text-sm text-gray-400">
             Aucun événement.{' '}
-            <Link href="/bde/evenements/nouveau" className="text-brand hover:underline font-medium">
+            <Link href="/bde/evenements" className="text-brand hover:underline font-medium">
               Créez votre premier événement
             </Link>
           </p>
