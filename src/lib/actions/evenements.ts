@@ -127,6 +127,8 @@ export type EvenementComplet = {
       reference_virement: string
       confirme: boolean
       confirme_le: string | null
+      justificatif_url: string | null
+      justificatif_nom: string | null
     }[]
   } | null
   formulaire: {
@@ -178,7 +180,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   if (devis) {
     const { data: resData } = await supabase
       .from('reservations')
-      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le)')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
       .eq('devis_id', devis.id)
       .maybeSingle()
     reservation = resData

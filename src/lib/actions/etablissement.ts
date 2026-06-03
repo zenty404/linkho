@@ -43,6 +43,8 @@ export type DemandeComplete = {
       reference_virement: string
       confirme: boolean
       confirme_le: string | null
+      justificatif_url: string | null
+      justificatif_nom: string | null
     }[]
   } | null
 }
@@ -85,7 +87,7 @@ async function buildDemandeComplete(
   if (devisRaw) {
     const { data: resRaw } = await supabase
       .from('reservations')
-      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le)')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
       .eq('devis_id', devisRaw.id)
       .maybeSingle()
     if (resRaw) {

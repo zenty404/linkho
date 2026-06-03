@@ -1104,6 +1104,8 @@ export type Database = {
           confirme_par: string | null
           created_at: string
           id: string
+          justificatif_nom: string | null
+          justificatif_url: string | null
           montant: number
           note: string | null
           reference_virement: string
@@ -1117,6 +1119,8 @@ export type Database = {
           confirme_par?: string | null
           created_at?: string
           id?: string
+          justificatif_nom?: string | null
+          justificatif_url?: string | null
           montant: number
           note?: string | null
           reference_virement: string
@@ -1130,6 +1134,8 @@ export type Database = {
           confirme_par?: string | null
           created_at?: string
           id?: string
+          justificatif_nom?: string | null
+          justificatif_url?: string | null
           montant?: number
           note?: string | null
           reference_virement?: string

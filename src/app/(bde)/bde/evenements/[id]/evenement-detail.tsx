@@ -8,6 +8,7 @@ import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
 import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
+import { uploadJustificatif } from '@/lib/actions/paiements'
 
 type Props = { evenement: EvenementComplet }
 
@@ -80,6 +81,10 @@ export default function EvenementDetail({ evenement }: Props) {
   const [actionError, setActionError] = useState<string | null>(null)
   const [showRefusForm, setShowRefusForm] = useState(false)
   const [motifRefus, setMotifRefus] = useState('')
+  const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({})
+  const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({})
+  const [showReplace, setShowReplace] = useState<Record<string, boolean>>({})
 
   const { demande, devis, reservation, formulaire } = evenement
   const currentStep = getCurrentStep(evenement)
@@ -102,6 +107,24 @@ export default function EvenementDetail({ evenement }: Props) {
       }
       router.push(`/bde/messagerie?conv=${evenement.demande?.id ?? 'support'}`)
     })
+  }
+
+  async function handleUpload(paiementId: string) {
+    const file = uploadFiles[paiementId]
+    if (!file) return
+    setUploadingId(paiementId)
+    setUploadErrors(prev => ({ ...prev, [paiementId]: '' }))
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await uploadJustificatif(paiementId, fd)
+    setUploadingId(null)
+    if (res.error) {
+      setUploadErrors(prev => ({ ...prev, [paiementId]: res.error }))
+      return
+    }
+    setShowReplace(prev => ({ ...prev, [paiementId]: false }))
+    setUploadFiles(prev => ({ ...prev, [paiementId]: null }))
+    router.refresh()
   }
 
   function handleAction(fn: () => Promise<{ data: unknown; error: string | null }>) {
@@ -437,6 +460,45 @@ export default function EvenementDetail({ evenement }: Props) {
                 <p className="text-sm text-gray-400">Coordonnées bancaires non renseignées — contactez l&apos;établissement.</p>
               )
             })()}
+            {acomptePaiement && (
+              <div>
+                {(!acomptePaiement.justificatif_nom || showReplace[acomptePaiement.id]) ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-gray-500">Déposer un justificatif <span className="text-gray-400">(optionnel)</span></p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={(e) => setUploadFiles(prev => ({ ...prev, [acomptePaiement.id]: e.target.files?.[0] ?? null }))}
+                        className="text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-100 file:text-navy cursor-pointer"
+                      />
+                      {uploadFiles[acomptePaiement.id] && (
+                        <button
+                          onClick={() => { void handleUpload(acomptePaiement.id) }}
+                          disabled={uploadingId === acomptePaiement.id}
+                          className="px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-lg disabled:opacity-50"
+                        >
+                          {uploadingId === acomptePaiement.id ? 'Envoi…' : 'Envoyer'}
+                        </button>
+                      )}
+                    </div>
+                    {uploadErrors[acomptePaiement.id] && (
+                      <p className="text-xs text-red-500">{uploadErrors[acomptePaiement.id]}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-green-700 font-medium">✓ Justificatif déposé — {acomptePaiement.justificatif_nom}</span>
+                    <button
+                      onClick={() => setShowReplace(prev => ({ ...prev, [acomptePaiement.id]: true }))}
+                      className="text-xs text-brand hover:underline font-medium"
+                    >
+                      Remplacer
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             {acomptePaiement?.confirme && reservation && (
               <a
                 href={`/api/pdf/facture/${reservation.id}/acompte`}
@@ -624,6 +686,45 @@ export default function EvenementDetail({ evenement }: Props) {
                 <p className="text-sm text-gray-400">Coordonnées bancaires non renseignées — contactez l&apos;établissement.</p>
               )
             })()}
+            {soldePaiement && (
+              <div>
+                {(!soldePaiement.justificatif_nom || showReplace[soldePaiement.id]) ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-gray-500">Déposer un justificatif <span className="text-gray-400">(optionnel)</span></p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={(e) => setUploadFiles(prev => ({ ...prev, [soldePaiement.id]: e.target.files?.[0] ?? null }))}
+                        className="text-xs text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-100 file:text-navy cursor-pointer"
+                      />
+                      {uploadFiles[soldePaiement.id] && (
+                        <button
+                          onClick={() => { void handleUpload(soldePaiement.id) }}
+                          disabled={uploadingId === soldePaiement.id}
+                          className="px-3 py-1.5 bg-navy text-white text-xs font-semibold rounded-lg disabled:opacity-50"
+                        >
+                          {uploadingId === soldePaiement.id ? 'Envoi…' : 'Envoyer'}
+                        </button>
+                      )}
+                    </div>
+                    {uploadErrors[soldePaiement.id] && (
+                      <p className="text-xs text-red-500">{uploadErrors[soldePaiement.id]}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-green-700 font-medium">✓ Justificatif déposé — {soldePaiement.justificatif_nom}</span>
+                    <button
+                      onClick={() => setShowReplace(prev => ({ ...prev, [soldePaiement.id]: true }))}
+                      className="text-xs text-brand hover:underline font-medium"
+                    >
+                      Remplacer
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             {soldePaiement?.confirme && reservation && (
               <a
                 href={`/api/pdf/facture/${reservation.id}/solde`}

@@ -267,6 +267,16 @@ export default function DemandeDetail({ demande }: Props) {
                 <span className="text-sm text-navy">J&apos;ai bien reçu le virement d&apos;acompte</span>
               </label>
             )}
+            {acomptePaiement?.justificatif_url && (
+              <a
+                href={`/api/justificatif/${acomptePaiement.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-brand hover:underline font-medium"
+              >
+                📎 Justificatif de virement disponible — <span>Voir le justificatif</span>
+              </a>
+            )}
             {acomptePaiement?.confirme && reservation && (
               <a
                 href={`/api/pdf/facture/${reservation.id}/acompte`}
@@ -319,6 +329,16 @@ export default function DemandeDetail({ demande }: Props) {
                 />
                 <span className="text-sm text-navy">J&apos;ai bien reçu le solde</span>
               </label>
+            )}
+            {soldePaiement?.justificatif_url && (
+              <a
+                href={`/api/justificatif/${soldePaiement.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-brand hover:underline font-medium"
+              >
+                📎 Justificatif de virement disponible — <span>Voir le justificatif</span>
+              </a>
             )}
             {soldePaiement?.confirme && reservation && (
               <a
