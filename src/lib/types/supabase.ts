@@ -477,6 +477,7 @@ export type Database = {
           site_web: string | null
           slug: string | null
           superficie_m2: number | null
+          taux_commission: number | null
           telephone: string | null
           type_lieu: string | null
           updated_at: string
@@ -515,6 +516,7 @@ export type Database = {
           site_web?: string | null
           slug?: string | null
           superficie_m2?: number | null
+          taux_commission?: number | null
           telephone?: string | null
           type_lieu?: string | null
           updated_at?: string
@@ -553,6 +555,7 @@ export type Database = {
           site_web?: string | null
           slug?: string | null
           superficie_m2?: number | null
+          taux_commission?: number | null
           telephone?: string | null
           type_lieu?: string | null
           updated_at?: string
@@ -944,6 +947,27 @@ export type Database = {
           },
         ]
       }
+      linkho_config: {
+        Row: {
+          cle: string
+          id: string
+          updated_at: string
+          valeur: string | null
+        }
+        Insert: {
+          cle: string
+          id?: string
+          updated_at?: string
+          valeur?: string | null
+        }
+        Update: {
+          cle?: string
+          id?: string
+          updated_at?: string
+          valeur?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           contenu: string
@@ -1080,6 +1104,8 @@ export type Database = {
           confirme_par: string | null
           created_at: string
           id: string
+          justificatif_nom: string | null
+          justificatif_url: string | null
           montant: number
           note: string | null
           reference_virement: string
@@ -1093,6 +1119,8 @@ export type Database = {
           confirme_par?: string | null
           created_at?: string
           id?: string
+          justificatif_nom?: string | null
+          justificatif_url?: string | null
           montant: number
           note?: string | null
           reference_virement: string
@@ -1106,6 +1134,8 @@ export type Database = {
           confirme_par?: string | null
           created_at?: string
           id?: string
+          justificatif_nom?: string | null
+          justificatif_url?: string | null
           montant?: number
           note?: string | null
           reference_virement?: string

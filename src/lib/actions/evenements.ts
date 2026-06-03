@@ -81,3 +81,133 @@ export async function getEvenementById(id: string): Promise<ActionResult<Eveneme
 
   return { data, error: null }
 }
+
+export type EvenementComplet = {
+  id: string
+  nom: string
+  type: string
+  date_debut: string | null
+  date_fin: string | null
+  nb_places_max: number | null
+  description: string | null
+  statut: string
+  demande: {
+    id: string
+    etablissement_id: string
+    statut: string
+    type_evenement: string
+    nb_participants: number
+    message: string | null
+    etablissement: { nom: string; ville: string | null; adresse: string | null; iban: string | null; bic: string | null; titulaire_compte: string | null } | null
+  } | null
+  devis: {
+    id: string
+    numero: string
+    statut: string
+    sous_total_ht: number
+    total_ttc: number | null
+    tva_taux: number
+    acompte_taux: number
+    message_client: string | null
+    envoye_le: string | null
+    items: { id: string; libelle: string; quantite: number; prix_unitaire: number }[]
+  } | null
+  reservation: {
+    id: string
+    reference: string
+    statut: string
+    montant_ttc: number
+    acompte_montant: number
+    solde_montant: number
+    commission_montant: number
+    paiements: {
+      id: string
+      type: string
+      montant: number
+      reference_virement: string
+      confirme: boolean
+      confirme_le: string | null
+      justificatif_url: string | null
+      justificatif_nom: string | null
+    }[]
+  } | null
+  formulaire: {
+    id: string
+    titre: string
+    publie: boolean
+    prix_total: number | null
+    nb_inscriptions: number
+  } | null
+}
+
+export async function getEvenementComplet(id: string): Promise<ActionResult<EvenementComplet>> {
+  const supabase = await createClient()
+
+  const { data: bdeId } = await supabase.rpc('get_bde_id')
+  if (!bdeId) return { data: null, error: 'Profil BDE introuvable.' }
+
+  const { data: evt, error: evtError } = await supabase
+    .from('evenements')
+    .select('*')
+    .eq('id', id)
+    .eq('bde_id', bdeId)
+    .single()
+  if (evtError || !evt) return { data: null, error: 'Événement introuvable.' }
+
+  const evtExtra = evt as typeof evt & { demande_id?: string | null }
+  const { data: demande } = evtExtra.demande_id
+    ? await supabase
+        .from('demandes_devis')
+        .select('*, etablissement:etablissement_profiles(nom, ville, adresse, iban, bic, titulaire_compte)')
+        .eq('id', evtExtra.demande_id)
+        .maybeSingle()
+    : { data: null }
+
+  let devis = null
+  if (demande) {
+    const { data: devisData } = await supabase
+      .from('devis')
+      .select('*, items:devis_items(id, libelle, quantite, prix_unitaire)')
+      .eq('demande_id', demande.id)
+      .neq('statut', 'refuse')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    devis = devisData
+  }
+
+  let reservation = null
+  if (devis) {
+    const { data: resData } = await supabase
+      .from('reservations')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
+      .eq('devis_id', devis.id)
+      .maybeSingle()
+    reservation = resData
+  }
+
+  let formulaire = null
+  const { data: formData } = await supabase
+    .from('formulaire_inscriptions')
+    .select('id, titre, publie, prix_total')
+    .eq('evenement_id', id)
+    .maybeSingle()
+  if (formData) {
+    const { count } = await supabase
+      .from('inscriptions')
+      .select('id', { count: 'exact', head: true })
+      .eq('evenement_id', id)
+    formulaire = { ...formData, nb_inscriptions: count ?? 0 }
+  }
+
+  return {
+    data: {
+      ...evt,
+      demande: demande as EvenementComplet['demande'],
+      devis: devis as EvenementComplet['devis'],
+      reservation: reservation as EvenementComplet['reservation'],
+      formulaire,
+    },
+    error: null,
+  }
+}

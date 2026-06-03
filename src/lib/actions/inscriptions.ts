@@ -1,9 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/supabase'
 import type { ActionResult } from '@/lib/types/actions'
+import { sendEmail } from '@/lib/emails/send'
+import { InscriptionConfirmeeEmail } from '@/emails/inscription-confirmee'
 
 type Inscription = Database['public']['Tables']['inscriptions']['Row']
 type InscriptionEcheance = Database['public']['Tables']['inscription_echeances']['Row']
@@ -317,6 +320,30 @@ export async function creerInscription(
   if (error || !data) {
     console.error('creerInscription error:', error)
     return { data: null, error: error?.message ?? "Erreur lors de l'inscription." }
+  }
+
+  try {
+    const { data: evt } = await supabase
+      .from('evenements')
+      .select('nom, date_debut, date_fin')
+      .eq('id', formulaire.evenement_id)
+      .single()
+
+    const lieuNom = ''
+
+    await sendEmail(
+      email,
+      `Inscription confirmée — ${evt?.nom ?? 'événement'}`,
+      createElement(InscriptionConfirmeeEmail, {
+        evenementNom: evt?.nom ?? 'événement',
+        dateDebut: evt?.date_debut ?? null,
+        dateFin: evt?.date_fin ?? null,
+        lieuNom,
+        reponses: reponses as Record<string, unknown>,
+      }),
+    )
+  } catch (e) {
+    console.error('[creerInscription] email error:', e)
   }
 
   return { data, error: null }

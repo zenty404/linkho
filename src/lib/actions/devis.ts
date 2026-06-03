@@ -1,9 +1,15 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { createElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/supabase'
 import type { ActionResult } from '@/lib/types/actions'
+import { sendEmail, getBdeEmail, getEtabEmail } from '@/lib/emails/send'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { DevisRecuEmail } from '@/emails/devis-recu'
+import { DevisRefuseEmail } from '@/emails/devis-refuse'
+import { DevisAccepteEmail } from '@/emails/devis-accepte'
 
 type Devis = Database['public']['Tables']['devis']['Row']
 type DevisItem = Database['public']['Tables']['devis_items']['Row']
@@ -204,6 +210,29 @@ export async function envoyerDevis(id: string): Promise<ActionResult<Devis>> {
     return { data: null, error: error?.message ?? 'Impossible d\'envoyer le devis.' }
   }
 
+  try {
+    const admin = createAdminClient()
+    const [{ data: etabCtx }, { data: evt }] = await Promise.all([
+      supabase.from('etablissement_profiles').select('nom').eq('id', data.etablissement_id).single(),
+      // evenements appartient au BDE — client admin pour bypasser RLS
+      (admin.from('evenements') as any).select('id').eq('demande_id', data.demande_id).maybeSingle() as Promise<{ data: { id: string } | null }>,
+    ])
+    const bdeEmail = await getBdeEmail(data.bde_id)
+    if (bdeEmail) {
+      await sendEmail(
+        bdeEmail,
+        `Nouveau devis reçu — ${etabCtx?.nom ?? ''}`,
+        createElement(DevisRecuEmail, {
+          etabNom: etabCtx?.nom ?? '',
+          montantTtc: data.total_ttc ?? 0,
+          evenementId: evt?.id ?? '',
+        }),
+      )
+    }
+  } catch (e) {
+    console.error('[envoyerDevis] email error:', e)
+  }
+
   return { data, error: null }
 }
 
@@ -347,6 +376,28 @@ export async function accepterDevis(id: string): Promise<ActionResult<Devis>> {
     return { data: null, error: error?.message ?? 'Impossible d\'accepter le devis.' }
   }
 
+  try {
+    const { data: bdeCtx } = await supabase
+      .from('bde_profiles')
+      .select('nom')
+      .eq('id', data.bde_id)
+      .single()
+    const etabEmail = await getEtabEmail(data.etablissement_id)
+    if (etabEmail) {
+      await sendEmail(
+        etabEmail,
+        `Devis accepté — ${bdeCtx?.nom ?? 'BDE'}`,
+        createElement(DevisAccepteEmail, {
+          bdeNom: bdeCtx?.nom ?? 'BDE',
+          montantTtc: data.total_ttc ?? 0,
+          demandeId: data.demande_id ?? '',
+        }),
+      )
+    }
+  } catch (e) {
+    console.error('[accepterDevis] email error:', e)
+  }
+
   return { data, error: null }
 }
 
@@ -364,6 +415,24 @@ export async function refuserDevis(id: string): Promise<ActionResult<Devis>> {
   if (error || !data) {
     console.error('refuserDevis error:', error)
     return { data: null, error: error?.message ?? 'Impossible de refuser le devis.' }
+  }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: etabCtx } = await supabase
+      .from('etablissement_profiles')
+      .select('nom')
+      .eq('id', data.etablissement_id)
+      .single()
+    if (user?.email) {
+      await sendEmail(
+        user.email,
+        `Devis refusé — ${etabCtx?.nom ?? ''}`,
+        createElement(DevisRefuseEmail, { etabNom: etabCtx?.nom ?? '' }),
+      )
+    }
+  } catch (e) {
+    console.error('[refuserDevis] email error:', e)
   }
 
   return { data, error: null }

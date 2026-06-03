@@ -3,7 +3,6 @@
 import { useActionState, useState, useRef } from 'react'
 import {
   updateProfilEtablissement,
-  updateIban,
   updateEquipements,
   ajouterPhoto,
   supprimerPhoto,
@@ -412,8 +411,12 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
     updateProfilEtablissement,
     PARAM_INIT,
   )
-  const [ibanState, ibanAction, ibanPending] = useActionState(updateIban, PARAM_INIT)
+  const [bancState, bancAction, bancPending] = useActionState(updateProfilEtablissement, PARAM_INIT)
   const [cautionState, cautionAction, cautionPending] = useActionState(
+    updateProfilEtablissement,
+    PARAM_INIT,
+  )
+  const [legalState, legalAction, legalPending] = useActionState(
     updateProfilEtablissement,
     PARAM_INIT,
   )
@@ -533,13 +536,30 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
 
       {/* 7. Coordonnées bancaires */}
       <SectionCard title="Coordonnées bancaires">
-        <form action={ibanAction} className="space-y-4">
-          <Field label="IBAN" name="iban" defaultValue={etab?.iban} placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" />
+        <form action={bancAction} className="space-y-4">
+          <Field
+            label="Titulaire du compte"
+            name="titulaire_compte"
+            defaultValue={(etab as unknown as Record<string, string>)?.titulaire_compte}
+            placeholder="SAS Château de la Loire"
+          />
+          <Field
+            label="IBAN"
+            name="iban"
+            defaultValue={etab?.iban}
+            placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+          />
+          <Field
+            label="BIC / SWIFT"
+            name="bic"
+            defaultValue={(etab as unknown as Record<string, string>)?.bic}
+            placeholder="XXXXXXXX"
+          />
           <p className="text-xs text-gray-400 -mt-1">
-            Votre IBAN sera affiché sur les factures envoyées aux BDE.
+            Ces coordonnées seront affichées sur les factures envoyées aux BDE.
           </p>
-          <StateMessages success={ibanState.success} error={ibanState.error} />
-          <div className="pt-1"><SaveButton pending={ibanPending} /></div>
+          <StateMessages success={bancState.success} error={bancState.error} />
+          <div className="pt-1"><SaveButton pending={bancPending} /></div>
         </form>
       </SectionCard>
 
@@ -580,7 +600,61 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </div>
       </SectionCard>
 
-      {/* 10. Compte */}
+      {/* 10. Informations légales */}
+      <SectionCard title="Informations légales">
+        <form action={legalAction} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Field
+              label="SIRET"
+              name="siret"
+              defaultValue={(etab as unknown as Record<string, string>)?.siret}
+              placeholder="12345678901234"
+            />
+            <Field
+              label="Forme juridique"
+              name="forme_juridique"
+              defaultValue={(etab as unknown as Record<string, string>)?.forme_juridique}
+              placeholder="SARL, SAS, Auto-entrepreneur…"
+            />
+            <Field
+              label="Capital social"
+              name="capital_social"
+              defaultValue={(etab as unknown as Record<string, string>)?.capital_social}
+              placeholder="10 000 €"
+            />
+            <Field
+              label="N° TVA intracommunautaire"
+              name="tva_intracommunautaire"
+              defaultValue={(etab as unknown as Record<string, string>)?.tva_intracommunautaire}
+              placeholder="FR12345678901"
+            />
+          </div>
+          <div>
+            <label htmlFor="conditions_paiement" className="block text-xs text-gray-500 mb-1.5">
+              Conditions de paiement
+            </label>
+            <textarea
+              id="conditions_paiement"
+              name="conditions_paiement"
+              rows={3}
+              defaultValue={(etab as unknown as Record<string, string>)?.conditions_paiement ?? ''}
+              placeholder="30% à la signature, 70% le jour J"
+              className={inputCls + ' resize-none'}
+            />
+          </div>
+          <Field
+            label="Délai de validité du devis (jours)"
+            name="delai_validite_devis"
+            type="number"
+            defaultValue={(etab as unknown as Record<string, number>)?.delai_validite_devis ?? 30}
+            placeholder="30"
+          />
+          <StateMessages success={legalState.success} error={legalState.error} />
+          <div className="pt-1"><SaveButton pending={legalPending} /></div>
+        </form>
+      </SectionCard>
+
+      {/* 11. Compte */}
       <SectionCard title="Compte">
         <div className="space-y-5">
           <div>

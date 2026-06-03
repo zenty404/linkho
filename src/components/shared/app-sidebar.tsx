@@ -16,44 +16,35 @@ import {
   Receipt,
   Star,
   Percent,
+  Search,
   ChevronRight,
   LogOut,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { SidebarNav, type NavItem } from '@/components/ui/sidebar-nav'
 import { signOut } from '@/lib/actions/auth'
+import { getUnreadCount } from '@/lib/actions/messages'
 
 type Space = 'bde' | 'etablissement' | 'admin'
 
-const NAV_ITEMS: Record<Space, NavItem[]> = {
+const BASE_NAV: Record<Space, NavItem[]> = {
   bde: [
     { label: 'Tableau de bord', href: '/bde/dashboard', icon: Home },
     { label: 'Événements', href: '/bde/evenements', icon: Calendar },
-    { label: 'Inscriptions', href: '/bde/inscriptions', icon: Users },
-    { label: 'Formulaires', href: '/bde/formulaires', icon: FileText },
-    { label: 'Paiements', href: '/bde/paiements', icon: CreditCard },
-    { label: 'Communications', href: '/bde/communications', icon: MessageSquare },
-    { label: 'Documents', href: '/bde/documents', icon: File },
-    { label: 'Membres', href: '/bde/membres', icon: UsersRound },
+    { label: 'Messagerie', href: '/bde/messagerie', icon: MessageSquare },
+    { label: 'Rechercher un lieu', href: '/rechercher', icon: Search },
     { label: 'Paramètres', href: '/bde/parametres', icon: Settings },
   ],
   etablissement: [
     { label: 'Tableau de bord', href: '/etablissement/dashboard', icon: Home },
-    { label: 'Lieux', href: '/etablissement/lieux', icon: Building2 },
-    { label: 'Calendrier', href: '/etablissement/calendrier', icon: Calendar },
     { label: 'Demandes', href: '/etablissement/demandes', icon: Inbox },
-    { label: 'Devis', href: '/etablissement/devis', icon: FileText },
-    { label: 'Réservations', href: '/etablissement/reservations', icon: Bookmark },
-    { label: 'Factures', href: '/etablissement/factures', icon: Receipt },
-    { label: 'Messages', href: '/etablissement/messages', icon: MessageSquare },
-    { label: 'Avis', href: '/etablissement/avis', icon: Star },
+    { label: 'Messagerie', href: '/etablissement/messagerie', icon: MessageSquare },
     { label: 'Paramètres', href: '/etablissement/parametres', icon: Settings },
   ],
   admin: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { label: 'Établissements', href: '/admin/etablissements', icon: Building2 },
-    { label: 'BDE', href: '/admin/bde', icon: Users },
     { label: 'Réservations', href: '/admin/reservations', icon: Bookmark },
-    { label: 'Commissions', href: '/admin/commissions', icon: Percent },
+    { label: 'Messagerie', href: '/admin/messagerie', icon: MessageSquare },
     { label: 'Paramètres', href: '/admin/parametres', icon: Settings },
   ],
 }
@@ -90,9 +81,24 @@ type Props = {
 
 export function AppSidebar({ space, displayName }: Props) {
   const { label: spaceLabel, roleLabel } = SPACE_META[space]
-  const items = NAV_ITEMS[space]
+  const [unread, setUnread] = useState(0)
   const initials = getInitials(displayName)
   const palette = getAvatarPalette(displayName)
+
+  useEffect(() => {
+    const refresh = () => getUnreadCount().then(setUnread)
+    refresh()
+    const interval = setInterval(refresh, 30000)
+    window.addEventListener('messages-read', refresh)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('messages-read', refresh)
+    }
+  }, [])
+
+  const items = BASE_NAV[space].map((item) =>
+    item.href.includes('/messagerie') ? { ...item, badge: unread || undefined } : item,
+  )
 
   return (
     <aside className="w-[210px] bg-navy flex flex-col shrink-0 h-screen sticky top-0">

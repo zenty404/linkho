@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { creerInscription } from '@/lib/actions/inscriptions'
 import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
@@ -286,30 +285,25 @@ export function PublicInscriptionForm({
     setError(null)
     setIsLoading(true)
 
-    const fd = new FormData()
-    fd.append('prenom', prenom)
-    fd.append('nom', nom)
-    fd.append('email', email)
-
+    const reponses: Record<string, string | string[]> = {}
     for (const champ of champs) {
       if (champ.type === 'separateur') continue
       const val = values[champ.id]
-      if (val === undefined) continue
-      if (Array.isArray(val)) {
-        val.forEach((v) => fd.append(champ.id, v))
-      } else {
-        fd.append(champ.id, val)
-      }
+      if (val !== undefined) reponses[champ.id] = val
     }
 
-    const res = await creerInscription(formulaireId, fd)
-    setIsLoading(false)
-
-    if (res.error) {
-      setError(res.error)
-    } else {
-      setSubmitted(true)
+    const res = await fetch('/api/inscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ formulaireId, prenom, nom, email, reponses }),
+    })
+    const result = await res.json()
+    if (result.error) {
+      setError(result.error)
+      setIsLoading(false)
+      return
     }
+    setSubmitted(true)
   }
 
   // ─── Page de confirmation ─────────────────────────────────────────────────
