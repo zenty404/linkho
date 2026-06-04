@@ -4,13 +4,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { EvenementComplet } from '@/lib/actions/evenements'
+import type { LieuPublic } from '@/lib/actions/public'
 import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
 import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 import { uploadJustificatif } from '@/lib/actions/paiements'
 
-type Props = { evenement: EvenementComplet }
+type Props = { evenement: EvenementComplet; suggestions: LieuPublic[] }
 
 type SectionState = 'active' | 'completed' | 'future'
 
@@ -75,7 +76,7 @@ function getCurrentStep(evt: EvenementComplet): number {
   return 4
 }
 
-export default function EvenementDetail({ evenement }: Props) {
+export default function EvenementDetail({ evenement, suggestions }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
@@ -219,9 +220,49 @@ export default function EvenementDetail({ evenement }: Props) {
                 ${demande.statut === 'acceptee' ? 'bg-green-100 text-green-700' :
                   demande.statut === 'refusee' ? 'bg-red-100 text-red-700' :
                   'bg-amber-100 text-amber-700'}`}>
-                {demande.statut}
+                {demande.statut === 'refusee' ? 'Demande refusée par l\'établissement' : demande.statut}
               </span>
             </div>
+            {demande.statut === 'refusee' && demande.motif_refus && (
+              <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
+                <p className="text-sm text-red-700">{demande.motif_refus}</p>
+              </div>
+            )}
+            {demande.statut === 'refusee' && suggestions.length > 0 && (
+              <div className="pt-2">
+                <p className="text-xs font-semibold text-navy mb-3">Ces lieux pourraient vous convenir</p>
+                <div className="flex flex-col gap-3">
+                  {suggestions.map((lieu) => (
+                    <Link
+                      key={lieu.id}
+                      href={`/lieux/${lieu.id}`}
+                      className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
+                    >
+                      {lieu.photo_url ? (
+                        <img
+                          src={lieu.photo_url}
+                          alt={lieu.nom}
+                          className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-xl">
+                          🏛
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
+                        {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
+                        {lieu.capacite_max != null && (
+                          <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} personnes</p>
+                        )}
+                      </div>
+                      <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-500">
@@ -230,8 +271,8 @@ export default function EvenementDetail({ evenement }: Props) {
         )}
       </div>
 
-      {/* SECTION 2 — DEVIS : visible dès qu'il y a une demande */}
-      {demande && (
+      {/* SECTION 2 — DEVIS : visible dès qu'il y a une demande, sauf si refusée */}
+      {demande && demande.statut !== 'refusee' && (
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(2))}`}>
           <SectionHeader step={2} title="Devis" state={stepState(2)} />
 

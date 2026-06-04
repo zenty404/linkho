@@ -95,6 +95,7 @@ export type EvenementComplet = {
     id: string
     etablissement_id: string
     statut: string
+    motif_refus: string | null
     type_evenement: string
     nb_participants: number
     message: string | null

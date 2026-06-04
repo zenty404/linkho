@@ -1,11 +1,14 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { ActionResult } from '@/lib/types/actions'
+import { sendMessage } from '@/lib/actions/messages'
 
 export type DemandeComplete = {
   id: string
   statut: string
+  motif_refus: string | null
   type_evenement: string
   date_debut: string
   date_fin: string
@@ -108,6 +111,7 @@ async function buildDemandeComplete(
   return {
     id: demande.id,
     statut: demande.statut,
+    motif_refus: demande.motif_refus ?? null,
     type_evenement: demande.type_evenement,
     date_debut: demande.date_debut,
     date_fin: demande.date_fin,
@@ -118,6 +122,31 @@ async function buildDemandeComplete(
     devis,
     reservation,
   }
+}
+
+export async function refuserDemande(
+  demandeId: string,
+  motif: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: etablissementId } = await supabase.rpc('get_etablissement_id')
+  if (!etablissementId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { error } = await supabase
+    .from('demandes_devis')
+    .update({ statut: 'refusee', motif_refus: motif })
+    .eq('id', demandeId)
+    .eq('etablissement_id', etablissementId)
+
+  if (error) return { data: null, error: error.message }
+
+  await sendMessage(demandeId, 'Demande refusée : ' + motif)
+
+  revalidatePath('/etablissement/demandes')
+  revalidatePath(`/etablissement/demandes/${demandeId}`)
+  revalidatePath('/bde/evenements')
+
+  return { data: null, error: null }
 }
 
 export async function getDemandesEtablissement(): Promise<ActionResult<DemandeComplete[]>> {

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
+import { refuserDemande } from '@/lib/actions/etablissement'
 import { envoyerDevis } from '@/lib/actions/devis'
 import { confirmerPaiement } from '@/lib/actions/reservations'
 
@@ -47,6 +48,8 @@ export default function DemandeDetail({ demande }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [showRefusDemande, setShowRefusDemande] = useState(false)
+  const [motifRefusDemande, setMotifRefusDemande] = useState('')
 
   const { devis, reservation } = demande
 
@@ -115,6 +118,65 @@ export default function DemandeDetail({ demande }: Props) {
               <p className="mt-3 text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100 italic">
                 &ldquo;{demande.message}&rdquo;
               </p>
+            )}
+            {demande.statut === 'refusee' && demande.motif_refus && (
+              <div className="mt-3 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
+                <p className="text-sm text-red-700">{demande.motif_refus}</p>
+              </div>
+            )}
+            {demande.statut === 'en_attente' && !devis && !showRefusDemande && (
+              <button
+                onClick={() => setShowRefusDemande(true)}
+                className="mt-4 px-4 py-2 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-lg transition-colors"
+              >
+                Refuser la demande
+              </button>
+            )}
+            {demande.statut === 'en_attente' && !devis && showRefusDemande && (
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">
+                    Motif du refus <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={motifRefusDemande}
+                    onChange={(e) => setMotifRefusDemande(e.target.value)}
+                    placeholder="Expliquez la raison du refus au BDE…"
+                    rows={3}
+                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-red-300/30 focus:border-red-300 resize-none"
+                  />
+                  <p className={`text-xs mt-1 ${motifRefusDemande.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                    {motifRefusDemande.trim().length} / 20 caractères minimum
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setShowRefusDemande(false); setMotifRefusDemande('') }}
+                    className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const motif = motifRefusDemande.trim()
+                      if (motif.length < 20) return
+                      setError(null)
+                      startTransition(async () => {
+                        const res = await refuserDemande(demande.id, motif)
+                        if (res.error) { setError(res.error); return }
+                        router.push('/etablissement/demandes')
+                      })
+                    }}
+                    disabled={isPending || motifRefusDemande.trim().length < 20}
+                    className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPending ? 'Envoi…' : 'Confirmer le refus'}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${headerStatut.style}`}>

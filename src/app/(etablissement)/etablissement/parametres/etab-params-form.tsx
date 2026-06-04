@@ -586,9 +586,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         <div className="flex items-center justify-between">
           <div>
             <p className="text-2xl font-bold text-navy tabular-nums">
-              {etab?.commission_rate !== null && etab?.commission_rate !== undefined
-                ? `${(etab.commission_rate * 100).toFixed(0)} %`
-                : '—'}
+              {etab?.taux_commission ?? 12} %
             </p>
             <p className="text-xs text-gray-400 mt-1.5">
               Ce taux est défini par l&apos;équipe LINKHO. Contactez-nous pour toute modification.

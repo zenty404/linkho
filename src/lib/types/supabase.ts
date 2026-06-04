@@ -115,6 +115,7 @@ export type Database = {
           etablissement_id: string
           id: string
           message: string | null
+          motif_refus: string | null
           nb_participants: number
           statut: string
           type_evenement: string
@@ -128,6 +129,7 @@ export type Database = {
           etablissement_id: string
           id?: string
           message?: string | null
+          motif_refus?: string | null
           nb_participants: number
           statut?: string
           type_evenement: string
@@ -141,6 +143,7 @@ export type Database = {
           etablissement_id?: string
           id?: string
           message?: string | null
+          motif_refus?: string | null
           nb_participants?: number
           statut?: string
           type_evenement?: string

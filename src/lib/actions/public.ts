@@ -166,6 +166,57 @@ export async function getReservationsOccupees(
   return data ?? []
 }
 
+// ─── Suggestions de lieux alternatifs ────────────────────────────────────────
+
+export async function getLieuxSuggeres(params: {
+  lieuExcluId: string
+  typeEvenement: string
+  dateDebut: string
+  dateFin: string
+  nbParticipants: number
+}): Promise<LieuPublic[]> {
+  const supabase = await createClient()
+
+  const { data: conflicting } = await supabase
+    .from('reservations')
+    .select('etablissement_id')
+    .neq('statut', 'annulee')
+    .lte('date_debut', params.dateFin)
+    .gte('date_fin', params.dateDebut)
+
+  const excludeIds = [
+    params.lieuExcluId,
+    ...((conflicting ?? []).map((r) => r.etablissement_id).filter((id): id is string => Boolean(id))),
+  ]
+
+  const { data } = await supabase
+    .from('etablissement_profiles')
+    .select('id, nom, ville, capacite_max, nb_couchages, prix_base, description, equipements, etablissement_photos(url, est_principale)')
+    .eq('actif', true)
+    .eq('visible', true)
+    .gte('capacite_max', params.nbParticipants)
+    .not('id', 'in', `(${excludeIds.join(',')})`)
+    .limit(3)
+
+  type PhotoRow = { url: string; est_principale: boolean | null }
+
+  return (data ?? []).map((lieu) => {
+    const photos = lieu.etablissement_photos as PhotoRow[] | null
+    const photo_url = photos?.find((p) => p.est_principale)?.url ?? photos?.[0]?.url ?? null
+    return {
+      id: lieu.id,
+      nom: lieu.nom,
+      ville: lieu.ville,
+      capacite_max: lieu.capacite_max,
+      nb_couchages: lieu.nb_couchages,
+      prix_base: lieu.prix_base,
+      description: lieu.description,
+      equipements: lieu.equipements,
+      photo_url,
+    }
+  })
+}
+
 // ─── Créer une demande de devis + événement ───────────────────────────────────
 
 function mapTypeDemandeDevis(type: string): string {
@@ -195,7 +246,7 @@ export async function createDemandeEtEvenement(input: {
   participants: number
   typeEvenement: string
   message: string
-}): Promise<ActionResult<{ evenementId: string }>> {
+}): Promise<ActionResult<{ evenementId: string; suggestions: LieuPublic[] }>> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -222,6 +273,7 @@ export async function createDemandeEtEvenement(input: {
   if (demandeError || !demande) {
     return { data: null, error: demandeError?.message ?? 'Erreur lors de la création de la demande.' }
   }
+
 
   const { data: evenement, error: evenementError } = await supabase
     .from('evenements')
@@ -271,5 +323,13 @@ export async function createDemandeEtEvenement(input: {
     console.error('[createDemandeEtEvenement] email error:', e)
   }
 
-  return { data: { evenementId: evenement.id }, error: null }
+  const suggestions = await getLieuxSuggeres({
+    lieuExcluId: input.lieuId,
+    typeEvenement: input.typeEvenement,
+    dateDebut: input.date_debut,
+    dateFin: input.date_fin,
+    nbParticipants: input.participants,
+  }).catch(() => [] as LieuPublic[])
+
+  return { data: { evenementId: evenement.id, suggestions }, error: null }
 }
