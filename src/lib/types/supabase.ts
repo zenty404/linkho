@@ -839,6 +839,41 @@ export type Database = {
           },
         ]
       }
+      indisponibilites: {
+        Row: {
+          created_at: string
+          date_debut: string
+          date_fin: string
+          etablissement_id: string
+          id: string
+          motif: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_debut: string
+          date_fin: string
+          etablissement_id: string
+          id?: string
+          motif?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_debut?: string
+          date_fin?: string
+          etablissement_id?: string
+          id?: string
+          motif?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indisponibilites_etablissement_id_fkey"
+            columns: ["etablissement_id"]
+            isOneToOne: false
+            referencedRelation: "etablissement_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inscription_echeances: {
         Row: {
           created_at: string

@@ -5,8 +5,12 @@ import {
   updateProfilEtablissement,
   updateTagsEquipements,
   updateTypesEvenements,
+  getIndisponibilites,
+  ajouterIndisponibilite,
+  supprimerIndisponibilite,
   ajouterPhoto,
   supprimerPhoto,
+  type Indisponibilite,
 } from '@/lib/actions/parametres'
 import { PARAM_INIT } from '@/lib/types/params'
 import { signOut } from '@/lib/actions/auth'
@@ -400,6 +404,148 @@ function EquipementsSection({ initialTags }: { initialTags: string[] }) {
   )
 }
 
+// ─── Section Disponibilités ───────────────────────────────────────────────────
+
+function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponibilite[] }) {
+  const [indispos, setIndispos] = useState<Indisponibilite[]>(initialIndispos)
+  const [dateDebut, setDateDebut] = useState('')
+  const [dateFin, setDateFin] = useState('')
+  const [motif, setMotif] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const today = new Date().toISOString().split('T')[0]
+
+  function fmtDateCourt(s: string): string {
+    const parts = s.split('-')
+    return `${parts[2]}/${parts[1]}`
+  }
+
+  async function handleAjouter() {
+    if (!dateDebut || !dateFin) {
+      setError('Veuillez saisir une date de début et de fin.')
+      return
+    }
+    if (dateFin < dateDebut) {
+      setError('La date de fin doit être après la date de début.')
+      return
+    }
+    setSaving(true)
+    setError(null)
+    const result = await ajouterIndisponibilite(dateDebut, dateFin, motif || undefined)
+    if (result.error) {
+      setSaving(false)
+      setError(result.error)
+      return
+    }
+    const refreshed = await getIndisponibilites()
+    setSaving(false)
+    if (refreshed.data) setIndispos(refreshed.data)
+    setDateDebut('')
+    setDateFin('')
+    setMotif('')
+  }
+
+  async function handleSupprimer(id: string) {
+    setDeletingId(id)
+    const result = await supprimerIndisponibilite(id)
+    setDeletingId(null)
+    if (result.error) {
+      setError(result.error)
+    } else {
+      setIndispos((prev) => prev.filter((i) => i.id !== id))
+    }
+  }
+
+  return (
+    <SectionCard title="Disponibilités">
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">Date de début</label>
+              <input
+                type="date"
+                value={dateDebut}
+                min={today}
+                onChange={(e) => setDateDebut(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">Date de fin</label>
+              <input
+                type="date"
+                value={dateFin}
+                min={dateDebut || today}
+                onChange={(e) => setDateFin(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">
+              Motif <span className="text-gray-300">(optionnel)</span>
+            </label>
+            <input
+              type="text"
+              value={motif}
+              onChange={(e) => setMotif(e.target.value)}
+              placeholder="Réservation privée, Fermeture annuelle…"
+              className={inputCls}
+            />
+          </div>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+              {error}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleAjouter}
+            disabled={saving || !dateDebut || !dateFin}
+            className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {saving ? 'Enregistrement…' : 'Bloquer ces dates'}
+          </button>
+        </div>
+
+        {indispos.length > 0 ? (
+          <div className="border-t border-gray-100 pt-5 space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Périodes bloquées
+            </p>
+            {indispos.map((indispo) => (
+              <div
+                key={indispo.id}
+                className="flex items-center justify-between gap-3 py-2.5 px-3 bg-gray-50 rounded-lg"
+              >
+                <span className="text-sm text-navy">
+                  Du {fmtDateCourt(indispo.date_debut)} au {fmtDateCourt(indispo.date_fin)}
+                  {indispo.motif && (
+                    <span className="text-gray-400 ml-1">— {indispo.motif}</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSupprimer(indispo.id)}
+                  disabled={deletingId === indispo.id}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium shrink-0 disabled:opacity-50"
+                >
+                  {deletingId === indispo.id ? '…' : 'Supprimer'}
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">Aucune période bloquée manuellement.</p>
+        )}
+      </div>
+    </SectionCard>
+  )
+}
+
 // ─── Toggle visibilité ────────────────────────────────────────────────────────
 
 function VisibleToggle({
@@ -445,11 +591,12 @@ interface Props {
   email: string
   etablissementId: string | null
   photos: EtabPhoto[]
+  indisponibilites: Indisponibilite[]
 }
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
-export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) {
+export function EtabParamsForm({ etab, email, etablissementId, photos, indisponibilites }: Props) {
   const [infosState, infosAction, infosPending] = useActionState(
     updateProfilEtablissement,
     PARAM_INIT,
@@ -556,7 +703,10 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
       {/* 5. Équipements */}
       <EquipementsSection initialTags={etab?.tags_equipements ?? []} />
 
-      {/* 6. Capacités et tarifs */}
+      {/* 6. Disponibilités */}
+      <DisponibilitesSection initialIndispos={indisponibilites} />
+
+      {/* 7. Capacités et tarifs */}
       <SectionCard title="Capacités et tarifs">
         <form action={capAction} className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -572,7 +722,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 7. Localisation */}
+      {/* 8. Localisation */}
       <SectionCard title="Localisation">
         <form action={locAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -592,7 +742,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 8. Coordonnées bancaires */}
+      {/* 9. Coordonnées bancaires */}
       <SectionCard title="Coordonnées bancaires">
         <form action={bancAction} className="space-y-4">
           <Field
@@ -621,7 +771,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 9. Caution */}
+      {/* 10. Caution */}
       <SectionCard title="Caution">
         <form action={cautionAction} className="space-y-4">
           <Field
@@ -639,7 +789,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 10. Taux de commission (lecture seule) */}
+      {/* 11. Taux de commission (lecture seule) */}
       <SectionCard title="Taux de commission">
         <div className="flex items-center justify-between">
           <div>
@@ -656,7 +806,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </div>
       </SectionCard>
 
-      {/* 11. Informations légales */}
+      {/* 12. Informations légales */}
       <SectionCard title="Informations légales">
         <form action={legalAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -710,7 +860,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 12. Compte */}
+      {/* 13. Compte */}
       <SectionCard title="Compte">
         <div className="space-y-5">
           <div>

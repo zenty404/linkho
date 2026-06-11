@@ -156,18 +156,45 @@ export type PeriodeOccupee = {
   date_fin: string
 }
 
+const STATUTS_BLOQUANTS = [
+  'devis_signe',
+  'acompte_en_attente',
+  'acompte_confirme',
+  'confirmee',
+  'en_cours',
+]
+
 export async function getReservationsOccupees(
   etablissementId: string,
 ): Promise<PeriodeOccupee[]> {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('reservations')
-    .select('date_debut, date_fin')
-    .eq('etablissement_id', etablissementId)
-    .neq('statut', 'annulee')
+  const [{ data: reservations }, { data: indispos }] = await Promise.all([
+    supabase
+      .from('reservations')
+      .select('devis(date_evenement_debut, date_evenement_fin)')
+      .eq('etablissement_id', etablissementId)
+      .in('statut', STATUTS_BLOQUANTS),
+    supabase
+      .from('indisponibilites')
+      .select('date_debut, date_fin')
+      .eq('etablissement_id', etablissementId),
+  ])
 
-  return data ?? []
+  type DevisRow = { date_evenement_debut: string; date_evenement_fin: string }
+
+  const fromReservations: PeriodeOccupee[] = (reservations ?? []).flatMap((r) => {
+    const d = r.devis as DevisRow | null
+    if (!d) return []
+    return [{ date_debut: d.date_evenement_debut, date_fin: d.date_evenement_fin }]
+  })
+
+  const fromIndispos: PeriodeOccupee[] = (indispos ?? []).map((i) => ({
+    date_debut: i.date_debut,
+    date_fin: i.date_fin,
+  }))
+
+  return [...fromReservations, ...fromIndispos]
 }
 
 // ─── Mapping type événement BDE → valeur prédéfinie ──────────────────────────

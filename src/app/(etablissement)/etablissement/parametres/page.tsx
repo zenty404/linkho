@@ -4,6 +4,7 @@ import { EtabParamsForm } from './etab-params-form'
 import type { Database } from '@/lib/types/supabase'
 
 type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
+type Indisponibilite = Database['public']['Tables']['indisponibilites']['Row']
 
 export default async function EtablissementParametresPage() {
   const supabase = await createClient()
@@ -18,20 +19,30 @@ export default async function EtablissementParametresPage() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  const { data: photos } = etab?.id
-    ? await supabase
-        .from('etablissement_photos')
-        .select('*')
-        .eq('etablissement_id', etab.id)
-        .order('ordre', { ascending: true })
-    : { data: [] as EtabPhoto[] }
+  const [photosResult, indisposResult] = await Promise.all([
+    etab?.id
+      ? supabase
+          .from('etablissement_photos')
+          .select('*')
+          .eq('etablissement_id', etab.id)
+          .order('ordre', { ascending: true })
+      : Promise.resolve({ data: [] as EtabPhoto[] }),
+    etab?.id
+      ? supabase
+          .from('indisponibilites')
+          .select('*')
+          .eq('etablissement_id', etab.id)
+          .order('date_debut', { ascending: true })
+      : Promise.resolve({ data: [] as Indisponibilite[] }),
+  ])
 
   return (
     <EtabParamsForm
       etab={etab}
       email={user.email ?? ''}
       etablissementId={etab?.id ?? null}
-      photos={photos ?? []}
+      photos={photosResult.data ?? []}
+      indisponibilites={indisposResult.data ?? []}
     />
   )
 }

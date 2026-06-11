@@ -7,6 +7,7 @@ import type { ParamState } from '@/lib/types/params'
 
 type EtabUpdate = Database['public']['Tables']['etablissement_profiles']['Update']
 type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
+export type Indisponibilite = Database['public']['Tables']['indisponibilites']['Row']
 
 // ─── BDE ──────────────────────────────────────────────────────────────────────
 
@@ -227,6 +228,68 @@ export async function updateTypesEvenements(
 
   if (error) {
     console.error('updateTypesEvenements error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
+}
+
+// ─── Indisponibilités ─────────────────────────────────────────────────────────
+
+export async function getIndisponibilites(): Promise<ActionResult<Indisponibilite[]>> {
+  const supabase = await createClient()
+  const { data: etabId } = await supabase.rpc('get_etablissement_id')
+  if (!etabId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { data, error } = await supabase
+    .from('indisponibilites')
+    .select('*')
+    .eq('etablissement_id', etabId)
+    .order('date_debut', { ascending: true })
+
+  if (error) return { data: null, error: error.message }
+  return { data: data ?? [], error: null }
+}
+
+export async function ajouterIndisponibilite(
+  dateDebut: string,
+  dateFin: string,
+  motif?: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: etabId } = await supabase.rpc('get_etablissement_id')
+  if (!etabId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { error } = await supabase
+    .from('indisponibilites')
+    .insert({
+      etablissement_id: etabId,
+      date_debut: dateDebut,
+      date_fin: dateFin,
+      motif: motif ?? null,
+    })
+
+  if (error) {
+    console.error('ajouterIndisponibilite error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
+}
+
+export async function supprimerIndisponibilite(id: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: etabId } = await supabase.rpc('get_etablissement_id')
+  if (!etabId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { error } = await supabase
+    .from('indisponibilites')
+    .delete()
+    .eq('id', id)
+    .eq('etablissement_id', etabId)
+
+  if (error) {
+    console.error('supprimerIndisponibilite error:', error)
     return { data: null, error: error.message }
   }
 

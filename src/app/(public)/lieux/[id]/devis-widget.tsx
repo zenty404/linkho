@@ -30,9 +30,14 @@ type Props = {
   initialParticipants?: number
 }
 
+function parseLocalDate(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 function parseInitialRange(debut?: string, fin?: string): DateRange | undefined {
   if (!debut) return undefined
-  return { from: new Date(debut), to: fin ? new Date(fin) : undefined }
+  return { from: parseLocalDate(debut), to: fin ? parseLocalDate(fin) : undefined }
 }
 
 function fmtDate(d: Date): string {
@@ -78,8 +83,8 @@ export default function DevisWidget({
   const disabledDates = [
     { before: today },
     ...reservationsOccupees.map((r) => ({
-      from: new Date(r.date_debut),
-      to: new Date(r.date_fin),
+      from: parseLocalDate(r.date_debut),
+      to: parseLocalDate(r.date_fin),
     })),
   ]
 
