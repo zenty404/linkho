@@ -189,6 +189,50 @@ export async function updateEquipements(
   return { data: null, error: null }
 }
 
+export async function updateTagsEquipements(
+  tags: string[],
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { data: null, error: 'Non authentifié.' }
+
+  const { error } = await supabase
+    .from('etablissement_profiles')
+    .update({ tags_equipements: tags })
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('updateTagsEquipements error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
+}
+
+export async function updateTypesEvenements(
+  types: string[],
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { data: null, error: 'Non authentifié.' }
+
+  const { error } = await supabase
+    .from('etablissement_profiles')
+    .update({ types_evenements: types })
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('updateTypesEvenements error:', error)
+    return { data: null, error: error.message }
+  }
+
+  return { data: null, error: null }
+}
+
 // ─── Photos ───────────────────────────────────────────────────────────────────
 
 export async function getPhotosEtablissement(): Promise<ActionResult<EtabPhoto[]>> {

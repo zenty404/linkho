@@ -3,7 +3,8 @@
 import { useActionState, useState, useRef } from 'react'
 import {
   updateProfilEtablissement,
-  updateEquipements,
+  updateTagsEquipements,
+  updateTypesEvenements,
   ajouterPhoto,
   supprimerPhoto,
 } from '@/lib/actions/parametres'
@@ -16,6 +17,34 @@ type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
 type EtabProfile = Database['public']['Tables']['etablissement_profiles']['Row']
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
+
+const TYPES_EVENEMENTS = [
+  'WEI',
+  'Soirée',
+  'Gala',
+  'Séminaire',
+  'Week-end',
+  "Journée d'intégration",
+  'Autre',
+]
+
+const TAGS_EQUIPEMENTS = [
+  'Piscine',
+  'Scène',
+  'Sono',
+  'Parking',
+  'Bar',
+  'Cuisine',
+  'Hébergement',
+  'Salle de réception',
+  'Terrasse',
+  'Climatisation',
+  'WiFi',
+  'Jacuzzi',
+  'Salle de sport',
+  'Karaoké',
+  'Barbecue',
+]
 
 const TYPES_LIEU = [
   { value: '', label: '— Sélectionner —' },
@@ -254,31 +283,83 @@ function PhotosSection({
   )
 }
 
-// ─── Section Équipements ──────────────────────────────────────────────────────
+// ─── Section Types d'événements ──────────────────────────────────────────────
 
-function EquipementsSection({ initialTags }: { initialTags: string[] }) {
-  const [tags, setTags] = useState<string[]>(initialTags)
-  const [input, setInput] = useState('')
+function TypesEvenementsSection({ initialTypes }: { initialTypes: string[] }) {
+  const [types, setTypes] = useState<string[]>(initialTypes)
   const [saving, setSaving] = useState(false)
   const [state, setState] = useState<{ success: boolean; error: string | null }>({
     success: false,
     error: null,
   })
 
-  function addTag() {
-    const t = input.trim()
-    if (t && !tags.includes(t)) setTags((prev) => [...prev, t])
-    setInput('')
-  }
-
-  function removeTag(tag: string) {
-    setTags((prev) => prev.filter((t) => t !== tag))
+  function toggleType(type: string) {
+    setTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    )
   }
 
   async function handleSave() {
     setSaving(true)
     setState({ success: false, error: null })
-    const result = await updateEquipements(tags)
+    const result = await updateTypesEvenements(types)
+    setSaving(false)
+    if (result.error) setState({ success: false, error: result.error })
+    else setState({ success: true, error: null })
+  }
+
+  return (
+    <SectionCard title="Types d'événements acceptés">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-2.5">
+          {TYPES_EVENEMENTS.map((type) => (
+            <label key={type} className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={types.includes(type)}
+                onChange={() => toggleType(type)}
+                className="w-4 h-4 rounded accent-brand"
+              />
+              <span className="text-sm text-navy/80">{type}</span>
+            </label>
+          ))}
+        </div>
+
+        <StateMessages success={state.success} error={state.error} />
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+        >
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+      </div>
+    </SectionCard>
+  )
+}
+
+// ─── Section Équipements ──────────────────────────────────────────────────────
+
+function EquipementsSection({ initialTags }: { initialTags: string[] }) {
+  const [tags, setTags] = useState<string[]>(initialTags)
+  const [saving, setSaving] = useState(false)
+  const [state, setState] = useState<{ success: boolean; error: string | null }>({
+    success: false,
+    error: null,
+  })
+
+  function toggleTag(tag: string) {
+    setTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    )
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setState({ success: false, error: null })
+    const result = await updateTagsEquipements(tags)
     setSaving(false)
     if (result.error) setState({ success: false, error: result.error })
     else setState({ success: true, error: null })
@@ -287,48 +368,22 @@ function EquipementsSection({ initialTags }: { initialTags: string[] }) {
   return (
     <SectionCard title="Équipements">
       <div className="space-y-4">
-        {/* Input tag */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); addTag() }
-            }}
-            placeholder="Ex : Piscine, Salle de réception, Parking…"
-            className={inputCls + ' flex-1'}
-          />
-          <button
-            type="button"
-            onClick={addTag}
-            disabled={!input.trim()}
-            className="px-4 py-2.5 text-sm font-semibold text-brand border border-brand/30 rounded-lg hover:bg-brand/5 transition-colors disabled:opacity-40"
-          >
-            Ajouter
-          </button>
+        <div className="flex flex-wrap gap-2">
+          {TAGS_EQUIPEMENTS.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => toggleTag(tag)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                tags.includes(tag)
+                  ? 'bg-navy text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
         </div>
-
-        {/* Tags */}
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand/10 text-brand text-sm font-medium rounded-full"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="text-brand/60 hover:text-brand leading-none"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
 
         <StateMessages success={state.success} error={state.error} />
 
@@ -495,10 +550,13 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 4. Équipements */}
-      <EquipementsSection initialTags={etab?.equipements ?? []} />
+      {/* 4. Types d'événements acceptés */}
+      <TypesEvenementsSection initialTypes={etab?.types_evenements ?? []} />
 
-      {/* 5. Capacités et tarifs */}
+      {/* 5. Équipements */}
+      <EquipementsSection initialTags={etab?.tags_equipements ?? []} />
+
+      {/* 6. Capacités et tarifs */}
       <SectionCard title="Capacités et tarifs">
         <form action={capAction} className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -514,7 +572,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 6. Localisation */}
+      {/* 7. Localisation */}
       <SectionCard title="Localisation">
         <form action={locAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -534,7 +592,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 7. Coordonnées bancaires */}
+      {/* 8. Coordonnées bancaires */}
       <SectionCard title="Coordonnées bancaires">
         <form action={bancAction} className="space-y-4">
           <Field
@@ -563,7 +621,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 8. Caution */}
+      {/* 9. Caution */}
       <SectionCard title="Caution">
         <form action={cautionAction} className="space-y-4">
           <Field
@@ -581,7 +639,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 9. Taux de commission (lecture seule) */}
+      {/* 10. Taux de commission (lecture seule) */}
       <SectionCard title="Taux de commission">
         <div className="flex items-center justify-between">
           <div>
@@ -598,7 +656,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </div>
       </SectionCard>
 
-      {/* 10. Informations légales */}
+      {/* 11. Informations légales */}
       <SectionCard title="Informations légales">
         <form action={legalAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -652,7 +710,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos }: Props) 
         </form>
       </SectionCard>
 
-      {/* 11. Compte */}
+      {/* 12. Compte */}
       <SectionCard title="Compte">
         <div className="space-y-5">
           <div>

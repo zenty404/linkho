@@ -22,7 +22,8 @@ export type FiltresLieux = {
   ville?: string
   capacite_min?: number
   budget_max?: number
-  equipements?: string[]
+  tags_equipements?: string[]
+  types_evenements?: string[]
   avec_hebergement?: boolean
 }
 
@@ -51,8 +52,11 @@ export async function getLieuxPublics(
   if (filtres.avec_hebergement) {
     query = query.gt('nb_couchages', 0)
   }
-  if (filtres.equipements && filtres.equipements.length > 0) {
-    query = query.contains('equipements', filtres.equipements)
+  if (filtres.tags_equipements && filtres.tags_equipements.length > 0) {
+    query = query.contains('tags_equipements', filtres.tags_equipements)
+  }
+  if (filtres.types_evenements && filtres.types_evenements.length > 0) {
+    query = query.overlaps('types_evenements', filtres.types_evenements)
   }
 
   const { data, error } = await query
@@ -166,6 +170,24 @@ export async function getReservationsOccupees(
   return data ?? []
 }
 
+// ─── Mapping type événement BDE → valeur prédéfinie ──────────────────────────
+
+const TYPE_EVT_MAP: Record<string, string> = {
+  wei: 'WEI',
+  soiree: 'Soirée',
+  gala: 'Gala',
+  seminaire: 'Séminaire',
+  weekend: 'Week-end',
+  integration: "Journée d'intégration",
+  autre: 'Autre',
+  ski: 'Week-end',
+  sportif: 'Autre',
+  voyage: 'Autre',
+  culturel: 'Autre',
+  conference: 'Séminaire',
+  atelier: 'Autre',
+}
+
 // ─── Suggestions de lieux alternatifs ────────────────────────────────────────
 
 export async function getLieuxSuggeres(params: {
@@ -189,14 +211,20 @@ export async function getLieuxSuggeres(params: {
     ...((conflicting ?? []).map((r) => r.etablissement_id).filter((id): id is string => Boolean(id))),
   ]
 
-  const { data } = await supabase
+  let query = supabase
     .from('etablissement_profiles')
     .select('id, nom, ville, capacite_max, nb_couchages, prix_base, description, equipements, etablissement_photos(url, est_principale)')
     .eq('actif', true)
     .eq('visible', true)
     .gte('capacite_max', params.nbParticipants)
     .not('id', 'in', `(${excludeIds.join(',')})`)
-    .limit(3)
+
+  const typeDisplay = TYPE_EVT_MAP[params.typeEvenement]
+  if (typeDisplay) {
+    query = query.overlaps('types_evenements', [typeDisplay])
+  }
+
+  const { data } = await query.limit(3)
 
   type PhotoRow = { url: string; est_principale: boolean | null }
 

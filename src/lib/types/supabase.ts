@@ -468,6 +468,8 @@ export type Database = {
           equip_sonorisation: boolean | null
           equip_wifi: boolean | null
           equipements: string[] | null
+          tags_equipements: string[] | null
+          types_evenements: string[] | null
           iban: string | null
           id: string
           latitude: number | null
@@ -507,6 +509,8 @@ export type Database = {
           equip_sonorisation?: boolean | null
           equip_wifi?: boolean | null
           equipements?: string[] | null
+          tags_equipements?: string[] | null
+          types_evenements?: string[] | null
           iban?: string | null
           id?: string
           latitude?: number | null
@@ -546,6 +550,8 @@ export type Database = {
           equip_sonorisation?: boolean | null
           equip_wifi?: boolean | null
           equipements?: string[] | null
+          tags_equipements?: string[] | null
+          types_evenements?: string[] | null
           iban?: string | null
           id?: string
           latitude?: number | null

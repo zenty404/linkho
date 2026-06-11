@@ -21,11 +21,18 @@ export default async function Page({
       ? [sp.equipements]
       : []
 
+  const types_evenements: string[] = Array.isArray(sp.types_evenements)
+    ? (sp.types_evenements as string[])
+    : typeof sp.types_evenements === 'string'
+      ? [sp.types_evenements]
+      : []
+
   const result = await getLieuxPublics({
     ville: ville || undefined,
     capacite_min: participants ? parseInt(participants, 10) : undefined,
     budget_max: budget_max_str ? parseInt(budget_max_str, 10) : undefined,
-    equipements: equipements.length > 0 ? equipements : undefined,
+    tags_equipements: equipements.length > 0 ? equipements : undefined,
+    types_evenements: types_evenements.length > 0 ? types_evenements : undefined,
     avec_hebergement: avec_hebergement || undefined,
   })
 
@@ -38,6 +45,7 @@ export default async function Page({
         budget_max: budget_max_str,
         avec_hebergement,
         equipements,
+        types_evenements,
       }}
       initialDates={{ date_debut, date_fin }}
     />

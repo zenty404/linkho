@@ -6,15 +6,32 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { LieuPublic } from '@/lib/actions/public'
 
-const EQUIPEMENTS_OPTIONS = [
+const TYPES_EVENEMENTS_OPTIONS = [
+  'WEI',
+  'Soirée',
+  'Gala',
+  'Séminaire',
+  'Week-end',
+  "Journée d'intégration",
+  'Autre',
+]
+
+const TAGS_EQUIPEMENTS_OPTIONS = [
   'Piscine',
+  'Scène',
+  'Sono',
   'Parking',
-  'WiFi',
-  'Cuisine',
   'Bar',
-  'Salle de soirée',
-  'Sonorisation',
-  'Espace extérieur',
+  'Cuisine',
+  'Hébergement',
+  'Salle de réception',
+  'Terrasse',
+  'Climatisation',
+  'WiFi',
+  'Jacuzzi',
+  'Salle de sport',
+  'Karaoké',
+  'Barbecue',
 ]
 
 type Filtres = {
@@ -23,6 +40,7 @@ type Filtres = {
   budget_max: string
   avec_hebergement: boolean
   equipements: string[]
+  types_evenements: string[]
 }
 
 type Props = {
@@ -43,6 +61,7 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
     if (f.budget_max) params.set('budget_max', f.budget_max)
     if (f.avec_hebergement) params.set('avec_hebergement', 'true')
     f.equipements.forEach((e) => params.append('equipements', e))
+    f.types_evenements.forEach((t) => params.append('types_evenements', t))
     if (initialDates.date_debut) params.set('date_debut', initialDates.date_debut)
     if (initialDates.date_fin) params.set('date_fin', initialDates.date_fin)
     const qs = params.toString()
@@ -72,6 +91,15 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
     navigate(updated)
   }
 
+  function toggleTypeEvenement(type: string) {
+    const next = filtres.types_evenements.includes(type)
+      ? filtres.types_evenements.filter((t) => t !== type)
+      : [...filtres.types_evenements, type]
+    const updated = { ...filtres, types_evenements: next }
+    setFiltres(updated)
+    navigate(updated)
+  }
+
   function toggleHebergement() {
     const updated = { ...filtres, avec_hebergement: !filtres.avec_hebergement }
     setFiltres(updated)
@@ -85,6 +113,7 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
       budget_max: '',
       avec_hebergement: false,
       equipements: [],
+      types_evenements: [],
     }
     setFiltres(empty)
     startTransition(() => {
@@ -194,24 +223,47 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
                 </button>
               </div>
 
+              {/* Type d'événement */}
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-navy/60 uppercase tracking-wider mb-3">
+                  Type d&apos;événement
+                </p>
+                <div className="space-y-2.5">
+                  {TYPES_EVENEMENTS_OPTIONS.map((type) => (
+                    <label key={type} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={filtres.types_evenements.includes(type)}
+                        onChange={() => toggleTypeEvenement(type)}
+                        className="w-4 h-4 rounded accent-brand"
+                      />
+                      <span className="text-sm text-navy/80 group-hover:text-navy transition-colors">
+                        {type}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               {/* Équipements */}
               <div>
                 <p className="text-xs font-semibold text-navy/60 uppercase tracking-wider mb-3">
                   Équipements
                 </p>
-                <div className="space-y-2.5">
-                  {EQUIPEMENTS_OPTIONS.map((eq) => (
-                    <label key={eq} className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="checkbox"
-                        checked={filtres.equipements.includes(eq)}
-                        onChange={() => toggleEquipement(eq)}
-                        className="w-4 h-4 rounded accent-brand"
-                      />
-                      <span className="text-sm text-navy/80 group-hover:text-navy transition-colors">
-                        {eq}
-                      </span>
-                    </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {TAGS_EQUIPEMENTS_OPTIONS.map((eq) => (
+                    <button
+                      key={eq}
+                      type="button"
+                      onClick={() => toggleEquipement(eq)}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
+                        filtres.equipements.includes(eq)
+                          ? 'bg-navy text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {eq}
+                    </button>
                   ))}
                 </div>
               </div>
