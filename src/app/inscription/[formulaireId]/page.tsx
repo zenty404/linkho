@@ -42,6 +42,7 @@ export default async function InscriptionPubliquePage({ params }: Props) {
       cautionMontant={formulaire.caution_montant ?? null}
       cautionMode={formulaire.caution_mode ?? null}
       cautionSwiklyUrl={formulaire.caution_swikly_url ?? null}
+      messageConfirmation={formulaire.message_confirmation ?? null}
     />
   )
 }

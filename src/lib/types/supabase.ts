@@ -784,6 +784,7 @@ export type Database = {
           description: string | null
           evenement_id: string
           id: string
+          message_confirmation: string | null
           mode_paiement: string | null
           paiement_details: Json | null
           prix_total: number | null
@@ -802,6 +803,7 @@ export type Database = {
           description?: string | null
           evenement_id: string
           id?: string
+          message_confirmation?: string | null
           mode_paiement?: string | null
           paiement_details?: Json | null
           prix_total?: number | null
@@ -820,6 +822,7 @@ export type Database = {
           description?: string | null
           evenement_id?: string
           id?: string
+          message_confirmation?: string | null
           mode_paiement?: string | null
           paiement_details?: Json | null
           prix_total?: number | null

@@ -114,6 +114,7 @@ export async function updateFormulaire(
   caution_montant?: number | null,
   caution_mode?: string | null,
   caution_swikly_url?: string | null,
+  message_confirmation?: string | null,
 ): Promise<ActionResult<Formulaire>> {
   const supabase = await createClient()
 
@@ -129,6 +130,7 @@ export async function updateFormulaire(
       caution_montant: caution_montant ?? null,
       caution_mode: caution_mode ?? null,
       caution_swikly_url: caution_swikly_url ?? null,
+      message_confirmation: message_confirmation ?? null,
     })
     .eq('id', id)
     .select()

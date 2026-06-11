@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
@@ -30,6 +30,7 @@ interface Props {
   cautionMontant: number | null
   cautionMode: string | null
   cautionSwiklyUrl: string | null
+  messageConfirmation: string | null
 }
 
 // ─── Rendu d'un champ ─────────────────────────────────────────────────────────
@@ -267,6 +268,7 @@ export function PublicInscriptionForm({
   cautionMontant,
   cautionMode,
   cautionSwiklyUrl,
+  messageConfirmation,
 }: Props) {
   const [values, setValues] = useState<Record<string, string | string[]>>({})
   const [prenom, setPrenom] = useState('')
@@ -275,6 +277,15 @@ export function PublicInscriptionForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (!modalOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [modalOpen])
 
   function handleChange(id: string, value: string | string[]) {
     setValues((prev) => ({ ...prev, [id]: value }))
@@ -304,113 +315,134 @@ export function PublicInscriptionForm({
       return
     }
     setSubmitted(true)
+    setModalOpen(true)
   }
 
-  // ─── Page de confirmation ─────────────────────────────────────────────────
+  // ─── Données confirmation ─────────────────────────────────────────────────
 
-  if (submitted) {
-    // Instructions de paiement dynamiques
-    const paiementMsg = (() => {
-      if (!modePaiement || prixTotal <= 0) return null
-      const p = paiementDetails ?? {}
-      switch (modePaiement) {
-        case 'virement':
-          return p.iban
-            ? `Veuillez effectuer un virement de ${fmt(prixTotal)} à l'IBAN suivant : ${p.iban}`
-            : `Veuillez effectuer un virement de ${fmt(prixTotal)}. L'IBAN vous sera communiqué par le BDE.`
-        case 'cheque':
-          return p.ordre
-            ? `Veuillez déposer un chèque de ${fmt(prixTotal)} à l'ordre de ${p.ordre} au bureau du BDE.`
-            : `Veuillez déposer un chèque de ${fmt(prixTotal)} au bureau du BDE.`
-        case 'lydia':
-          return p.lydia
-            ? `Veuillez envoyer ${fmt(prixTotal)} sur Lydia au numéro ${p.lydia}.`
-            : `Veuillez régler ${fmt(prixTotal)} via Lydia. Le numéro vous sera communiqué par le BDE.`
-        case 'helloasso':
-          return null // handled separately with a link
-        default:
-          return null
-      }
-    })()
+  const paiementMsg = (() => {
+    if (!modePaiement || prixTotal <= 0) return null
+    const p = paiementDetails ?? {}
+    switch (modePaiement) {
+      case 'virement':
+        return p.iban
+          ? `Veuillez effectuer un virement de ${fmt(prixTotal)} à l'IBAN suivant : ${p.iban}`
+          : `Veuillez effectuer un virement de ${fmt(prixTotal)}. L'IBAN vous sera communiqué par le BDE.`
+      case 'cheque':
+        return p.ordre
+          ? `Veuillez déposer un chèque de ${fmt(prixTotal)} à l'ordre de ${p.ordre} au bureau du BDE.`
+          : `Veuillez déposer un chèque de ${fmt(prixTotal)} au bureau du BDE.`
+      case 'lydia':
+        return p.lydia
+          ? `Veuillez envoyer ${fmt(prixTotal)} sur Lydia au numéro ${p.lydia}.`
+          : `Veuillez régler ${fmt(prixTotal)} via Lydia. Le numéro vous sera communiqué par le BDE.`
+      case 'helloasso':
+        return null
+      default:
+        return null
+    }
+  })()
 
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm max-w-md w-full p-8 text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-600">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+  // ─── Formulaire ───────────────────────────────────────────────────────────
+
+  return (
+    <>
+    {/* ── Modal de confirmation ── */}
+    {modalOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="pt-8 px-6 pb-5 text-center space-y-2">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-600">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-navy">Inscription confirmée !</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              {messageConfirmation && messageConfirmation.trim()
+                ? messageConfirmation
+                : "Merci pour ton inscription. Tu recevras bientôt plus d'informations."}
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-navy mb-2">Inscription envoyée !</h1>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            Votre inscription a bien été reçue. Le BDE organisateur la traitera dans les plus brefs délais.
-          </p>
 
           {/* Instructions paiement */}
           {prixTotal > 0 && (
-            <div className="mt-5 text-left bg-brand/5 border border-brand/20 rounded-xl px-4 py-4 space-y-1">
-              <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-2">Paiement</p>
-              {paiementMsg && (
-                <p className="text-sm text-navy leading-relaxed">{paiementMsg}</p>
-              )}
-              {modePaiement === 'helloasso' && paiementDetails?.helloasso && (
-                <p className="text-sm text-navy leading-relaxed">
-                  Veuillez régler votre inscription via HelloAsso :{' '}
-                  <a
-                    href={paiementDetails.helloasso}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-brand hover:text-brand-light font-medium underline"
-                  >
-                    Accéder au formulaire HelloAsso →
-                  </a>
-                </p>
-              )}
-              {!paiementMsg && modePaiement !== 'helloasso' && (
-                <p className="text-sm text-gray-500">
-                  Les informations de paiement vous seront communiquées par email.
-                </p>
-              )}
+            <div className="px-6 pb-4">
+              <div className="text-left bg-brand/5 border border-brand/20 rounded-xl px-4 py-4 space-y-1">
+                <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-2">Paiement</p>
+                {paiementMsg && (
+                  <p className="text-sm text-navy leading-relaxed">{paiementMsg}</p>
+                )}
+                {modePaiement === 'helloasso' && paiementDetails?.helloasso && (
+                  <p className="text-sm text-navy leading-relaxed">
+                    Veuillez régler votre inscription via HelloAsso :{' '}
+                    <a
+                      href={paiementDetails.helloasso}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand hover:text-brand-light font-medium underline"
+                    >
+                      Accéder au formulaire HelloAsso →
+                    </a>
+                  </p>
+                )}
+                {!paiementMsg && modePaiement !== 'helloasso' && (
+                  <p className="text-sm text-gray-500">
+                    Les informations de paiement vous seront communiquées par email.
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
           {/* Instructions caution */}
           {cautionMontant && cautionMontant > 0 && (
-            <div className="mt-3 text-left bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Caution</p>
-              {cautionMode === 'cheque' && (
-                <p className="text-sm text-navy leading-relaxed">
-                  Une caution de {fmt(cautionMontant)} par chèque est demandée. Déposez-le avec votre chèque d&apos;inscription.
-                </p>
-              )}
-              {cautionMode === 'swikly' && cautionSwiklyUrl && (
-                <p className="text-sm text-navy leading-relaxed">
-                  Une caution de {fmt(cautionMontant)} est demandée via Swikly.{' '}
-                  <a
-                    href={cautionSwiklyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-700 hover:text-amber-800 font-medium underline"
-                  >
-                    Cliquez ici pour l&apos;autoriser →
-                  </a>
-                </p>
-              )}
-              {(!cautionMode || (cautionMode === 'swikly' && !cautionSwiklyUrl)) && (
-                <p className="text-sm text-navy leading-relaxed">
-                  Une caution de {fmt(cautionMontant)} vous sera demandée. Le BDE vous contactera pour les modalités.
-                </p>
-              )}
+            <div className="px-6 pb-4">
+              <div className="text-left bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Caution</p>
+                {cautionMode === 'cheque' && (
+                  <p className="text-sm text-navy leading-relaxed">
+                    Une caution de {fmt(cautionMontant)} par chèque est demandée. Déposez-le avec votre chèque d&apos;inscription.
+                  </p>
+                )}
+                {cautionMode === 'swikly' && cautionSwiklyUrl && (
+                  <p className="text-sm text-navy leading-relaxed">
+                    Une caution de {fmt(cautionMontant)} est demandée via Swikly.{' '}
+                    <a
+                      href={cautionSwiklyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-700 hover:text-amber-800 font-medium underline"
+                    >
+                      Cliquez ici pour l&apos;autoriser →
+                    </a>
+                  </p>
+                )}
+                {(!cautionMode || (cautionMode === 'swikly' && !cautionSwiklyUrl)) && (
+                  <p className="text-sm text-navy leading-relaxed">
+                    Une caution de {fmt(cautionMontant)} vous sera demandée. Le BDE vous contactera pour les modalités.
+                  </p>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Bouton fermer */}
+          <div className="px-6 pb-6 pt-2">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="w-full py-3 text-center bg-navy hover:bg-navy/90 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
-    )
-  }
+    )}
 
-  // ─── Formulaire ───────────────────────────────────────────────────────────
-
-  return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-xl mx-auto">
         {/* Branding */}
@@ -539,10 +571,10 @@ export function PublicInscriptionForm({
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || submitted}
             className="w-full py-3 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Envoi en cours…' : "Confirmer mon inscription"}
+            {isLoading ? 'Envoi en cours…' : submitted ? 'Inscription envoyée ✓' : 'Confirmer mon inscription'}
           </button>
 
           <p className="text-xs text-gray-400 text-center">
@@ -555,5 +587,6 @@ export function PublicInscriptionForm({
         </p>
       </div>
     </div>
+    </>
   )
 }

@@ -461,6 +461,7 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
   const [cautionMontant, setCautionMontant] = useState<number | ''>(formulaire.caution_montant ?? '')
   const [cautionMode, setCautionMode] = useState<string>(formulaire.caution_mode ?? '')
   const [cautionSwiklyUrl, setCautionSwiklyUrl] = useState(formulaire.caution_swikly_url ?? '')
+  const [messageConfirmation, setMessageConfirmation] = useState(formulaire.message_confirmation ?? '')
   const [publie, setPublie] = useState(formulaire.publie)
   const [activeTab, setActiveTab] = useState<Tab>('editeur')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
@@ -471,11 +472,13 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
     champs, titre, description, prixTotal,
     modePaiement, paiementDetails,
     cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+    messageConfirmation,
   })
   latestRef.current = {
     champs, titre, description, prixTotal,
     modePaiement, paiementDetails,
     cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+    messageConfirmation,
   }
   const isFirst = useRef(true)
 
@@ -492,6 +495,7 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
         champs, titre, description, prixTotal,
         modePaiement, paiementDetails,
         cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
+        messageConfirmation,
       } = latestRef.current
       const res = await updateFormulaire(
         formulaire.id,
@@ -504,12 +508,13 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
         cautionActive ? (cautionMontant === '' ? null : Number(cautionMontant)) : null,
         cautionActive ? (cautionMode || null) : null,
         cautionActive && cautionMode === 'swikly' ? (cautionSwiklyUrl || null) : null,
+        messageConfirmation || null,
       )
       setSaveStatus(res.error ? 'error' : 'saved')
     }, 1000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [champs, titre, description, prixTotal, modePaiement, paiementDetails, cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl])
+  }, [champs, titre, description, prixTotal, modePaiement, paiementDetails, cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl, messageConfirmation])
 
   // DnD
   const sensors = useSensors(
@@ -700,15 +705,33 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
               Général
             </h2>
-            <div>
-              <label className="text-xs font-medium text-gray-700 block mb-1.5">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                placeholder="Description publique du formulaire…"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="Description publique du formulaire…"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1.5">
+                  Message affiché après l&apos;inscription
+                </label>
+                <textarea
+                  value={messageConfirmation}
+                  onChange={(e) => setMessageConfirmation(e.target.value.slice(0, 300))}
+                  rows={4}
+                  maxLength={300}
+                  placeholder="Ex : Merci pour ton inscription, on a hâte de s'amuser avec toi ! 🎉"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+                />
+                <p className="text-xs text-gray-400 text-right mt-1">
+                  {messageConfirmation.length}/300
+                </p>
+              </div>
             </div>
           </div>
 
