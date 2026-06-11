@@ -210,6 +210,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
               lieuNom={lieu.nom}
               prixBase={lieu.prix_base}
               reservationsOccupees={reservationsOccupees}
+              typesAcceptes={lieu.types_evenements ?? []}
               initialDateDebut={initialDates.date_debut || undefined}
               initialDateFin={initialDates.date_fin || undefined}
               initialParticipants={

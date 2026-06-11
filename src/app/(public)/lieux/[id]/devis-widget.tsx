@@ -9,14 +9,12 @@ import { createClient } from '@/lib/supabase/client'
 import { createDemandeEtEvenement, type LieuPublic } from '@/lib/actions/public'
 
 const TYPES_EVENEMENT = [
+  { value: 'wei', label: 'WEI' },
   { value: 'soiree', label: 'Soirée' },
   { value: 'gala', label: 'Gala' },
-  { value: 'wei', label: 'WEI' },
-  { value: 'voyage', label: 'Voyage' },
-  { value: 'sportif', label: 'Événement sportif' },
-  { value: 'culturel', label: 'Événement culturel' },
-  { value: 'conference', label: 'Conférence' },
-  { value: 'atelier', label: 'Atelier' },
+  { value: 'seminaire', label: 'Séminaire' },
+  { value: 'weekend', label: 'Week-end' },
+  { value: 'integration', label: "Journée d'intégration" },
   { value: 'autre', label: 'Autre' },
 ]
 
@@ -25,6 +23,7 @@ type Props = {
   lieuNom: string
   prixBase: number | null
   reservationsOccupees: { date_debut: string; date_fin: string }[]
+  typesAcceptes: string[]
   initialDateDebut?: string
   initialDateFin?: string
   initialParticipants?: number
@@ -53,10 +52,14 @@ export default function DevisWidget({
   lieuNom: _lieuNom,
   prixBase,
   reservationsOccupees,
+  typesAcceptes,
   initialDateDebut,
   initialDateFin,
   initialParticipants,
 }: Props) {
+  const typesDisponibles = typesAcceptes.length > 0
+    ? TYPES_EVENEMENT.filter((t) => typesAcceptes.includes(t.label))
+    : TYPES_EVENEMENT
   const router = useRouter()
 
   const [range, setRange] = useState<DateRange | undefined>(
@@ -314,7 +317,7 @@ export default function DevisWidget({
             className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 text-navy bg-white focus:outline-none focus:border-brand"
           >
             <option value="">Choisir…</option>
-            {TYPES_EVENEMENT.map((t) => (
+            {typesDisponibles.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
