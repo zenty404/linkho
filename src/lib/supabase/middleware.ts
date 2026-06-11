@@ -56,19 +56,53 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // Profil BDE manquant → /onboarding
+    // Routes accessibles sans validation de compte
+    const openRoutes = ['/en-attente', '/login', '/register', '/onboarding']
+    const isOpenRoute = openRoutes.some(route => pathname.startsWith(route))
+
+    // Profil BDE manquant ou non validé
     if (user && pathname.startsWith('/bde/')) {
-        const { data: bdeId } = await supabase.rpc('get_bde_id')
-        if (!bdeId) {
+        const { data: profil } = await supabase
+            .from('bde_profiles')
+            .select('id, compte_valide')
+            .eq('user_id', user.id)
+            .maybeSingle()
+        if (!profil) {
             return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+        if (!profil.compte_valide) {
+            return NextResponse.redirect(new URL('/en-attente', request.url))
         }
     }
 
-    // Profil établissement manquant → /onboarding
+    // Profil établissement manquant ou non validé
     if (user && pathname.startsWith('/etablissement/')) {
-        const { data: etabId } = await supabase.rpc('get_etablissement_id')
-        if (!etabId) {
+        const { data: profil } = await supabase
+            .from('etablissement_profiles')
+            .select('id, compte_valide')
+            .eq('user_id', user.id)
+            .maybeSingle()
+        if (!profil) {
             return NextResponse.redirect(new URL('/onboarding', request.url))
+        }
+        if (!profil.compte_valide) {
+            return NextResponse.redirect(new URL('/en-attente', request.url))
+        }
+    }
+
+    // BDE/étab non validé sur une route protégée autre que bde/ ou etablissement/
+    if (user && !isOpenRoute && !pathname.startsWith('/admin')) {
+        const role = user.user_metadata?.role as UserRole | undefined
+        if (role === 'bde' || role === 'etablissement') {
+            const table = role === 'bde' ? 'bde_profiles' : 'etablissement_profiles'
+            const { data: profil } = await supabase
+                .from(table)
+                .select('compte_valide')
+                .eq('user_id', user.id)
+                .maybeSingle()
+            if (profil && !profil.compte_valide) {
+                return NextResponse.redirect(new URL('/en-attente', request.url))
+            }
         }
     }
 

@@ -17,6 +17,7 @@ export type Database = {
       bde_profiles: {
         Row: {
           actif: boolean
+          compte_valide: boolean
           created_at: string
           ecole: string
           id: string
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           actif?: boolean
+          compte_valide?: boolean
           created_at?: string
           ecole: string
           id?: string
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           actif?: boolean
+          compte_valide?: boolean
           created_at?: string
           ecole?: string
           id?: string
@@ -451,6 +454,7 @@ export type Database = {
       etablissement_profiles: {
         Row: {
           actif: boolean
+          compte_valide: boolean
           adresse: string | null
           capacite_max: number | null
           caution_montant: number | null
@@ -492,6 +496,7 @@ export type Database = {
         }
         Insert: {
           actif?: boolean
+          compte_valide?: boolean
           adresse?: string | null
           capacite_max?: number | null
           caution_montant?: number | null
@@ -565,6 +570,7 @@ export type Database = {
           slug?: string | null
           superficie_m2?: number | null
           taux_commission?: number | null
+          compte_valide?: boolean
           telephone?: string | null
           type_lieu?: string | null
           updated_at?: string
@@ -1301,6 +1307,7 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          compte_valide: boolean
           created_at: string
           email: string
           full_name: string | null
@@ -1310,6 +1317,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          compte_valide?: boolean
           created_at?: string
           email: string
           full_name?: string | null
@@ -1319,6 +1327,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          compte_valide?: boolean
           created_at?: string
           email?: string
           full_name?: string | null

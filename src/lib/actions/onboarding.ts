@@ -35,7 +35,7 @@ export async function creerProfilBde(
     return { error: error.message }
   }
 
-  redirect('/bde/dashboard')
+  redirect('/en-attente')
 }
 
 export async function creerProfilEtablissement(
@@ -90,5 +90,5 @@ export async function creerProfilEtablissement(
     return { error: error.message }
   }
 
-  redirect('/etablissement/dashboard')
+  redirect('/en-attente')
 }

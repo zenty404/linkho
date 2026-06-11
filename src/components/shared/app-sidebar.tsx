@@ -17,6 +17,7 @@ import {
   Star,
   Percent,
   Search,
+  UserCheck,
   ChevronRight,
   LogOut,
 } from 'lucide-react'
@@ -24,6 +25,7 @@ import { useEffect, useState } from 'react'
 import { SidebarNav, type NavItem } from '@/components/ui/sidebar-nav'
 import { signOut } from '@/lib/actions/auth'
 import { getUnreadCount } from '@/lib/actions/messages'
+import { getPendingAccountsCount } from '@/lib/actions/admin'
 
 type Space = 'bde' | 'etablissement' | 'admin'
 
@@ -43,6 +45,7 @@ const BASE_NAV: Record<Space, NavItem[]> = {
   ],
   admin: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
+    { label: 'Comptes à valider', href: '/admin/comptes', icon: UserCheck },
     { label: 'Réservations', href: '/admin/reservations', icon: Bookmark },
     { label: 'Messagerie', href: '/admin/messagerie', icon: MessageSquare },
     { label: 'Paramètres', href: '/admin/parametres', icon: Settings },
@@ -82,6 +85,7 @@ type Props = {
 export function AppSidebar({ space, displayName }: Props) {
   const { label: spaceLabel, roleLabel } = SPACE_META[space]
   const [unread, setUnread] = useState(0)
+  const [pendingCount, setPendingCount] = useState(0)
   const initials = getInitials(displayName)
   const palette = getAvatarPalette(displayName)
 
@@ -96,9 +100,19 @@ export function AppSidebar({ space, displayName }: Props) {
     }
   }, [])
 
-  const items = BASE_NAV[space].map((item) =>
-    item.href.includes('/messagerie') ? { ...item, badge: unread || undefined } : item,
-  )
+  useEffect(() => {
+    if (space !== 'admin') return
+    const refresh = () => getPendingAccountsCount().then(setPendingCount)
+    refresh()
+    const interval = setInterval(refresh, 60000)
+    return () => clearInterval(interval)
+  }, [space])
+
+  const items = BASE_NAV[space].map((item) => {
+    if (item.href.includes('/messagerie')) return { ...item, badge: unread || undefined }
+    if (space === 'admin' && item.href.includes('/comptes')) return { ...item, badge: pendingCount || undefined }
+    return item
+  })
 
   return (
     <aside className="w-[210px] bg-navy flex flex-col shrink-0 h-screen sticky top-0">
