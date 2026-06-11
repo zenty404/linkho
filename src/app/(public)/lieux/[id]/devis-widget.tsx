@@ -77,6 +77,14 @@ export default function DevisWidget({
     return () => window.removeEventListener('resize', update)
   }, [])
 
+  useEffect(() => {
+    if (!successData) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [successData])
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -91,6 +99,10 @@ export default function DevisWidget({
   const nuits = range?.from && range?.to ? nbNuits(range.from, range.to) : 0
   const estimation = prixBase != null && nuits > 0 ? prixBase * nuits : null
   const canSubmit = range?.from != null && range?.to != null && participants >= 1 && typeEvenement !== ''
+
+  function handleCloseModal() {
+    router.push(`/bde/evenements/${successData!.evenementId}`)
+  }
 
   async function handleSubmit() {
     if (!canSubmit || isSubmitting) return
@@ -146,65 +158,96 @@ export default function DevisWidget({
     }
   }
 
-  if (successData) {
-    return (
-      <div className="sticky top-24 bg-white border border-gray-200 rounded-xl p-6 space-y-5">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-          </div>
-          <h3 className="font-bold text-navy">Demande envoyée !</h3>
-          <p className="text-sm text-gray-500">L&apos;établissement vous répondra sous 48h.</p>
-        </div>
+  return (
+    <>
+      {/* ── Modal succès ── */}
+      {successData && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={handleCloseModal}
+        >
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
-        {successData.suggestions.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Maximisez vos chances — ces lieux sont aussi disponibles pour vos dates
-            </p>
-            <div className="flex flex-col gap-2">
-              {successData.suggestions.map((lieu) => (
-                <a
-                  key={lieu.id}
-                  href={`/lieux/${lieu.id}`}
-                  className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
-                >
-                  {lieu.photo_url ? (
-                    <img
-                      src={lieu.photo_url}
-                      alt={lieu.nom}
-                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
-                    {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
-                    {lieu.capacite_max != null && (
-                      <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} pers.</p>
-                    )}
+          {/* Carte */}
+          <div
+            className="relative bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Croix */}
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-500 text-sm"
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="pt-8 px-6 pb-5 text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-navy">Demande envoyée !</h3>
+              <p className="text-sm text-gray-500">L&apos;établissement vous répondra sous 48h.</p>
+            </div>
+
+            {/* Suggestions */}
+            {successData.suggestions.length > 0 && (
+              <div className="px-6 pb-5 space-y-3">
+                <div className="border-t border-gray-100 pt-5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Ces lieux sont aussi disponibles pour vos dates
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {successData.suggestions.map((lieu) => (
+                      <a
+                        key={lieu.id}
+                        href={`/lieux/${lieu.id}`}
+                        className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
+                      >
+                        {lieu.photo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={lieu.photo_url}
+                            alt={lieu.nom}
+                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
+                          {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
+                          {lieu.capacite_max != null && (
+                            <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} pers.</p>
+                          )}
+                        </div>
+                        <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
+                      </a>
+                    ))}
                   </div>
-                  <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
-                </a>
-              ))}
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="px-6 pb-6 pt-2 border-t border-gray-100">
+              <a
+                href={`/bde/evenements/${successData.evenementId}`}
+                className="block w-full py-3 text-center bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+              >
+                Voir mon événement
+              </a>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <a
-          href={`/bde/evenements/${successData.evenementId}`}
-          className="block w-full py-2.5 text-center bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
-        >
-          Voir mon événement
-        </a>
-      </div>
-    )
-  }
-
-  return (
+      {/* ── Widget formulaire ── */}
     <div className="sticky top-24 bg-white border border-gray-200 rounded-xl overflow-hidden">
       {/* Styles rdp custom */}
       <style>{`
@@ -328,5 +371,6 @@ export default function DevisWidget({
         </p>
       </div>
     </div>
+    </>
   )
 }
