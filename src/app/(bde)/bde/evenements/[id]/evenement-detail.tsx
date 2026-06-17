@@ -64,6 +64,7 @@ function CopyButton({ text }: { text: string }) {
 function getCurrentStep(evt: EvenementComplet): number {
   const { demande, devis, reservation } = evt
   if (!demande) return 1
+  if (reservation?.statut === 'annulee') return 1
   if (!devis && !reservation) return 1
   if (!devis && reservation) {
     // Direct flow: reservation created from disponibilité validation, no devis
@@ -181,12 +182,17 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
             )}
           </div>
           {reservation && (
-            <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full capitalize
-              ${reservation.statut === 'confirmee' ? 'bg-green-100 text-green-700' :
+            <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
+              ${reservation.statut === 'annulee' ? 'bg-red-100 text-red-700' :
+                reservation.statut === 'confirmee' ? 'bg-green-100 text-green-700' :
                 reservation.statut === 'en_cours' ? 'bg-blue-100 text-blue-700' :
                 reservation.statut === 'terminee' ? 'bg-gray-100 text-gray-600' :
                 'bg-amber-100 text-amber-700'}`}>
-              {reservation.statut}
+              {reservation.statut === 'annulee' ? 'Annulée' :
+               reservation.statut === 'confirmee' ? 'Confirmée' :
+               reservation.statut === 'en_cours' ? 'En cours' :
+               reservation.statut === 'terminee' ? 'Terminée' :
+               reservation.statut}
             </span>
           )}
         </div>
@@ -195,6 +201,16 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
       {actionError && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
           {actionError}
+        </div>
+      )}
+
+      {reservation?.statut === 'annulee' && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-sm font-semibold text-red-700 mb-0.5">Réservation annulée</p>
+          <p className="text-sm text-red-600">
+            Cette réservation a été annulée suite au non-paiement de l&apos;acompte dans les 72h.
+            Vous pouvez soumettre une nouvelle demande.
+          </p>
         </div>
       )}
 
@@ -229,66 +245,80 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                 </p>
               </div>
             )}
-            {/* Statut disponibilité */}
-            {demande.statut_disponibilite === 'en_attente' && (
-              <p className="text-sm text-gray-500">En attente de réponse de l&apos;établissement.</p>
-            )}
-            {demande.statut_disponibilite === 'disponible' && (
-              <div className="space-y-2">
-                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Disponibilité confirmée</span>
-                <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO avant génération de la facture.</p>
+            {/* Statut disponibilité / annulation */}
+            {reservation?.statut === 'annulee' ? (
+              <div className="flex flex-col gap-3 pt-1">
+                <p className="text-sm text-gray-500">Votre réservation a été annulée.</p>
+                <Link
+                  href="/rechercher"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors self-start"
+                >
+                  Faire une nouvelle demande
+                </Link>
               </div>
-            )}
-            {demande.statut_disponibilite === 'non_disponible' && (
-              <div className="space-y-2">
-                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Non disponible</span>
-                {demande.motif_refus && (
+            ) : (
+              <>
+                {demande.statut_disponibilite === 'en_attente' && (
+                  <p className="text-sm text-gray-500">En attente de réponse de l&apos;établissement.</p>
+                )}
+                {demande.statut_disponibilite === 'disponible' && (
+                  <div className="space-y-2">
+                    <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Disponibilité confirmée</span>
+                    <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO avant génération de la facture.</p>
+                  </div>
+                )}
+                {demande.statut_disponibilite === 'non_disponible' && (
+                  <div className="space-y-2">
+                    <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Non disponible</span>
+                    {demande.motif_refus && (
+                      <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                        <p className="text-xs font-semibold text-red-600 mb-1">Motif</p>
+                        <p className="text-sm text-red-700">{demande.motif_refus}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {demande.statut === 'refusee' && demande.motif_refus && demande.statut_disponibilite !== 'non_disponible' && (
                   <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                    <p className="text-xs font-semibold text-red-600 mb-1">Motif</p>
+                    <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
                     <p className="text-sm text-red-700">{demande.motif_refus}</p>
                   </div>
                 )}
-              </div>
-            )}
-            {demande.statut === 'refusee' && demande.motif_refus && demande.statut_disponibilite !== 'non_disponible' && (
-              <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
-                <p className="text-sm text-red-700">{demande.motif_refus}</p>
-              </div>
-            )}
-            {(demande.statut === 'refusee' || demande.statut_disponibilite === 'non_disponible') && suggestions.length > 0 && (
-              <div className="pt-2">
-                <p className="text-xs font-semibold text-navy mb-3">Ces lieux pourraient vous convenir</p>
-                <div className="flex flex-col gap-3">
-                  {suggestions.map((lieu) => (
-                    <Link
-                      key={lieu.id}
-                      href={`/lieux/${lieu.id}`}
-                      className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
-                    >
-                      {lieu.photo_url ? (
-                        <img
-                          src={lieu.photo_url}
-                          alt={lieu.nom}
-                          className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-xl">
-                          🏛
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
-                        {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
-                        {lieu.capacite_max != null && (
-                          <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} personnes</p>
-                        )}
-                      </div>
-                      <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+                {(demande.statut === 'refusee' || demande.statut_disponibilite === 'non_disponible') && suggestions.length > 0 && (
+                  <div className="pt-2">
+                    <p className="text-xs font-semibold text-navy mb-3">Ces lieux pourraient vous convenir</p>
+                    <div className="flex flex-col gap-3">
+                      {suggestions.map((lieu) => (
+                        <Link
+                          key={lieu.id}
+                          href={`/lieux/${lieu.id}`}
+                          className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
+                        >
+                          {lieu.photo_url ? (
+                            <img
+                              src={lieu.photo_url}
+                              alt={lieu.nom}
+                              className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-xl">
+                              🏛
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
+                            {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
+                            {lieu.capacite_max != null && (
+                              <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} personnes</p>
+                            )}
+                          </div>
+                          <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         ) : (
@@ -462,7 +492,7 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
       )}
 
       {/* SECTION 3 — PAIEMENT ACOMPTE */}
-      {reservation && (
+      {reservation && reservation.statut !== 'annulee' && (
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(3))}`}>
           <SectionHeader step={3} title="Paiement de l'acompte" state={stepState(3)} />
           <div className="space-y-4">

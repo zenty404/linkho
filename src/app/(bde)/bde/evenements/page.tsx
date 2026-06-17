@@ -8,6 +8,8 @@ function getDisplayStatut(evt: EvenementComplet): DisplayStatut {
   const { reservation, devis, demande } = evt
   if (demande?.statut === 'refusee')
     return { label: 'Demande refusée', style: 'bg-red-100 text-red-700' }
+  if (reservation?.statut === 'annulee')
+    return { label: 'Annulée', style: 'bg-red-100 text-red-700' }
   if (reservation?.statut === 'terminee')
     return { label: 'Terminé', style: 'bg-green-100 text-green-700' }
   if (reservation?.statut === 'commission_reversee')
