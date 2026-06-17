@@ -143,6 +143,7 @@ export type EvenementComplet = {
     prix_total: number | null
     nb_inscriptions: number
   } | null
+  cal_link: string | null
 }
 
 export async function getEvenementComplet(id: string): Promise<ActionResult<EvenementComplet>> {
@@ -200,11 +201,11 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   }
 
   let formulaire = null
-  const { data: formData } = await supabase
-    .from('formulaire_inscriptions')
-    .select('id, titre, publie, prix_total')
-    .eq('evenement_id', id)
-    .maybeSingle()
+  const [{ data: formData }, { data: calConfig }] = await Promise.all([
+    supabase.from('formulaire_inscriptions').select('id, titre, publie, prix_total').eq('evenement_id', id).maybeSingle(),
+    supabase.from('linkho_config').select('valeur').eq('cle', 'cal_link').maybeSingle(),
+  ])
+  const cal_link = calConfig?.valeur ?? null
   if (formData) {
     const { count } = await supabase
       .from('inscriptions')
@@ -220,6 +221,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       devis: devis as EvenementComplet['devis'],
       reservation: reservation as EvenementComplet['reservation'],
       formulaire,
+      cal_link,
     },
     error: null,
   }

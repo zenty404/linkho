@@ -10,10 +10,11 @@ type Props = {
   dateFin: string
   montantAcompte: number
   reservationId: string
+  calLink?: string
 }
 
 export function ReservationCreeBdeEmail({
-  etabNom, bdeNom, dateDebut, dateFin, montantAcompte, reservationId,
+  etabNom, bdeNom, dateDebut, dateFin, montantAcompte, reservationId, calLink,
 }: Props) {
   return (
     <BaseLayout previewText={`Réservation confirmée avec ${etabNom} — acompte à régler`}>
@@ -36,6 +37,21 @@ export function ReservationCreeBdeEmail({
           Télécharger la facture d&apos;acompte
         </Button>
       </Section>
+      {calLink && (
+        <>
+          <Hr style={t.divider} />
+          <Text style={t.h1}>📞 Prochaine étape — Prendre rendez-vous</Text>
+          <Text style={t.body}>
+            Notre équipe vous accompagne dans l&apos;organisation de votre événement. Prenez
+            rendez-vous pour préparer la suite.
+          </Text>
+          <Section style={{ marginTop: '16px' }}>
+            <Button href={calLink} style={t.btn}>
+              Réserver un appel
+            </Button>
+          </Section>
+        </>
+      )}
     </BaseLayout>
   )
 }

@@ -329,7 +329,11 @@ export async function validerDisponibiliteAdmin(
     .eq('id', demandeId)
 
   try {
-    const bdeEmail = await getBdeEmail(demande.bde_id)
+    const [bdeEmail, { data: calConfig }] = await Promise.all([
+      getBdeEmail(demande.bde_id),
+      supabase.from('linkho_config').select('valeur').eq('cle', 'cal_link').maybeSingle(),
+    ])
+    const calLink = calConfig?.valeur ?? undefined
     if (bdeEmail) {
       await sendEmail(
         bdeEmail,
@@ -341,6 +345,7 @@ export async function validerDisponibiliteAdmin(
           dateFin: demande.date_fin,
           montantAcompte: acompte_montant,
           reservationId: reservation.id,
+          calLink,
         }),
       )
     }

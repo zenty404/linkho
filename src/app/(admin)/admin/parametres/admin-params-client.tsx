@@ -15,6 +15,7 @@ const CONFIG_FIELDS: { key: string; label: string }[] = [
   { key: 'iban', label: 'IBAN' },
   { key: 'bic', label: 'BIC' },
   { key: 'email', label: 'Email' },
+  { key: 'cal_link', label: 'Lien Cal.com' },
 ]
 
 type Etablissement = { id: string; nom: string; taux_commission: number | null }
@@ -82,7 +83,7 @@ export default function AdminParamsClient({ config, etablissements }: Props) {
         <form onSubmit={handleConfigSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
             {CONFIG_FIELDS.map(({ key, label }) => (
-              <div key={key} className={key === 'adresse' || key === 'tva_intracommunautaire' || key === 'iban' ? 'col-span-2' : ''}>
+              <div key={key} className={key === 'adresse' || key === 'tva_intracommunautaire' || key === 'iban' || key === 'cal_link' ? 'col-span-2' : ''}>
                 <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
                 <input
                   type="text"

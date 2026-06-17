@@ -102,7 +102,7 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({})
   const [showReplace, setShowReplace] = useState<Record<string, boolean>>({})
 
-  const { demande, devis, reservation, formulaire } = evenement
+  const { demande, devis, reservation, formulaire, cal_link } = evenement
   const currentStep = getCurrentStep(evenement)
 
   function stepState(step: number): SectionState {
@@ -619,6 +619,24 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
               </a>
             )}
           </div>
+        </div>
+      )}
+
+      {/* CAL.COM — RDV équipe, visible pendant l'attente de l'acompte */}
+      {reservation?.statut === 'en_attente_acompte' && cal_link && (
+        <div className="rounded-xl border border-navy/10 bg-navy/5 p-6 space-y-3">
+          <p className="text-sm font-bold text-navy">📞 Prochaine étape — Réserver un appel avec notre équipe</p>
+          <p className="text-sm text-gray-600">
+            Notre équipe vous accompagne dans l&apos;organisation de votre événement. Prenez rendez-vous pour préparer la suite.
+          </p>
+          <a
+            href={cal_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+          >
+            Prendre rendez-vous
+          </a>
         </div>
       )}
 
