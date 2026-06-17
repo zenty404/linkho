@@ -1232,7 +1232,8 @@ export type Database = {
           created_at: string
           date_debut: string
           date_fin: string
-          devis_id: string
+          demande_id: string | null
+          devis_id: string | null
           etablissement_id: string
           id: string
           montant_ht: number
@@ -1255,7 +1256,8 @@ export type Database = {
           created_at?: string
           date_debut: string
           date_fin: string
-          devis_id: string
+          demande_id?: string | null
+          devis_id?: string | null
           etablissement_id: string
           id?: string
           montant_ht: number
@@ -1278,7 +1280,8 @@ export type Database = {
           created_at?: string
           date_debut?: string
           date_fin?: string
-          devis_id?: string
+          demande_id?: string | null
+          devis_id?: string | null
           etablissement_id?: string
           id?: string
           montant_ht?: number
@@ -1312,6 +1315,13 @@ export type Database = {
             columns: ["etablissement_id"]
             isOneToOne: false
             referencedRelation: "etablissement_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes_devis"
             referencedColumns: ["id"]
           },
         ]

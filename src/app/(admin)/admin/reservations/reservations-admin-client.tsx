@@ -3,14 +3,18 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { cloturerReservation } from '@/lib/actions/reservations'
+import { validerDisponibiliteAdmin } from '@/lib/actions/admin'
 import type { ReservationWithDetails } from '@/lib/actions/reservations'
+import type { DisponibiliteAValider } from '@/lib/actions/admin'
 
 type Props = {
   reservations: ReservationWithDetails[]
   error: string | null
+  disponibilites: DisponibiliteAValider[]
 }
 
 const STATUT_STYLES: Record<string, string> = {
+  en_attente_acompte: 'bg-yellow-100 text-yellow-700',
   devis_signe: 'bg-blue-100 text-blue-700',
   acompte_confirme: 'bg-amber-100 text-amber-700',
   confirmee: 'bg-green-100 text-green-700',
@@ -29,10 +33,19 @@ function fmtEuros(n: number) {
   return n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
 }
 
-export default function ReservationsAdminClient({ reservations, error }: Props) {
+export default function ReservationsAdminClient({ reservations, error, disponibilites }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [valideError, setValideError] = useState<string | null>(null)
+  const [montants, setMontants] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {}
+    disponibilites.forEach((d) => {
+      if (d.montant_propose != null) init[d.id] = d.montant_propose
+    })
+    return init
+  })
 
   const aCloturer = reservations.filter((r) => r.statut === 'commission_reversee')
   const historique = reservations.filter((r) => r.statut !== 'commission_reversee')
@@ -40,9 +53,24 @@ export default function ReservationsAdminClient({ reservations, error }: Props) 
   function handleCloturer(id: string, reference: string) {
     if (!window.confirm(`Clôturer la réservation ${reference} ?\nCette action est irréversible.`)) return
     setActionError(null)
+    setPendingId(id)
     startTransition(async () => {
       const res = await cloturerReservation(id)
+      setPendingId(null)
       if (res.error) { setActionError(res.error); return }
+      router.refresh()
+    })
+  }
+
+  function handleValider(demandeId: string) {
+    const montant = montants[demandeId]
+    if (!montant || montant <= 0) return
+    setValideError(null)
+    setPendingId(demandeId)
+    startTransition(async () => {
+      const res = await validerDisponibiliteAdmin(demandeId, montant)
+      setPendingId(null)
+      if (res.error) { setValideError(res.error); return }
       router.refresh()
     })
   }
@@ -59,6 +87,69 @@ export default function ReservationsAdminClient({ reservations, error }: Props) 
           {error ?? actionError}
         </div>
       )}
+
+      {/* ── Section 0 : Disponibilités à valider ── */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-bold text-navy">Disponibilités à valider</h2>
+          {disponibilites.length > 0 && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+              {disponibilites.length}
+            </span>
+          )}
+        </div>
+
+        {disponibilites.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center">
+            <p className="text-sm text-gray-400">Aucune disponibilité à valider.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {disponibilites.map((d) => (
+              <div key={d.id} className="bg-white rounded-xl border border-green-200 px-5 py-4">
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                      ✓ Disponible
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-navy">
+                    {d.etablissement?.nom ?? '—'}
+                    {' → '}
+                    <span className="font-normal text-gray-600">{d.bde?.nom} · {d.bde?.ecole}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {fmtDate(d.date_debut)} → {fmtDate(d.date_fin)} · {d.nb_participants} pers.
+                  </p>
+                </div>
+                <div className="flex items-end gap-3">
+                  <div className="flex-1 max-w-xs">
+                    <label className="block text-xs text-gray-500 mb-1">Montant total TTC (€)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={montants[d.id] ?? ''}
+                      onChange={(e) => setMontants((prev) => ({ ...prev, [d.id]: Number(e.target.value) }))}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleValider(d.id)}
+                    disabled={isPending || !montants[d.id] || montants[d.id] <= 0}
+                    className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {pendingId === d.id && isPending ? 'En cours…' : 'Valider et générer la facture'}
+                  </button>
+                </div>
+                {valideError && pendingId === d.id && (
+                  <p className="text-xs text-red-500 mt-2">{valideError}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* ── Section 1 : À clôturer ── */}
       <section>

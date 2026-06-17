@@ -63,9 +63,20 @@ function CopyButton({ text }: { text: string }) {
 function getCurrentStep(evt: EvenementComplet): number {
   const { demande, devis, reservation } = evt
   if (!demande) return 1
-  // No devis yet: stay on step 1 until admin validates and creates a devis
-  if (!devis) return 1
-  if (['brouillon', 'envoye', 'accepte'].includes(devis.statut)) return 2
+  if (!devis && !reservation) return 1
+  if (!devis && reservation) {
+    // Direct flow: reservation created from disponibilité validation, no devis
+    const acompte = reservation.paiements.find((p) => p.type === 'acompte')
+    if (!acompte?.confirme) return 3
+    const statut = reservation.statut
+    if (statut === 'confirmee') return 4
+    if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
+      const solde = reservation.paiements.find((p) => p.type === 'solde')
+      return solde?.confirme ? 6 : 5
+    }
+    return 4
+  }
+  if (['brouillon', 'envoye', 'accepte'].includes(devis!.statut)) return 2
   if (!reservation) return 3
   const acompte = reservation.paiements.find((p) => p.type === 'acompte')
   if (!acompte?.confirme) return 3
@@ -286,8 +297,8 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         )}
       </div>
 
-      {/* SECTION 2 — DEVIS : visible dès qu'il y a une demande, sauf si refusée */}
-      {demande && demande.statut !== 'refusee' && (
+      {/* SECTION 2 — DEVIS : masqué si réservation créée directement sans devis */}
+      {demande && demande.statut !== 'refusee' && !(reservation && !devis) && (
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(2))}`}>
           <SectionHeader step={2} title="Devis" state={stepState(2)} />
 

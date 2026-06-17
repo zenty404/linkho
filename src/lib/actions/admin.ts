@@ -1,11 +1,13 @@
 'use server'
 
 import { createElement } from 'react'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail } from '@/lib/emails/send'
+import { sendEmail, getBdeEmail } from '@/lib/emails/send'
 import { CompteValideEmail } from '@/emails/compte-valide'
 import { CompteRefuseEmail } from '@/emails/compte-refuse'
+import { ReservationCreeBdeEmail } from '@/emails/reservation-creee-bde'
 import type { ActionResult } from '@/lib/types/actions'
 
 // ─── Comptes en attente ───────────────────────────────────────────────────────
@@ -207,6 +209,149 @@ export async function getEtablissementsAvecTaux(): Promise<
     data: (data ?? []) as { id: string; nom: string; taux_commission: number | null }[],
     error: null,
   }
+}
+
+// ─── Disponibilités à valider ────────────────────────────────────────────────
+
+export type DisponibiliteAValider = {
+  id: string
+  date_debut: string
+  date_fin: string
+  nb_participants: number
+  type_evenement: string
+  montant_propose: number | null
+  bde: { nom: string; ecole: string } | null
+  etablissement: { nom: string } | null
+}
+
+export async function getDisponibilitesAValider(): Promise<ActionResult<DisponibiliteAValider[]>> {
+  const supabase = await createClient()
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { data, error } = await supabase
+    .from('demandes_devis')
+    .select('id, date_debut, date_fin, nb_participants, type_evenement, montant_propose, bde:bde_profiles(nom, ecole), etablissement:etablissement_profiles(nom)')
+    .eq('statut_disponibilite', 'disponible')
+    .eq('statut', 'en_attente')
+    .order('created_at', { ascending: false })
+
+  if (error) return { data: null, error: error.message }
+
+  type BdeJoin = { nom: string; ecole: string }
+  type EtabJoin = { nom: string }
+
+  return {
+    data: (data ?? []).map((d) => ({
+      id: d.id,
+      date_debut: d.date_debut,
+      date_fin: d.date_fin,
+      nb_participants: d.nb_participants,
+      type_evenement: d.type_evenement,
+      montant_propose: d.montant_propose,
+      bde: d.bde as BdeJoin | null,
+      etablissement: d.etablissement as EtabJoin | null,
+    })),
+    error: null,
+  }
+}
+
+export async function validerDisponibiliteAdmin(
+  demandeId: string,
+  montantFinal: number,
+): Promise<ActionResult<null>> {
+  if (!montantFinal || montantFinal <= 0) return { data: null, error: 'Montant invalide.' }
+
+  const supabase = await createClient()
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { data: demande, error: demandeError } = await supabase
+    .from('demandes_devis')
+    .select('bde_id, etablissement_id, date_debut, date_fin, nb_participants, statut_disponibilite, etablissement:etablissement_profiles(nom, taux_commission), bde:bde_profiles(nom)')
+    .eq('id', demandeId)
+    .single()
+
+  if (demandeError || !demande) return { data: null, error: 'Demande introuvable.' }
+  if (demande.statut_disponibilite !== 'disponible') {
+    return { data: null, error: 'Cette demande n\'est pas en attente de validation.' }
+  }
+
+  type EtabJoin = { nom: string; taux_commission: number | null }
+  type BdeJoin = { nom: string }
+  const etabJoin = demande.etablissement as EtabJoin | null
+  const bdeJoin = demande.bde as BdeJoin | null
+
+  const commission_taux = ((etabJoin?.taux_commission ?? 12) / 100)
+  const commission_montant = Math.round(montantFinal * commission_taux * 100) / 100
+  const acompte_montant = Math.round(montantFinal * 0.3 * 100) / 100
+  const solde_montant = Math.round(montantFinal * 0.7 * 100) / 100
+
+  const year = new Date().getFullYear()
+  const shortId = demandeId.slice(0, 8).toUpperCase()
+  const reference = `LINKHO-DD-${year}-${shortId}`
+
+  const { data: reservation, error: resError } = await supabase
+    .from('reservations')
+    .insert({
+      demande_id: demandeId,
+      devis_id: null,
+      bde_id: demande.bde_id,
+      etablissement_id: demande.etablissement_id,
+      date_debut: demande.date_debut,
+      date_fin: demande.date_fin,
+      nb_participants: demande.nb_participants,
+      montant_ht: montantFinal,
+      montant_tva: 0,
+      montant_ttc: montantFinal,
+      acompte_montant,
+      solde_montant,
+      commission_taux,
+      commission_montant,
+      reference,
+      statut: 'en_attente_acompte',
+    })
+    .select('id')
+    .single()
+
+  if (resError || !reservation) return { data: null, error: resError?.message ?? 'Erreur création réservation.' }
+
+  await supabase.from('paiements').insert([
+    { reservation_id: reservation.id, type: 'acompte', montant: acompte_montant, reference_virement: `${reference}-ACOMPTE` },
+    { reservation_id: reservation.id, type: 'solde', montant: solde_montant, reference_virement: `${reference}-SOLDE` },
+    { reservation_id: reservation.id, type: 'commission', montant: commission_montant, reference_virement: `${reference}-COMMISSION` },
+  ])
+
+  await supabase
+    .from('demandes_devis')
+    .update({ statut: 'acceptee' })
+    .eq('id', demandeId)
+
+  try {
+    const bdeEmail = await getBdeEmail(demande.bde_id)
+    if (bdeEmail) {
+      await sendEmail(
+        bdeEmail,
+        'Excellente nouvelle — Votre réservation est confirmée',
+        createElement(ReservationCreeBdeEmail, {
+          etabNom: etabJoin?.nom ?? '',
+          bdeNom: bdeJoin?.nom ?? '',
+          dateDebut: demande.date_debut,
+          dateFin: demande.date_fin,
+          montantAcompte: acompte_montant,
+          reservationId: reservation.id,
+        }),
+      )
+    }
+  } catch (e) {
+    console.error('[validerDisponibiliteAdmin] email error:', e)
+  }
+
+  revalidatePath('/admin/reservations')
+  revalidatePath('/bde/evenements')
+  revalidatePath(`/etablissement/demandes/${demandeId}`)
+
+  return { data: null, error: null }
 }
 
 export async function updateTauxCommission(

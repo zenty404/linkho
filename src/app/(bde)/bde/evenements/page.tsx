@@ -12,6 +12,8 @@ function getDisplayStatut(evt: EvenementComplet): DisplayStatut {
     return { label: 'Terminé', style: 'bg-green-100 text-green-700' }
   if (reservation?.statut === 'commission_reversee')
     return { label: 'Clôture en cours', style: 'bg-orange-100 text-orange-700' }
+  if (reservation?.statut === 'en_attente_acompte')
+    return { label: 'Acompte à régler', style: 'bg-yellow-100 text-yellow-700' }
   if (reservation?.statut && ['confirmee', 'en_cours', 'acompte_confirme'].includes(reservation.statut))
     return { label: 'En cours', style: 'bg-blue-100 text-blue-700' }
   if (reservation?.statut === 'devis_signe')

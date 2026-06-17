@@ -1,9 +1,13 @@
 'use server'
 
+import { createElement } from 'react'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { ActionResult } from '@/lib/types/actions'
+import { sendEmail } from '@/lib/emails/send'
 import { sendMessage } from '@/lib/actions/messages'
+import { DisponibiliteConfirmeeAdminEmail } from '@/emails/disponibilite-confirmee-admin'
 
 export type DemandeComplete = {
   id: string
@@ -201,7 +205,7 @@ export async function confirmerDisponibilite(
 
   const { data: demande } = await supabase
     .from('demandes_devis')
-    .select('date_debut, date_fin')
+    .select('date_debut, date_fin, nb_participants, type_evenement, bde_id')
     .eq('id', demandeId)
     .eq('etablissement_id', etablissementId)
     .single()
@@ -210,7 +214,7 @@ export async function confirmerDisponibilite(
 
   const { data: etab } = await supabase
     .from('etablissement_profiles')
-    .select('prix_base')
+    .select('prix_base, nom')
     .eq('id', etablissementId)
     .single()
 
@@ -232,6 +236,39 @@ export async function confirmerDisponibilite(
 
   revalidatePath('/etablissement/demandes')
   revalidatePath(`/etablissement/demandes/${demandeId}`)
+
+  try {
+    const adminCl = createAdminClient()
+    console.log('[confirmerDisponibilite] fetching admin email and bde info, bde_id:', demande.bde_id)
+    const [adminRow, bdeRow] = await Promise.all([
+      adminCl.from('users').select('email').eq('role', 'admin').limit(1).maybeSingle(),
+      adminCl.from('bde_profiles').select('nom, ecole').eq('id', demande.bde_id).maybeSingle(),
+    ])
+    console.log('[confirmerDisponibilite] adminRow:', JSON.stringify(adminRow))
+    console.log('[confirmerDisponibilite] bdeRow:', JSON.stringify(bdeRow))
+    if (!adminRow.data?.email) {
+      console.error('[confirmerDisponibilite] no admin email found — adminRow.error:', adminRow.error)
+    } else {
+      console.log('[confirmerDisponibilite] sending email to', adminRow.data.email)
+      await sendEmail(
+        adminRow.data.email,
+        'Nouvelle disponibilité à valider — LINKHO',
+        createElement(DisponibiliteConfirmeeAdminEmail, {
+          etabNom: etab?.nom ?? '',
+          bdeNom: bdeRow.data?.nom ?? '',
+          ecole: bdeRow.data?.ecole ?? '',
+          typeEvenement: demande.type_evenement,
+          dateDebut: demande.date_debut,
+          dateFin: demande.date_fin,
+          nbParticipants: demande.nb_participants,
+          montantPropose: montant_propose,
+        }),
+      )
+      console.log('[confirmerDisponibilite] email sent')
+    }
+  } catch (e) {
+    console.error('[confirmerDisponibilite] email error:', e)
+  }
 
   return { data: null, error: null }
 }

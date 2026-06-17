@@ -189,6 +189,14 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       .maybeSingle()
     reservation = resData
   }
+  if (!reservation && demande) {
+    const { data: resData } = await supabase
+      .from('reservations')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
+      .eq('demande_id', demande.id)
+      .maybeSingle()
+    reservation = resData
+  }
 
   let formulaire = null
   const { data: formData } = await supabase
