@@ -1235,6 +1235,7 @@ export type Database = {
           demande_id: string | null
           devis_id: string | null
           etablissement_id: string
+          expire_at: string | null
           id: string
           montant_ht: number
           montant_ttc: number
@@ -1259,6 +1260,7 @@ export type Database = {
           demande_id?: string | null
           devis_id?: string | null
           etablissement_id: string
+          expire_at?: string | null
           id?: string
           montant_ht: number
           montant_ttc: number
@@ -1283,6 +1285,7 @@ export type Database = {
           demande_id?: string | null
           devis_id?: string | null
           etablissement_id?: string
+          expire_at?: string | null
           id?: string
           montant_ht?: number
           montant_ttc?: number

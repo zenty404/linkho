@@ -10,6 +10,7 @@ import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 import { uploadJustificatif } from '@/lib/actions/paiements'
+import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 type Props = { evenement: EvenementComplet; suggestions: LieuPublic[] }
 
@@ -465,6 +466,17 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(3))}`}>
           <SectionHeader step={3} title="Paiement de l'acompte" state={stepState(3)} />
           <div className="space-y-4">
+            {reservation.statut === 'en_attente_acompte' && reservation.expire_at && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Délai de paiement</p>
+                  <CountdownTimer expireAt={reservation.expire_at} />
+                </div>
+                <p className="text-sm text-amber-800">
+                  Réglez l&apos;acompte de <strong>{fmtEuros(reservation.acompte_montant)}</strong> avant expiration pour confirmer votre réservation.
+                </p>
+              </div>
+            )}
             <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 mb-0.5">Montant acompte</p>

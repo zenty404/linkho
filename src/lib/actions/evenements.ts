@@ -124,6 +124,7 @@ export type EvenementComplet = {
     acompte_montant: number
     solde_montant: number
     commission_montant: number
+    expire_at: string | null
     paiements: {
       id: string
       type: string

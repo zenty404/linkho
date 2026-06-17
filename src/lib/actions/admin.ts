@@ -310,6 +310,7 @@ export async function validerDisponibiliteAdmin(
       commission_montant,
       reference,
       statut: 'en_attente_acompte',
+      expire_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
     })
     .select('id')
     .single()

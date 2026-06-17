@@ -46,6 +46,7 @@ export type DemandeComplete = {
     solde_montant: number
     commission_montant: number
     commission_taux: number
+    expire_at: string | null
     paiements: {
       id: string
       type: string
@@ -110,6 +111,29 @@ async function buildDemandeComplete(
         solde_montant: resRaw.solde_montant,
         commission_montant: resRaw.commission_montant,
         commission_taux: resRaw.commission_taux,
+        expire_at: resRaw.expire_at ?? null,
+        paiements: resRaw.paiements ?? [],
+      }
+    }
+  }
+
+  if (!reservation) {
+    const { data: resRaw } = await supabase
+      .from('reservations')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
+      .eq('demande_id', demande.id)
+      .maybeSingle()
+    if (resRaw) {
+      reservation = {
+        id: resRaw.id,
+        reference: resRaw.reference,
+        statut: resRaw.statut,
+        montant_ttc: resRaw.montant_ttc,
+        acompte_montant: resRaw.acompte_montant,
+        solde_montant: resRaw.solde_montant,
+        commission_montant: resRaw.commission_montant,
+        commission_taux: resRaw.commission_taux,
+        expire_at: resRaw.expire_at ?? null,
         paiements: resRaw.paiements ?? [],
       }
     }

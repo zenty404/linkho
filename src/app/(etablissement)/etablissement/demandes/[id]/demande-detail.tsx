@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
 import { refuserDemande, confirmerDisponibilite, refuserDisponibilite } from '@/lib/actions/etablissement'
 import { confirmerPaiement } from '@/lib/actions/reservations'
+import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 type Props = { demande: DemandeComplete }
 
@@ -57,6 +58,7 @@ export default function DemandeDetail({ demande }: Props) {
   const headerStatut: { label: string; style: string } = (() => {
     if (reservation) {
       const styles: Record<string, string> = {
+        en_attente_acompte: 'bg-yellow-100 text-yellow-700',
         terminee: 'bg-green-100 text-green-700',
         commission_reversee: 'bg-orange-100 text-orange-700',
         en_cours: 'bg-green-100 text-green-700',
@@ -297,7 +299,14 @@ export default function DemandeDetail({ demande }: Props) {
                 <p className="text-lg font-bold text-navy">{fmtEuros(demande.montant_propose)}</p>
               </div>
             )}
-            <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO.</p>
+            {reservation?.statut === 'en_attente_acompte' && reservation.expire_at ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between gap-4">
+                <p className="text-xs text-amber-700 font-semibold">Délai acompte BDE</p>
+                <CountdownTimer expireAt={reservation.expire_at} />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO.</p>
+            )}
           </div>
         )}
 
