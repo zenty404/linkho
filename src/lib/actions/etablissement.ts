@@ -8,6 +8,9 @@ import { sendMessage } from '@/lib/actions/messages'
 export type DemandeComplete = {
   id: string
   statut: string
+  statut_disponibilite: string
+  montant_propose: number | null
+  expire_at: string | null
   motif_refus: string | null
   type_evenement: string
   date_debut: string
@@ -111,6 +114,9 @@ async function buildDemandeComplete(
   return {
     id: demande.id,
     statut: demande.statut,
+    statut_disponibilite: demande.statut_disponibilite ?? 'en_attente',
+    montant_propose: demande.montant_propose ?? null,
+    expire_at: demande.expire_at ?? null,
     motif_refus: demande.motif_refus ?? null,
     type_evenement: demande.type_evenement,
     date_debut: demande.date_debut,
@@ -184,4 +190,70 @@ export async function getDemandeComplete(id: string): Promise<ActionResult<Deman
 
   const result = await buildDemandeComplete(supabase, demande)
   return { data: result, error: null }
+}
+
+export async function confirmerDisponibilite(
+  demandeId: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: etablissementId } = await supabase.rpc('get_etablissement_id')
+  if (!etablissementId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { data: demande } = await supabase
+    .from('demandes_devis')
+    .select('date_debut, date_fin')
+    .eq('id', demandeId)
+    .eq('etablissement_id', etablissementId)
+    .single()
+
+  if (!demande) return { data: null, error: 'Demande introuvable.' }
+
+  const { data: etab } = await supabase
+    .from('etablissement_profiles')
+    .select('prix_base')
+    .eq('id', etablissementId)
+    .single()
+
+  let montant_propose: number | null = null
+  if (etab?.prix_base != null) {
+    const debut = new Date(demande.date_debut)
+    const fin = new Date(demande.date_fin)
+    const nb_nuits = Math.max(1, Math.round((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24)))
+    montant_propose = etab.prix_base * nb_nuits
+  }
+
+  const { error } = await supabase
+    .from('demandes_devis')
+    .update({ statut_disponibilite: 'disponible', montant_propose })
+    .eq('id', demandeId)
+    .eq('etablissement_id', etablissementId)
+
+  if (error) return { data: null, error: error.message }
+
+  revalidatePath('/etablissement/demandes')
+  revalidatePath(`/etablissement/demandes/${demandeId}`)
+
+  return { data: null, error: null }
+}
+
+export async function refuserDisponibilite(
+  demandeId: string,
+  motif: string,
+): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: etablissementId } = await supabase.rpc('get_etablissement_id')
+  if (!etablissementId) return { data: null, error: 'Profil établissement introuvable.' }
+
+  const { error } = await supabase
+    .from('demandes_devis')
+    .update({ statut_disponibilite: 'non_disponible', motif_refus: motif })
+    .eq('id', demandeId)
+    .eq('etablissement_id', etablissementId)
+
+  if (error) return { data: null, error: error.message }
+
+  revalidatePath('/etablissement/demandes')
+  revalidatePath(`/etablissement/demandes/${demandeId}`)
+
+  return { data: null, error: null }
 }

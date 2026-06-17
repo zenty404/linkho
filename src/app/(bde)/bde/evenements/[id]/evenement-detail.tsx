@@ -63,7 +63,9 @@ function CopyButton({ text }: { text: string }) {
 function getCurrentStep(evt: EvenementComplet): number {
   const { demande, devis, reservation } = evt
   if (!demande) return 1
-  if (!devis || ['brouillon', 'envoye', 'accepte'].includes(devis.statut)) return 2
+  // No devis yet: stay on step 1 until admin validates and creates a devis
+  if (!devis) return 1
+  if (['brouillon', 'envoye', 'accepte'].includes(devis.statut)) return 2
   if (!reservation) return 3
   const acompte = reservation.paiements.find((p) => p.type === 'acompte')
   if (!acompte?.confirme) return 3
@@ -215,21 +217,34 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                 </p>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full
-                ${demande.statut === 'acceptee' ? 'bg-green-100 text-green-700' :
-                  demande.statut === 'refusee' ? 'bg-red-100 text-red-700' :
-                  'bg-amber-100 text-amber-700'}`}>
-                {demande.statut === 'refusee' ? 'Demande refusée par l\'établissement' : demande.statut}
-              </span>
-            </div>
-            {demande.statut === 'refusee' && demande.motif_refus && (
+            {/* Statut disponibilité */}
+            {demande.statut_disponibilite === 'en_attente' && (
+              <p className="text-sm text-gray-500">En attente de réponse de l&apos;établissement.</p>
+            )}
+            {demande.statut_disponibilite === 'disponible' && (
+              <div className="space-y-2">
+                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Disponibilité confirmée</span>
+                <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO avant génération de la facture.</p>
+              </div>
+            )}
+            {demande.statut_disponibilite === 'non_disponible' && (
+              <div className="space-y-2">
+                <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Non disponible</span>
+                {demande.motif_refus && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                    <p className="text-xs font-semibold text-red-600 mb-1">Motif</p>
+                    <p className="text-sm text-red-700">{demande.motif_refus}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {demande.statut === 'refusee' && demande.motif_refus && demande.statut_disponibilite !== 'non_disponible' && (
               <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
                 <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
                 <p className="text-sm text-red-700">{demande.motif_refus}</p>
               </div>
             )}
-            {demande.statut === 'refusee' && suggestions.length > 0 && (
+            {(demande.statut === 'refusee' || demande.statut_disponibilite === 'non_disponible') && suggestions.length > 0 && (
               <div className="pt-2">
                 <p className="text-xs font-semibold text-navy mb-3">Ces lieux pourraient vous convenir</p>
                 <div className="flex flex-col gap-3">

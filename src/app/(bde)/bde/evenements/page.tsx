@@ -20,8 +20,12 @@ function getDisplayStatut(evt: EvenementComplet): DisplayStatut {
     return { label: 'Devis reçu', style: 'bg-yellow-100 text-yellow-700' }
   if (devis?.statut === 'refuse')
     return { label: 'Devis refusé', style: 'bg-red-100 text-red-700' }
+  if (demande?.statut_disponibilite === 'non_disponible')
+    return { label: 'Non disponible', style: 'bg-red-100 text-red-700' }
+  if (demande?.statut_disponibilite === 'disponible' && !devis)
+    return { label: 'Disponibilité confirmée', style: 'bg-green-100 text-green-700' }
   if (demande && !devis)
-    return { label: 'Devis en attente', style: 'bg-gray-100 text-gray-600' }
+    return { label: 'En attente de réponse', style: 'bg-amber-100 text-amber-700' }
   return { label: 'Nouveau', style: 'bg-gray-100 text-gray-600' }
 }
 

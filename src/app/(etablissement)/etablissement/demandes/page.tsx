@@ -33,12 +33,13 @@ function getDisplayStatut(d: DemandeComplete): { label: string; style: string } 
     }
     return { label: `Devis ${d.devis.statut}`, style: styles[d.devis.statut] ?? 'bg-gray-100 text-gray-600' }
   }
-  const demStyles: Record<string, string> = {
-    en_attente: 'bg-amber-100 text-amber-700',
-    acceptee: 'bg-green-100 text-green-700',
-    refusee: 'bg-red-100 text-red-700',
+  if (d.statut_disponibilite === 'disponible') {
+    return { label: 'Disponibilité confirmée', style: 'bg-green-100 text-green-700' }
   }
-  return { label: d.statut, style: demStyles[d.statut] ?? 'bg-gray-100 text-gray-600' }
+  if (d.statut_disponibilite === 'non_disponible') {
+    return { label: 'Non disponible', style: 'bg-red-100 text-red-700' }
+  }
+  return { label: 'En attente de réponse', style: 'bg-amber-100 text-amber-700' }
 }
 
 function fmtDate(s: string) {
@@ -47,8 +48,8 @@ function fmtDate(s: string) {
 
 function getGroupe(d: DemandeComplete): 'action' | 'en_cours' | 'termine' {
   if (d.reservation?.statut && ['terminee', 'commission_reversee', 'annulee'].includes(d.reservation.statut)) return 'termine'
-  if (d.statut === 'refusee') return 'termine'
-  if (d.devis) return 'en_cours'
+  if (d.statut === 'refusee' || d.statut_disponibilite === 'non_disponible') return 'termine'
+  if (d.devis || d.statut_disponibilite === 'disponible') return 'en_cours'
   return 'action'
 }
 

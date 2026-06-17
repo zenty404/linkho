@@ -116,11 +116,14 @@ export type Database = {
           date_debut: string
           date_fin: string
           etablissement_id: string
+          expire_at: string | null
           id: string
           message: string | null
+          montant_propose: number | null
           motif_refus: string | null
           nb_participants: number
           statut: string
+          statut_disponibilite: string
           type_evenement: string
           updated_at: string
         }
@@ -130,11 +133,14 @@ export type Database = {
           date_debut: string
           date_fin: string
           etablissement_id: string
+          expire_at?: string | null
           id?: string
           message?: string | null
+          montant_propose?: number | null
           motif_refus?: string | null
           nb_participants: number
           statut?: string
+          statut_disponibilite?: string
           type_evenement: string
           updated_at?: string
         }
@@ -144,11 +150,14 @@ export type Database = {
           date_debut?: string
           date_fin?: string
           etablissement_id?: string
+          expire_at?: string | null
           id?: string
           message?: string | null
+          montant_propose?: number | null
           motif_refus?: string | null
           nb_participants?: number
           statut?: string
+          statut_disponibilite?: string
           type_evenement?: string
           updated_at?: string
         }

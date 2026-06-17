@@ -4,8 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
-import { refuserDemande } from '@/lib/actions/etablissement'
-import { envoyerDevis } from '@/lib/actions/devis'
+import { refuserDemande, confirmerDisponibilite, refuserDisponibilite } from '@/lib/actions/etablissement'
 import { confirmerPaiement } from '@/lib/actions/reservations'
 
 type Props = { demande: DemandeComplete }
@@ -50,6 +49,8 @@ export default function DemandeDetail({ demande }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [showRefusDemande, setShowRefusDemande] = useState(false)
   const [motifRefusDemande, setMotifRefusDemande] = useState('')
+  const [showDispoForm, setShowDispoForm] = useState<'disponible' | 'non_disponible' | null>(null)
+  const [motifNonDispo, setMotifNonDispo] = useState('')
 
   const { devis, reservation } = demande
 
@@ -75,6 +76,15 @@ export default function DemandeDetail({ demande }: Props) {
         refuse: 'bg-red-100 text-red-700',
       }
       return { label: `Devis ${devis.statut}`, style: styles[devis.statut] ?? 'bg-gray-100 text-gray-600' }
+    }
+    if (demande.statut_disponibilite === 'en_attente') {
+      return { label: 'En attente de réponse', style: 'bg-amber-100 text-amber-700' }
+    }
+    if (demande.statut_disponibilite === 'disponible') {
+      return { label: 'Disponibilité confirmée', style: 'bg-green-100 text-green-700' }
+    }
+    if (demande.statut_disponibilite === 'non_disponible') {
+      return { label: 'Non disponible', style: 'bg-red-100 text-red-700' }
     }
     const demStyles: Record<string, string> = {
       en_attente: 'bg-amber-100 text-amber-700',
@@ -189,104 +199,119 @@ export default function DemandeDetail({ demande }: Props) {
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
       )}
 
-      {/* SECTION 1 — DEVIS */}
+      {/* SECTION 1 — DISPONIBILITÉ */}
       <SectionCard>
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Devis</h2>
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Répondre à la demande</h2>
 
-        {/* Pas de devis */}
-        {!devis && (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">Aucun devis créé pour cette demande.</p>
+        {/* En attente — choix disponible / non disponible */}
+        {demande.statut_disponibilite === 'en_attente' && !showDispoForm && (
+          <div className="flex gap-3">
             <button
-              onClick={() => router.push(`/etablissement/devis/nouveau?demande_id=${demande.id}`)}
-              className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+              onClick={() => setShowDispoForm('disponible')}
+              className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors"
             >
-              Créer un devis
+              ✓ Disponible
+            </button>
+            <button
+              onClick={() => setShowDispoForm('non_disponible')}
+              className="flex-1 py-2.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 text-sm font-semibold rounded-lg transition-colors"
+            >
+              ✗ Non disponible
             </button>
           </div>
         )}
 
-        {/* Devis refusé */}
-        {devis?.statut === 'refuse' && (
+        {/* Formulaire confirmation disponibilité */}
+        {demande.statut_disponibilite === 'en_attente' && showDispoForm === 'disponible' && (
           <div className="space-y-3">
-            <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Devis refusé par le BDE</span>
-            <p className="text-sm text-gray-500">Vous pouvez proposer un nouveau devis au BDE.</p>
-            <button
-              onClick={() => router.push(`/etablissement/devis/nouveau?demande_id=${demande.id}`)}
-              className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
-            >
-              Proposer un nouveau devis
-            </button>
-          </div>
-        )}
-
-        {/* Devis brouillon */}
-        {devis && devis.statut === 'brouillon' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-500 font-mono">{devis.numero}</p>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">Brouillon</span>
-            </div>
-            <DevisResume devis={devis} />
-            <div className="flex gap-3">
-              <Link
-                href={`/etablissement/devis/${devis.id}`}
-                className="flex-1 py-2.5 text-center bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Modifier le devis
-              </Link>
+            <p className="text-sm text-gray-600">Confirmez votre disponibilité pour cette demande.</p>
+            <div className="flex gap-2">
               <button
-                onClick={() => handleAction(() => envoyerDevis(devis.id))}
-                disabled={isPending}
-                className="flex-1 py-2.5 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                type="button"
+                onClick={() => setShowDispoForm(null)}
+                className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Envoyer au BDE
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAction(() => confirmerDisponibilite(demande.id))}
+                disabled={isPending}
+                className="flex-1 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isPending ? 'Envoi…' : 'Confirmer la disponibilité'}
               </button>
             </div>
           </div>
         )}
 
-        {/* Devis envoyé */}
-        {devis && devis.statut === 'envoye' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-500 font-mono">{devis.numero}</p>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">En attente de réponse du BDE</span>
+        {/* Formulaire refus disponibilité */}
+        {demande.statut_disponibilite === 'en_attente' && showDispoForm === 'non_disponible' && (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">
+                Motif de l&apos;indisponibilité <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                value={motifNonDispo}
+                onChange={(e) => setMotifNonDispo(e.target.value)}
+                placeholder="Expliquez la raison de l'indisponibilité au BDE…"
+                rows={3}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-red-300/30 focus:border-red-300 resize-none"
+              />
+              <p className={`text-xs mt-1 ${motifNonDispo.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                {motifNonDispo.trim().length} / 20 caractères minimum
+              </p>
             </div>
-            <DevisResume devis={devis} />
-            <Link
-              href={`/etablissement/devis/${devis.id}`}
-              className="inline-block px-4 py-2 bg-white border border-gray-200 text-navy text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Modifier le devis
-            </Link>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowDispoForm(null); setMotifNonDispo('') }}
+                className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const motif = motifNonDispo.trim()
+                  if (motif.length < 20) return
+                  handleAction(() => refuserDisponibilite(demande.id, motif))
+                }}
+                disabled={isPending || motifNonDispo.trim().length < 20}
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? 'Envoi…' : 'Confirmer le refus'}
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Devis accepté ou signé */}
-        {devis && (devis.statut === 'accepte' || devis.statut === 'signe') && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-gray-500 font-mono">{devis.numero}</p>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Devis accepté</span>
-            </div>
-            <DevisResume devis={devis} />
-            {!reservation && (
-              <p className="text-xs text-gray-400">En attente de confirmation de réservation par le BDE.</p>
+        {/* Disponibilité confirmée */}
+        {demande.statut_disponibilite === 'disponible' && (
+          <div className="space-y-3">
+            <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Disponibilité confirmée</span>
+            {demande.montant_propose != null && (
+              <div>
+                <p className="text-xs text-gray-400 mb-0.5">Montant proposé</p>
+                <p className="text-lg font-bold text-navy">{fmtEuros(demande.montant_propose)}</p>
+              </div>
+            )}
+            <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO.</p>
+          </div>
+        )}
+
+        {/* Non disponible */}
+        {demande.statut_disponibilite === 'non_disponible' && (
+          <div className="space-y-3">
+            <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Non disponible</span>
+            {demande.motif_refus && (
+              <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <p className="text-xs font-semibold text-red-600 mb-1">Motif</p>
+                <p className="text-sm text-red-700">{demande.motif_refus}</p>
+              </div>
             )}
           </div>
-        )}
-
-        {/* Bouton PDF devis — visible dès que le devis existe */}
-        {devis && (
-          <a
-            href={`/api/pdf/devis/${devis.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-xs text-brand hover:underline font-medium"
-          >
-            ↓ Télécharger le devis PDF
-          </a>
         )}
       </SectionCard>
 
@@ -483,33 +508,3 @@ export default function DemandeDetail({ demande }: Props) {
   )
 }
 
-function DevisResume({ devis }: { devis: NonNullable<DemandeComplete['devis']> }) {
-  return (
-    <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-      {devis.items.map((item) => (
-        <div key={item.id} className="flex justify-between text-gray-700">
-          <span>{item.libelle} × {item.quantite}</span>
-          <span>{(item.quantite * item.prix_unitaire).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
-        </div>
-      ))}
-      <div className="border-t border-gray-200 pt-2 space-y-1">
-        <div className="flex justify-between text-gray-600">
-          <span>HT</span><span>{devis.sous_total_ht.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
-        </div>
-        <div className="flex justify-between text-gray-600">
-          <span>TVA ({Math.round(devis.tva_taux * 100)}%)</span>
-          <span>{((devis.total_ttc ?? 0) - devis.sous_total_ht).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
-        </div>
-        <div className="flex justify-between font-bold text-navy">
-          <span>TTC</span><span>{(devis.total_ttc ?? 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
-        </div>
-        {devis.acompte_montant != null && (
-          <div className="flex justify-between text-gray-500">
-            <span>Acompte ({Math.round(devis.acompte_taux * 100)}%)</span>
-            <span>{devis.acompte_montant.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
