@@ -1073,6 +1073,8 @@ export type Database = {
       inscriptions: {
         Row: {
           bde_id: string
+          carte_etudiante_nom: string | null
+          carte_etudiante_url: string | null
           caution_montant: number | null
           caution_payee: boolean
           created_at: string
@@ -1090,6 +1092,8 @@ export type Database = {
         }
         Insert: {
           bde_id: string
+          carte_etudiante_nom?: string | null
+          carte_etudiante_url?: string | null
           caution_montant?: number | null
           caution_payee?: boolean
           created_at?: string
@@ -1107,6 +1111,8 @@ export type Database = {
         }
         Update: {
           bde_id?: string
+          carte_etudiante_nom?: string | null
+          carte_etudiante_url?: string | null
           caution_montant?: number | null
           caution_payee?: boolean
           created_at?: string

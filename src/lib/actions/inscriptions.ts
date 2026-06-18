@@ -7,6 +7,8 @@ import type { Database } from '@/lib/types/supabase'
 import type { ActionResult } from '@/lib/types/actions'
 import { sendEmail } from '@/lib/emails/send'
 import { InscriptionConfirmeeEmail } from '@/emails/inscription-confirmee'
+import { InscriptionValideeBdeEmail } from '@/emails/inscription-validee-bde'
+import { InscriptionRefuseeEmail } from '@/emails/inscription-refusee'
 
 type Inscription = Database['public']['Tables']['inscriptions']['Row']
 type InscriptionEcheance = Database['public']['Tables']['inscription_echeances']['Row']
@@ -255,6 +257,94 @@ export async function exporterInscriptionsExcel(
     return { data: null, error: result.error ?? 'Erreur export.' }
   }
   return { data: JSON.stringify(result.data), error: null }
+}
+
+// ─── Validation / Refus BDE ──────────────────────────────────────────────────
+
+export async function validerInscription(inscriptionId: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+
+  const { data: inscription } = await supabase
+    .from('inscriptions')
+    .select('id, email, prenom, evenement_id')
+    .eq('id', inscriptionId)
+    .single()
+
+  if (!inscription) return { data: null, error: 'Inscription introuvable.' }
+
+  const { error } = await supabase
+    .from('inscriptions')
+    .update({ statut: 'validee' })
+    .eq('id', inscriptionId)
+
+  if (error) return { data: null, error: error.message }
+
+  revalidatePath('/bde/inscriptions')
+  revalidatePath(`/bde/inscriptions/${inscriptionId}`)
+
+  try {
+    const { data: evt } = await supabase
+      .from('evenements')
+      .select('nom')
+      .eq('id', inscription.evenement_id)
+      .single()
+
+    await sendEmail(
+      inscription.email,
+      `Votre inscription est confirmée — ${evt?.nom ?? 'événement'}`,
+      createElement(InscriptionValideeBdeEmail, {
+        evenementNom: evt?.nom ?? 'événement',
+        prenom: inscription.prenom,
+      }),
+    )
+  } catch (e) {
+    console.error('[validerInscription] email error:', e)
+  }
+
+  return { data: null, error: null }
+}
+
+export async function refuserInscription(inscriptionId: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+
+  const { data: inscription } = await supabase
+    .from('inscriptions')
+    .select('id, email, prenom, evenement_id')
+    .eq('id', inscriptionId)
+    .single()
+
+  if (!inscription) return { data: null, error: 'Inscription introuvable.' }
+
+  const { error } = await supabase
+    .from('inscriptions')
+    .update({ statut: 'refusee' })
+    .eq('id', inscriptionId)
+
+  if (error) return { data: null, error: error.message }
+
+  revalidatePath('/bde/inscriptions')
+  revalidatePath(`/bde/inscriptions/${inscriptionId}`)
+
+  try {
+    const { data: evt } = await supabase
+      .from('evenements')
+      .select('nom')
+      .eq('id', inscription.evenement_id)
+      .single()
+
+    await sendEmail(
+      inscription.email,
+      `Votre inscription — ${evt?.nom ?? 'événement'}`,
+      createElement(InscriptionRefuseeEmail, {
+        evenementNom: evt?.nom ?? 'événement',
+        prenom: inscription.prenom,
+      }),
+    )
+  } catch (e) {
+    console.error('[refuserInscription] email error:', e)
+  }
+
+  return { data: null, error: null }
 }
 
 // ─── Inscription publique ─────────────────────────────────────────────────────

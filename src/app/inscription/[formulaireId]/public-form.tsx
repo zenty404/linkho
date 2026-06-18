@@ -274,6 +274,7 @@ export function PublicInscriptionForm({
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
+  const [carteFile, setCarteFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
@@ -314,6 +315,18 @@ export function PublicInscriptionForm({
       setIsLoading(false)
       return
     }
+
+    if (carteFile && result.data?.id) {
+      try {
+        const fd = new FormData()
+        fd.append('inscriptionId', result.data.id)
+        fd.append('file', carteFile)
+        await fetch('/api/carte-etudiante', { method: 'POST', body: fd })
+      } catch {
+        // upload carte étudiante est optionnel — ne bloque pas la confirmation
+      }
+    }
+
     setSubmitted(true)
     setModalOpen(true)
   }
@@ -562,6 +575,30 @@ export function PublicInscriptionForm({
               </div>
             </div>
           )}
+
+          {/* Carte étudiante */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+              Carte étudiante
+            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Carte étudiante <span className="text-gray-400 font-normal">(optionnel)</span>
+            </label>
+            <label className="flex items-center gap-3 px-4 py-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-brand/60 hover:bg-brand/5 transition-colors">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400 shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+              </svg>
+              <span className="text-sm text-gray-500">
+                {carteFile ? carteFile.name : 'Sélectionner un fichier jpg, png ou pdf'}
+              </span>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="sr-only"
+                onChange={(e) => setCarteFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
