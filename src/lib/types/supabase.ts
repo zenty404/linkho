@@ -1294,8 +1294,10 @@ export type Database = {
           rdv_date: string | null
           rdv_effectue: boolean | null
           reference: string
+          solde_expire_at: string | null
           solde_montant: number
           statut: string
+          statut_solde: string | null
           updated_at: string
         }
         Insert: {
@@ -1319,8 +1321,10 @@ export type Database = {
           rdv_date?: string | null
           rdv_effectue?: boolean | null
           reference: string
+          solde_expire_at?: string | null
           solde_montant: number
           statut?: string
+          statut_solde?: string | null
           updated_at?: string
         }
         Update: {
@@ -1344,8 +1348,10 @@ export type Database = {
           rdv_date?: string | null
           rdv_effectue?: boolean | null
           reference?: string
+          solde_expire_at?: string | null
           solde_montant?: number
           statut?: string
+          statut_solde?: string | null
           updated_at?: string
         }
         Relationships: [

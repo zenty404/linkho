@@ -769,6 +769,16 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                 </span>
               )}
             </div>
+            {reservation!.solde_expire_at && !soldePaiement?.confirme && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                <p className="text-xs text-amber-800 font-medium">
+                  Réglez le solde de <span className="font-bold">{fmtEuros(reservation!.solde_montant)}</span> avant cette date pour finaliser votre réservation.
+                </p>
+                <div className="flex-shrink-0">
+                  <CountdownTimer expireAt={reservation!.solde_expire_at} />
+                </div>
+              </div>
+            )}
             {soldePaiement ? (
               <div className="bg-white rounded-lg border border-gray-100 p-4">
                 <div className="flex items-center justify-between gap-3">
