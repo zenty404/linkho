@@ -125,6 +125,8 @@ export type EvenementComplet = {
     solde_montant: number
     commission_montant: number
     expire_at: string | null
+    solde_expire_at: string | null
+    statut_solde: string | null
     paiements: {
       id: string
       type: string
@@ -144,6 +146,15 @@ export type EvenementComplet = {
     nb_inscriptions: number
   } | null
   cal_link: string | null
+  devis_prestataires: {
+    id: string
+    type: string
+    nom: string
+    montant: number | null
+    statut: string
+    pdf_nom: string
+    created_at: string
+  }[]
 }
 
 export async function getEvenementComplet(id: string): Promise<ActionResult<EvenementComplet>> {
@@ -201,9 +212,14 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   }
 
   let formulaire = null
-  const [{ data: formData }, { data: calConfig }] = await Promise.all([
+  const [{ data: formData }, { data: calConfig }, { data: devisPrestatairesData }] = await Promise.all([
     supabase.from('formulaire_inscriptions').select('id, titre, publie, prix_total').eq('evenement_id', id).maybeSingle(),
     supabase.from('linkho_config').select('valeur').eq('cle', 'cal_link').maybeSingle(),
+    supabase
+      .from('devis_prestataires')
+      .select('id, type, nom, montant, statut, pdf_nom, created_at')
+      .eq('evenement_id', id)
+      .order('created_at', { ascending: true }),
   ])
   const cal_link = calConfig?.valeur ?? null
   if (formData) {
@@ -222,6 +238,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       reservation: reservation as EvenementComplet['reservation'],
       formulaire,
       cal_link,
+      devis_prestataires: (devisPrestatairesData ?? []) as EvenementComplet['devis_prestataires'],
     },
     error: null,
   }

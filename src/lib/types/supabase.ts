@@ -328,6 +328,56 @@ export type Database = {
           },
         ]
       }
+      devis_prestataires: {
+        Row: {
+          created_at: string
+          evenement_id: string
+          id: string
+          montant: number | null
+          nom: string
+          pdf_nom: string
+          pdf_path: string
+          signe_le: string | null
+          statut: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evenement_id: string
+          id?: string
+          montant?: number | null
+          nom: string
+          pdf_nom: string
+          pdf_path: string
+          signe_le?: string | null
+          statut?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evenement_id?: string
+          id?: string
+          montant?: number | null
+          nom?: string
+          pdf_nom?: string
+          pdf_path?: string
+          signe_le?: string | null
+          statut?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devis_prestataires_evenement_id_fkey"
+            columns: ["evenement_id"]
+            isOneToOne: false
+            referencedRelation: "evenements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archive_jusqu_au: string | null
@@ -1244,8 +1294,10 @@ export type Database = {
           rdv_date: string | null
           rdv_effectue: boolean | null
           reference: string
+          solde_expire_at: string | null
           solde_montant: number
           statut: string
+          statut_solde: string | null
           updated_at: string
         }
         Insert: {
@@ -1269,8 +1321,10 @@ export type Database = {
           rdv_date?: string | null
           rdv_effectue?: boolean | null
           reference: string
+          solde_expire_at?: string | null
           solde_montant: number
           statut?: string
+          statut_solde?: string | null
           updated_at?: string
         }
         Update: {
@@ -1294,8 +1348,10 @@ export type Database = {
           rdv_date?: string | null
           rdv_effectue?: boolean | null
           reference?: string
+          solde_expire_at?: string | null
           solde_montant?: number
           statut?: string
+          statut_solde?: string | null
           updated_at?: string
         }
         Relationships: [
