@@ -328,6 +328,56 @@ export type Database = {
           },
         ]
       }
+      devis_prestataires: {
+        Row: {
+          created_at: string
+          evenement_id: string
+          id: string
+          montant: number | null
+          nom: string
+          pdf_nom: string
+          pdf_path: string
+          signe_le: string | null
+          statut: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evenement_id: string
+          id?: string
+          montant?: number | null
+          nom: string
+          pdf_nom: string
+          pdf_path: string
+          signe_le?: string | null
+          statut?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evenement_id?: string
+          id?: string
+          montant?: number | null
+          nom?: string
+          pdf_nom?: string
+          pdf_path?: string
+          signe_le?: string | null
+          statut?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devis_prestataires_evenement_id_fkey"
+            columns: ["evenement_id"]
+            isOneToOne: false
+            referencedRelation: "evenements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archive_jusqu_au: string | null

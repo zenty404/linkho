@@ -19,6 +19,7 @@ export type ReservationWithDetails = Reservation & {
   bde: { nom: string; ecole: string }
   etablissement: { nom: string; ville: string | null; iban: string | null }
   paiements: Paiement[]
+  evenement_id: string | null
 }
 
 const SELECT = `
@@ -345,7 +346,53 @@ export async function getReservationsAdmin(): Promise<ActionResult<ReservationWi
     .order('created_at', { ascending: false })
 
   if (error) return { data: null, error: error.message }
-  return { data: (data ?? []) as unknown as ReservationWithDetails[], error: null }
+
+  const reservations = (data ?? []) as unknown as ReservationWithDetails[]
+
+  // Résoudre l'evenement_id pour chaque réservation :
+  // - workflow standard : evenements.reservation_id = reservation.id
+  // - nouveau workflow  : evenements.demande_id = reservation.demande_id
+  if (reservations.length > 0) {
+    const reservationIds = reservations.map((r) => r.id)
+    const demandeIds = reservations.map((r) => r.demande_id).filter(Boolean) as string[]
+
+    const [{ data: evtByRes }, { data: evtByDemande }] = await Promise.all([
+      supabase
+        .from('evenements')
+        .select('id, reservation_id')
+        .in('reservation_id', reservationIds),
+      demandeIds.length > 0
+        ? supabase
+            .from('evenements')
+            .select('id, demande_id')
+            .in('demande_id', demandeIds)
+        : Promise.resolve({ data: [] }),
+    ])
+
+    const map = new Map<string, string>()
+
+    // Workflow standard : clé = reservation.id
+    ;(evtByRes ?? []).forEach((e) => {
+      if (e.reservation_id) map.set(e.reservation_id, e.id)
+    })
+
+    // Nouveau workflow : clé = reservation.id retrouvé via demande_id
+    const demandeToRes = new Map(
+      reservations
+        .filter((r) => r.demande_id)
+        .map((r) => [r.demande_id as string, r.id]),
+    )
+    ;((evtByDemande ?? []) as unknown as { id: string; demande_id: string }[]).forEach((e) => {
+      const resId = demandeToRes.get(e.demande_id)
+      if (resId && !map.has(resId)) map.set(resId, e.id)
+    })
+
+    reservations.forEach((r) => {
+      r.evenement_id = map.get(r.id) ?? null
+    })
+  }
+
+  return { data: reservations, error: null }
 }
 
 export async function cloturerReservation(reservationId: string): Promise<ActionResult<null>> {

@@ -1,9 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { cloturerReservation } from '@/lib/actions/reservations'
 import { validerDisponibiliteAdmin } from '@/lib/actions/admin'
+import { deposerDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import type { ReservationWithDetails } from '@/lib/actions/reservations'
 import type { DisponibiliteAValider } from '@/lib/actions/admin'
 
@@ -33,6 +34,148 @@ function fmtEuros(n: number) {
   return n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
 }
 
+// ─── Modal dépôt devis prestataire ───────────────────────────────────────────
+
+type DevisModalProps = {
+  evenementId: string
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function DevisPrestatairModal({ evenementId, onClose, onSuccess }: DevisModalProps) {
+  const [isPending, startTransition] = useTransition()
+  const [modalError, setModalError] = useState<string | null>(null)
+  const [type, setType] = useState<'transport' | 'securite' | 'autre'>('transport')
+  const [nom, setNom] = useState('')
+  const [montant, setMontant] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!nom.trim()) { setModalError('Le nom du prestataire est requis.'); return }
+    if (!file) { setModalError('Veuillez sélectionner un fichier PDF.'); return }
+
+    setModalError(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    const montantNum = montant.trim() ? parseFloat(montant) : null
+
+    startTransition(async () => {
+      const res = await deposerDevisPrestataire(evenementId, type, nom.trim(), montantNum, fd)
+      if (res.error) { setModalError(res.error); return }
+      onSuccess()
+    })
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="bg-white rounded-xl border border-gray-200 shadow-xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-base font-bold text-navy">Déposer un devis prestataire</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            aria-label="Fermer"
+          >
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Type */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Type de prestation</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as typeof type)}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand bg-white"
+            >
+              <option value="transport">Transport</option>
+              <option value="securite">Sécurité</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+
+          {/* Nom prestataire */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nom du prestataire</label>
+            <input
+              type="text"
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              placeholder="Ex. : TransEvent SARL"
+              required
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            />
+          </div>
+
+          {/* Montant */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Montant TTC <span className="text-gray-400 font-normal">(optionnel)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={montant}
+              onChange={(e) => setMontant(e.target.value)}
+              placeholder="0,00"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+            />
+          </div>
+
+          {/* Fichier PDF */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Fichier PDF</label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              required
+              className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand/10 file:text-navy hover:file:bg-brand/20 cursor-pointer"
+            />
+            {file && (
+              <p className="text-xs text-green-600 mt-1">✓ {file.name}</p>
+            )}
+          </div>
+
+          {modalError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">
+              {modalError}
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex-1 py-2.5 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isPending ? 'Dépôt en cours…' : 'Déposer'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isPending}
+              className="px-4 py-2.5 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
+
 export default function ReservationsAdminClient({ reservations, error, disponibilites }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -46,6 +189,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
     })
     return init
   })
+  // Modal dépôt devis prestataire : stocke l'evenement_id de la réservation ouverte
+  const [openModalForEvenementId, setOpenModalForEvenementId] = useState<string | null>(null)
 
   const aCloturer = reservations.filter((r) => r.statut === 'commission_reversee')
   const historique = reservations.filter((r) => r.statut !== 'commission_reversee')
@@ -77,6 +222,17 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
 
   return (
     <div className="flex flex-col gap-8">
+      {openModalForEvenementId && (
+        <DevisPrestatairModal
+          evenementId={openModalForEvenementId}
+          onClose={() => setOpenModalForEvenementId(null)}
+          onSuccess={() => {
+            setOpenModalForEvenementId(null)
+            router.refresh()
+          }}
+        />
+      )}
+
       <div>
         <h1 className="text-lg font-bold text-navy">Réservations</h1>
         <p className="text-sm text-gray-400 mt-0.5">{reservations.length} réservation{reservations.length !== 1 ? 's' : ''} au total</p>
@@ -223,18 +379,19 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-x-4 px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+            <div className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto_auto] gap-x-4 px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
               <span>Référence</span>
               <span>BDE</span>
               <span>Établissement</span>
               <span>Dates</span>
               <span className="text-right">Montant</span>
               <span>Statut</span>
+              <span></span>
             </div>
             {historique.map((r) => (
               <div
                 key={r.id}
-                className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto] gap-x-4 px-5 py-3.5 border-b border-gray-50 last:border-0 items-center text-sm"
+                className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto_auto] gap-x-4 px-5 py-3.5 border-b border-gray-50 last:border-0 items-center text-sm"
               >
                 <p className="font-mono text-xs text-gray-600">{r.reference}</p>
                 <div className="min-w-0">
@@ -252,6 +409,16 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUT_STYLES[r.statut] ?? 'bg-gray-100 text-gray-600'}`}>
                   {r.statut}
                 </span>
+                <div className="flex justify-end">
+                  {(r.statut === 'confirmee' || r.statut === 'en_cours') && r.evenement_id && (
+                    <button
+                      onClick={() => setOpenModalForEvenementId(r.evenement_id!)}
+                      className="px-3 py-1.5 border border-gray-200 hover:border-brand text-gray-600 hover:text-navy text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+                    >
+                      + Devis prestataire
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

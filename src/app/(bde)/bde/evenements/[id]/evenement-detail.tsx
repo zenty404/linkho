@@ -10,6 +10,7 @@ import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 import { uploadJustificatif } from '@/lib/actions/paiements'
+import { signerDevisPrestataire, refuserDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 type Props = { evenement: EvenementComplet; suggestions: LieuPublic[] }
@@ -101,8 +102,10 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({})
   const [showReplace, setShowReplace] = useState<Record<string, boolean>>({})
+  const [dpPendingId, setDpPendingId] = useState<string | null>(null)
+  const [dpError, setDpError] = useState<string | null>(null)
 
-  const { demande, devis, reservation, formulaire, cal_link } = evenement
+  const { demande, devis, reservation, formulaire, cal_link, devis_prestataires } = evenement
   const currentStep = getCurrentStep(evenement)
 
   function stepState(step: number): SectionState {
@@ -893,6 +896,104 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION DEVIS PRESTATAIRES */}
+      {devis_prestataires.length > 0 && (
+        <div className="rounded-xl border border-gray-200 p-6 bg-white">
+          <h2 className="text-base font-bold text-navy mb-5">Devis prestataires</h2>
+
+          {dpError && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">
+              {dpError}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {devis_prestataires.map((dp) => {
+              const badgeCls =
+                dp.statut === 'signe'
+                  ? 'bg-green-100 text-green-700'
+                  : dp.statut === 'refuse'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-amber-100 text-amber-700'
+              const badgeLabel =
+                dp.statut === 'signe' ? 'Signé' : dp.statut === 'refuse' ? 'Refusé' : 'En attente'
+              const typeLabel =
+                dp.type === 'transport'
+                  ? 'Transport'
+                  : dp.type === 'securite'
+                    ? 'Sécurité'
+                    : 'Autre'
+
+              return (
+                <div key={dp.id} className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                          {typeLabel}
+                        </span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeCls}`}>
+                          {badgeLabel}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-navy">{dp.nom}</p>
+                      {dp.montant != null && (
+                        <p className="text-xs text-gray-500 mt-0.5">{fmtEuros(dp.montant)}</p>
+                      )}
+                    </div>
+                    <a
+                      href={`/api/devis-prestataire/${dp.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 text-xs text-brand hover:underline font-medium"
+                    >
+                      ↓ Voir le PDF
+                    </a>
+                  </div>
+
+                  {dp.statut === 'en_attente' && (
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          setDpError(null)
+                          setDpPendingId(dp.id)
+                          startTransition(async () => {
+                            const res = await signerDevisPrestataire(dp.id)
+                            setDpPendingId(null)
+                            if (res.error) { setDpError(res.error); return }
+                            router.refresh()
+                          })
+                        }}
+                        disabled={isPending}
+                        className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {dpPendingId === dp.id && isPending ? 'En cours…' : '✓ Signer'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDpError(null)
+                          setDpPendingId(dp.id)
+                          startTransition(async () => {
+                            const res = await refuserDevisPrestataire(dp.id)
+                            setDpPendingId(null)
+                            if (res.error) { setDpError(res.error); return }
+                            router.refresh()
+                          })
+                        }}
+                        disabled={isPending}
+                        className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {dpPendingId === dp.id && isPending ? 'En cours…' : 'Refuser'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
