@@ -4,15 +4,31 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { LieuDetail, PeriodeOccupee } from '@/lib/actions/public'
+import type { AvisLieu } from '@/lib/actions/avis'
 import DevisWidget from './devis-widget'
 
 type Props = {
   lieu: LieuDetail
   reservationsOccupees: PeriodeOccupee[]
   initialDates: { date_debut: string; date_fin: string; participants: string }
+  avis: AvisLieu[]
 }
 
-export default function LieuDetailClient({ lieu, reservationsOccupees, initialDates }: Props) {
+function Stars({ note, size = 'md' }: { note: number; size?: 'sm' | 'md' }) {
+  const sz = size === 'sm' ? 'text-sm' : 'text-lg'
+  return (
+    <span className={`${sz} leading-none`} aria-label={`${note} étoiles sur 5`}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <span key={i} className={i < note ? 'text-brand' : 'text-gray-300'}>★</span>
+      ))}
+    </span>
+  )
+}
+
+export default function LieuDetailClient({ lieu, reservationsOccupees, initialDates, avis }: Props) {
+  const noteMoyenne = avis.length > 0
+    ? Math.round((avis.reduce((s, a) => s + a.note, 0) / avis.length) * 10) / 10
+    : null
   const router = useRouter()
   const [activePhoto, setActivePhoto] = useState(
     lieu.photos.find((p) => p.est_principale)?.url ?? lieu.photos[0]?.url ?? null,
@@ -93,6 +109,14 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                   </span>
                 )}
               </div>
+
+              {noteMoyenne !== null && (
+                <div className="flex items-center gap-2 mb-3">
+                  <Stars note={Math.round(noteMoyenne)} />
+                  <span className="text-sm font-semibold text-navy">{noteMoyenne.toFixed(1)}</span>
+                  <span className="text-sm text-gray-400">({avis.length} avis)</span>
+                </div>
+              )}
 
               {lieu.ville && (
                 <p className="flex items-center gap-1.5 text-gray-500 mb-5">
@@ -201,6 +225,50 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                 </div>
               </section>
             )}
+
+            {/* 6. Avis des BDE */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-navy">Avis des BDE</h2>
+                {noteMoyenne !== null && (
+                  <div className="flex items-center gap-2">
+                    <Stars note={Math.round(noteMoyenne)} />
+                    <span className="text-sm font-bold text-navy">{noteMoyenne.toFixed(1)}/5</span>
+                    <span className="text-sm text-gray-400">· {avis.length} avis</span>
+                  </div>
+                )}
+              </div>
+
+              {avis.length === 0 ? (
+                <div className="bg-white rounded-xl border border-gray-100 px-5 py-8 text-center">
+                  <p className="text-sm text-gray-400">Aucun avis pour ce lieu pour l&apos;instant.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {avis.map((a) => (
+                    <div key={a.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <Stars note={a.note} size="sm" />
+                          {a.bde && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className="font-semibold text-navy">{a.bde.nom}</span>
+                              {a.bde.ecole ? ` · ${a.bde.ecole}` : ''}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {new Date(a.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                        </span>
+                      </div>
+                      {a.commentaire && (
+                        <p className="text-sm text-gray-600 leading-relaxed mt-2">{a.commentaire}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
           {/* ── Widget sticky droite ── */}

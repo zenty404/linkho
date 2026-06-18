@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      avis_lieux: {
+        Row: {
+          bde_id: string
+          commentaire: string | null
+          created_at: string
+          etablissement_id: string
+          evenement_id: string
+          id: string
+          note: number
+        }
+        Insert: {
+          bde_id: string
+          commentaire?: string | null
+          created_at?: string
+          etablissement_id: string
+          evenement_id: string
+          id?: string
+          note: number
+        }
+        Update: {
+          bde_id?: string
+          commentaire?: string | null
+          created_at?: string
+          etablissement_id?: string
+          evenement_id?: string
+          id?: string
+          note?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avis_lieux_bde_id_fkey"
+            columns: ["bde_id"]
+            isOneToOne: false
+            referencedRelation: "bde_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avis_lieux_etablissement_id_fkey"
+            columns: ["etablissement_id"]
+            isOneToOne: false
+            referencedRelation: "etablissement_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avis_lieux_evenement_id_fkey"
+            columns: ["evenement_id"]
+            isOneToOne: false
+            referencedRelation: "evenements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avis_linkho: {
+        Row: {
+          bde_id: string
+          commentaire: string | null
+          created_at: string
+          id: string
+          note: number
+        }
+        Insert: {
+          bde_id: string
+          commentaire?: string | null
+          created_at?: string
+          id?: string
+          note: number
+        }
+        Update: {
+          bde_id?: string
+          commentaire?: string | null
+          created_at?: string
+          id?: string
+          note?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avis_linkho_bde_id_fkey"
+            columns: ["bde_id"]
+            isOneToOne: false
+            referencedRelation: "bde_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bde_profiles: {
         Row: {
           actif: boolean
@@ -721,6 +805,7 @@ export type Database = {
           created_at: string
           date_debut: string | null
           date_fin: string | null
+          demande_id: string | null
           description: string | null
           id: string
           nb_places_max: number | null
@@ -735,6 +820,7 @@ export type Database = {
           created_at?: string
           date_debut?: string | null
           date_fin?: string | null
+          demande_id?: string | null
           description?: string | null
           id?: string
           nb_places_max?: number | null
@@ -749,6 +835,7 @@ export type Database = {
           created_at?: string
           date_debut?: string | null
           date_fin?: string | null
+          demande_id?: string | null
           description?: string | null
           id?: string
           nb_places_max?: number | null
