@@ -932,7 +932,11 @@ export type Database = {
           id: string
           message_confirmation: string | null
           mode_paiement: string | null
+          moyens_paiement: Json | null
           paiement_details: Json | null
+          paiement_plusieurs_fois: boolean
+          paiement_plusieurs_fois_moyens: string[] | null
+          paiement_plusieurs_fois_nb: number
           prix_total: number | null
           publie: boolean
           publie_le: string | null
@@ -951,7 +955,11 @@ export type Database = {
           id?: string
           message_confirmation?: string | null
           mode_paiement?: string | null
+          moyens_paiement?: Json | null
           paiement_details?: Json | null
+          paiement_plusieurs_fois?: boolean
+          paiement_plusieurs_fois_moyens?: string[] | null
+          paiement_plusieurs_fois_nb?: number
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null
@@ -970,7 +978,11 @@ export type Database = {
           id?: string
           message_confirmation?: string | null
           mode_paiement?: string | null
+          moyens_paiement?: Json | null
           paiement_details?: Json | null
+          paiement_plusieurs_fois?: boolean
+          paiement_plusieurs_fois_moyens?: string[] | null
+          paiement_plusieurs_fois_nb?: number
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null
@@ -1083,6 +1095,8 @@ export type Database = {
           formulaire_id: string
           id: string
           montant_total: number
+          moyen_paiement_choisi: string | null
+          nb_echeances_choisies: number | null
           nom: string
           prenom: string
           reponses: Json
@@ -1102,6 +1116,8 @@ export type Database = {
           formulaire_id: string
           id?: string
           montant_total?: number
+          moyen_paiement_choisi?: string | null
+          nb_echeances_choisies?: number | null
           nom: string
           prenom: string
           reponses?: Json
@@ -1121,6 +1137,8 @@ export type Database = {
           formulaire_id?: string
           id?: string
           montant_total?: number
+          moyen_paiement_choisi?: string | null
+          nb_echeances_choisies?: number | null
           nom?: string
           prenom?: string
           reponses?: Json

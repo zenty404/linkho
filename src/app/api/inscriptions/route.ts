@@ -9,7 +9,7 @@ const supabaseAdmin = createClient<Database>(
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { formulaireId, prenom, nom, email, reponses } = body
+  const { formulaireId, prenom, nom, email, reponses, moyen_paiement_choisi, nb_echeances_choisies } = body
 
   console.log('formulaireId reçu:', formulaireId)
 
@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       reponses: reponses ?? {},
       montant_total: formulaire.prix_total ?? 0,
       caution_montant: formulaire.caution_montant ?? null,
+      moyen_paiement_choisi: moyen_paiement_choisi ?? null,
+      nb_echeances_choisies: nb_echeances_choisies ?? null,
       statut: 'en_attente',
       statut_paiement: 'en_attente',
     })

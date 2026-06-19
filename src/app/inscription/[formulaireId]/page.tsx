@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails, MoyenPaiement } from '@/lib/actions/formulaires'
 import { PublicInscriptionForm } from './public-form'
 
 type EvenementSnippet = {
@@ -28,6 +28,7 @@ export default async function InscriptionPubliquePage({ params }: Props) {
 
   const champs = (formulaire.champs ?? []) as unknown as ChampFormulaire[]
   const evenement = (formulaire.evenement ?? null) as EvenementSnippet | null
+  const moyensPaiement = ((formulaire.moyens_paiement ?? []) as unknown as MoyenPaiement[])
 
   return (
     <PublicInscriptionForm
@@ -43,6 +44,10 @@ export default async function InscriptionPubliquePage({ params }: Props) {
       cautionMode={formulaire.caution_mode ?? null}
       cautionSwiklyUrl={formulaire.caution_swikly_url ?? null}
       messageConfirmation={formulaire.message_confirmation ?? null}
+      moyensPaiement={moyensPaiement}
+      paiementPlusieursFois={formulaire.paiement_plusieurs_fois ?? false}
+      paiementPlusieursFoisNb={formulaire.paiement_plusieurs_fois_nb ?? 2}
+      paiementPlusieursFoisMoyens={(formulaire.paiement_plusieurs_fois_moyens as string[]) ?? []}
     />
   )
 }

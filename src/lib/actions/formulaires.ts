@@ -13,6 +13,12 @@ export type PaiementDetails = {
   helloasso?: string | null
 }
 
+export type MoyenPaiement =
+  | { type: 'virement'; rib: string }
+  | { type: 'cheque_especes'; message: string }
+  | { type: 'helloasso'; lien: string }
+  | { type: 'custom'; nom: string; lien: string }
+
 export type ChampFormulaire = {
   id: string
   type:
@@ -115,6 +121,10 @@ export async function updateFormulaire(
   caution_mode?: string | null,
   caution_swikly_url?: string | null,
   message_confirmation?: string | null,
+  moyens_paiement?: MoyenPaiement[] | null,
+  paiement_plusieurs_fois?: boolean,
+  paiement_plusieurs_fois_nb?: number,
+  paiement_plusieurs_fois_moyens?: string[],
 ): Promise<ActionResult<Formulaire>> {
   const supabase = await createClient()
 
@@ -131,6 +141,10 @@ export async function updateFormulaire(
       caution_mode: caution_mode ?? null,
       caution_swikly_url: caution_swikly_url ?? null,
       message_confirmation: message_confirmation ?? null,
+      moyens_paiement: (moyens_paiement ?? null) as Database['public']['Tables']['formulaire_inscriptions']['Row']['moyens_paiement'],
+      paiement_plusieurs_fois: paiement_plusieurs_fois ?? false,
+      paiement_plusieurs_fois_nb: paiement_plusieurs_fois_nb ?? 2,
+      paiement_plusieurs_fois_moyens: paiement_plusieurs_fois_moyens ?? [],
     })
     .eq('id', id)
     .select()
