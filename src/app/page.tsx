@@ -2,16 +2,22 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/public/navbar'
+import { getAvisLinkho } from '@/lib/actions/avis'
 
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: lieux } = await supabase
-    .from('etablissement_profiles')
-    .select('id, nom, ville, capacite_max, prix_base, etablissement_photos(url, est_principale)')
-    .eq('actif', true)
-    .eq('visible', true)
-    .limit(3)
+  const [{ data: lieux }, avisResult] = await Promise.all([
+    supabase
+      .from('etablissement_profiles')
+      .select('id, nom, ville, capacite_max, prix_base, etablissement_photos(url, est_principale)')
+      .eq('actif', true)
+      .eq('visible', true)
+      .limit(3),
+    getAvisLinkho(),
+  ])
+
+  const avisLinkho = (avisResult.data ?? []).slice(0, 3)
 
   type LieuRow = NonNullable<typeof lieux>[number]
   type PhotoRow = { url: string; est_principale: boolean | null }
@@ -228,6 +234,37 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      {/* AVIS LINKHO */}
+      {avisLinkho.length > 0 && (
+        <section className="py-24 px-6 bg-white">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold text-navy text-center mb-16">
+              Ce que disent nos BDE
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {avisLinkho.map((a) => (
+                <div key={a.id} className="bg-gray-50 rounded-2xl p-6 flex flex-col gap-3">
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span key={i} className={`text-xl ${i < a.note ? 'text-brand' : 'text-gray-300'}`}>★</span>
+                    ))}
+                  </div>
+                  {a.commentaire && (
+                    <p className="text-gray-600 text-sm leading-relaxed flex-1">&ldquo;{a.commentaire}&rdquo;</p>
+                  )}
+                  {a.bde && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-sm font-semibold text-navy">{a.bde.nom}</p>
+                      {a.bde.ecole && <p className="text-xs text-gray-400">{a.bde.ecole}</p>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA ÉTABLISSEMENT */}
       <section className="py-24 px-6 bg-navy">

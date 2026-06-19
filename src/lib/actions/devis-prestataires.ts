@@ -79,8 +79,8 @@ export async function deposerDevisPrestataire(
         )
       }
     }
-  } catch (e) {
-    console.error('[deposerDevisPrestataire] email error:', e)
+  } catch {
+    // silent
   }
 
   revalidatePath('/admin/reservations')

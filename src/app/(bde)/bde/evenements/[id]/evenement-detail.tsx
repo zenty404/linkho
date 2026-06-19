@@ -11,6 +11,7 @@ import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 import { uploadJustificatif } from '@/lib/actions/paiements'
 import { signerDevisPrestataire, refuserDevisPrestataire } from '@/lib/actions/devis-prestataires'
+import { laisserAvisLieu } from '@/lib/actions/avis'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 type Props = { evenement: EvenementComplet; suggestions: LieuPublic[] }
@@ -104,8 +105,12 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
   const [showReplace, setShowReplace] = useState<Record<string, boolean>>({})
   const [dpPendingId, setDpPendingId] = useState<string | null>(null)
   const [dpError, setDpError] = useState<string | null>(null)
+  const [avisNote, setAvisNote] = useState(0)
+  const [avisCommentaire, setAvisCommentaire] = useState('')
+  const [avisSubmitted, setAvisSubmitted] = useState(false)
+  const [avisError, setAvisError] = useState<string | null>(null)
 
-  const { demande, devis, reservation, formulaire, cal_link, devis_prestataires } = evenement
+  const { demande, devis, reservation, formulaire, cal_link, devis_prestataires, avis_lieu } = evenement
   const currentStep = getCurrentStep(evenement)
 
   function stepState(step: number): SectionState {
@@ -907,6 +912,86 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* SECTION AVIS LIEU */}
+      {reservation && ['terminee', 'commission_reversee'].includes(reservation.statut) && (
+        <div className="rounded-xl border border-gray-200 p-6 bg-white">
+          <h2 className="text-base font-bold text-navy mb-5">
+            {avis_lieu || avisSubmitted ? 'Votre avis sur ce lieu' : 'Laisser un avis'}
+          </h2>
+
+          {avis_lieu || avisSubmitted ? (
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+              <div className="flex items-center gap-1 mb-2">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span key={i} className={`text-xl ${i < (avis_lieu?.note ?? avisNote) ? 'text-brand' : 'text-gray-300'}`}>★</span>
+                ))}
+              </div>
+              {(avis_lieu?.commentaire || avisCommentaire) && (
+                <p className="text-sm text-gray-600">{avis_lieu?.commentaire ?? avisCommentaire}</p>
+              )}
+              <p className="text-xs text-green-600 font-medium mt-2">✓ Avis enregistré</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Étoiles cliquables */}
+              <div>
+                <p className="text-xs text-gray-500 mb-2">Note</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setAvisNote(n)}
+                      className={`text-3xl transition-colors ${n <= avisNote ? 'text-brand' : 'text-gray-300 hover:text-brand/60'}`}
+                      aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  {avisNote > 0 && (
+                    <span className="ml-2 text-sm text-gray-500">{avisNote}/5</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Commentaire */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">
+                  Commentaire <span className="text-gray-400">(optionnel)</span>
+                </label>
+                <textarea
+                  value={avisCommentaire}
+                  onChange={(e) => setAvisCommentaire(e.target.value)}
+                  rows={3}
+                  placeholder="Partagez votre expérience avec ce lieu…"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                />
+              </div>
+
+              {avisError && (
+                <p className="text-xs text-red-500">{avisError}</p>
+              )}
+
+              <button
+                onClick={() => {
+                  if (avisNote === 0) { setAvisError('Sélectionnez une note.'); return }
+                  setAvisError(null)
+                  startTransition(async () => {
+                    const res = await laisserAvisLieu(evenement.id, avisNote, avisCommentaire || undefined)
+                    if (res.error) { setAvisError(res.error); return }
+                    setAvisSubmitted(true)
+                  })
+                }}
+                disabled={isPending || avisNote === 0}
+                className="px-5 py-2.5 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                {isPending ? 'Envoi…' : 'Envoyer mon avis'}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

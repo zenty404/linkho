@@ -24,7 +24,7 @@ import {
   Copy, Trash2, Eye, Plus, X, Check, LoaderCircle,
 } from 'lucide-react'
 import { updateFormulaire, publierFormulaire, depublierFormulaire } from '@/lib/actions/formulaires'
-import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails, MoyenPaiement } from '@/lib/actions/formulaires'
 import type { Database } from '@/lib/types/supabase'
 
 type Formulaire = Database['public']['Tables']['formulaire_inscriptions']['Row']
@@ -57,6 +57,38 @@ const TYPE_LABELS: Record<string, string> = Object.fromEntries(
 
 const HAS_OPTIONS = new Set(['selection_unique', 'selection_multiple', 'liste_deroulante'])
 const HAS_PLACEHOLDER = new Set(['text_court', 'text_long', 'email', 'telephone', 'date', 'nombre', 'liste_deroulante'])
+
+// ─── Moyens de paiement ───────────────────────────────────────────────────────
+
+type MoyenState = {
+  virement: { enabled: boolean; rib: string }
+  cheque_especes: { enabled: boolean; message: string }
+  helloasso: { enabled: boolean; lien: string }
+  custom: { enabled: boolean; nom: string; lien: string }
+}
+
+function parseMoyensPaiement(raw: unknown): MoyenState {
+  const arr = Array.isArray(raw) ? (raw as MoyenPaiement[]) : []
+  const v = arr.find((m) => m.type === 'virement') as Extract<MoyenPaiement, { type: 'virement' }> | undefined
+  const c = arr.find((m) => m.type === 'cheque_especes') as Extract<MoyenPaiement, { type: 'cheque_especes' }> | undefined
+  const h = arr.find((m) => m.type === 'helloasso') as Extract<MoyenPaiement, { type: 'helloasso' }> | undefined
+  const cu = arr.find((m) => m.type === 'custom') as Extract<MoyenPaiement, { type: 'custom' }> | undefined
+  return {
+    virement: { enabled: !!v, rib: v?.rib ?? '' },
+    cheque_especes: { enabled: !!c, message: c?.message ?? '' },
+    helloasso: { enabled: !!h, lien: h?.lien ?? '' },
+    custom: { enabled: !!cu, nom: cu?.nom ?? '', lien: cu?.lien ?? '' },
+  }
+}
+
+function moyenStateToPaiement(state: MoyenState): MoyenPaiement[] {
+  const res: MoyenPaiement[] = []
+  if (state.virement.enabled) res.push({ type: 'virement', rib: state.virement.rib })
+  if (state.cheque_especes.enabled) res.push({ type: 'cheque_especes', message: state.cheque_especes.message })
+  if (state.helloasso.enabled) res.push({ type: 'helloasso', lien: state.helloasso.lien })
+  if (state.custom.enabled) res.push({ type: 'custom', nom: state.custom.nom, lien: state.custom.lien })
+  return res
+}
 
 function makeChamp(type: ChampFormulaire['type'], ordre: number): ChampFormulaire {
   return {
@@ -462,6 +494,14 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
   const [cautionMode, setCautionMode] = useState<string>(formulaire.caution_mode ?? '')
   const [cautionSwiklyUrl, setCautionSwiklyUrl] = useState(formulaire.caution_swikly_url ?? '')
   const [messageConfirmation, setMessageConfirmation] = useState(formulaire.message_confirmation ?? '')
+  const [moyenState, setMoyenState] = useState<MoyenState>(() =>
+    parseMoyensPaiement(formulaire.moyens_paiement),
+  )
+  const [paiementPlusieursFois, setPaiementPlusieursFois] = useState(formulaire.paiement_plusieurs_fois ?? false)
+  const [paiementPlusieursFoisNb, setPaiementPlusieursFoisNb] = useState(formulaire.paiement_plusieurs_fois_nb ?? 2)
+  const [paiementPlusieursFoisMoyens, setPaiementPlusieursFoisMoyens] = useState<string[]>(
+    (formulaire.paiement_plusieurs_fois_moyens as string[]) ?? [],
+  )
   const [publie, setPublie] = useState(formulaire.publie)
   const [activeTab, setActiveTab] = useState<Tab>('editeur')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
@@ -471,12 +511,14 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
   const latestRef = useRef({
     champs, titre, description, prixTotal,
     modePaiement, paiementDetails,
+    moyenState, paiementPlusieursFois, paiementPlusieursFoisNb, paiementPlusieursFoisMoyens,
     cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
     messageConfirmation,
   })
   latestRef.current = {
     champs, titre, description, prixTotal,
     modePaiement, paiementDetails,
+    moyenState, paiementPlusieursFois, paiementPlusieursFoisNb, paiementPlusieursFoisMoyens,
     cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
     messageConfirmation,
   }
@@ -494,6 +536,7 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
       const {
         champs, titre, description, prixTotal,
         modePaiement, paiementDetails,
+        moyenState, paiementPlusieursFois, paiementPlusieursFoisNb, paiementPlusieursFoisMoyens,
         cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl,
         messageConfirmation,
       } = latestRef.current
@@ -509,12 +552,16 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
         cautionActive ? (cautionMode || null) : null,
         cautionActive && cautionMode === 'swikly' ? (cautionSwiklyUrl || null) : null,
         messageConfirmation || null,
+        moyenStateToPaiement(moyenState),
+        paiementPlusieursFois,
+        paiementPlusieursFoisNb,
+        paiementPlusieursFoisMoyens,
       )
       setSaveStatus(res.error ? 'error' : 'saved')
     }, 1000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [champs, titre, description, prixTotal, modePaiement, paiementDetails, cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl, messageConfirmation])
+  }, [champs, titre, description, prixTotal, modePaiement, paiementDetails, moyenState, paiementPlusieursFois, paiementPlusieursFoisNb, paiementPlusieursFoisMoyens, cautionActive, cautionMontant, cautionMode, cautionSwiklyUrl, messageConfirmation])
 
   // DnD
   const sensors = useSensors(
@@ -756,80 +803,194 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1.5">
-                  Mode de paiement
+            </div>
+          </div>
+
+          {/* Moyens de paiement */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
+              Moyens de paiement
+            </h2>
+            <div className="space-y-3">
+              {/* Virement */}
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={moyenState.virement.enabled}
+                    onChange={(e) => setMoyenState((s) => ({ ...s, virement: { ...s.virement, enabled: e.target.checked } }))}
+                    className="accent-brand w-4 h-4 rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Virement bancaire</span>
                 </label>
-                <select
-                  value={modePaiement}
-                  onChange={(e) => {
-                    setModePaiement(e.target.value)
-                    setPaiementDetails({})
-                  }}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
-                >
-                  <option value="">— Sélectionner —</option>
-                  <option value="virement">Virement IBAN</option>
-                  <option value="cheque">Chèque</option>
-                  <option value="lydia">Lydia</option>
-                  <option value="helloasso">HelloAsso</option>
-                </select>
+                {moyenState.virement.enabled && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                    <label className="text-xs font-medium text-gray-700 block mb-1.5">IBAN / RIB</label>
+                    <input
+                      type="text"
+                      value={moyenState.virement.rib}
+                      onChange={(e) => setMoyenState((s) => ({ ...s, virement: { ...s.virement, rib: e.target.value } }))}
+                      placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    />
+                  </div>
+                )}
               </div>
 
-              {modePaiement === 'virement' && (
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">IBAN</label>
+              {/* Chèque / Espèces */}
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
                   <input
-                    type="text"
-                    value={paiementDetails.iban ?? ''}
-                    onChange={(e) => setPaiementDetails((d) => ({ ...d, iban: e.target.value || null }))}
-                    placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    type="checkbox"
+                    checked={moyenState.cheque_especes.enabled}
+                    onChange={(e) => setMoyenState((s) => ({ ...s, cheque_especes: { ...s.cheque_especes, enabled: e.target.checked } }))}
+                    className="accent-brand w-4 h-4 rounded"
                   />
-                </div>
-              )}
-              {modePaiement === 'cheque' && (
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
-                    Chèque à l&apos;ordre de
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">Chèque / Espèces</span>
+                </label>
+                {moyenState.cheque_especes.enabled && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                    <label className="text-xs font-medium text-gray-700 block mb-1.5">Message pour l&apos;étudiant</label>
+                    <textarea
+                      value={moyenState.cheque_especes.message}
+                      onChange={(e) => setMoyenState((s) => ({ ...s, cheque_especes: { ...s.cheque_especes, message: e.target.value } }))}
+                      rows={2}
+                      placeholder="Ex : Rendez-vous au local BDE avec votre règlement…"
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand resize-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* HelloAsso */}
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
                   <input
-                    type="text"
-                    value={paiementDetails.ordre ?? ''}
-                    onChange={(e) => setPaiementDetails((d) => ({ ...d, ordre: e.target.value || null }))}
-                    placeholder="BDE Paris"
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    type="checkbox"
+                    checked={moyenState.helloasso.enabled}
+                    onChange={(e) => setMoyenState((s) => ({ ...s, helloasso: { ...s.helloasso, enabled: e.target.checked } }))}
+                    className="accent-brand w-4 h-4 rounded"
                   />
-                </div>
-              )}
-              {modePaiement === 'lydia' && (
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
-                    Numéro Lydia
-                  </label>
+                  <span className="text-sm font-medium text-gray-700">HelloAsso</span>
+                </label>
+                {moyenState.helloasso.enabled && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                    <label className="text-xs font-medium text-gray-700 block mb-1.5">Lien HelloAsso</label>
+                    <input
+                      type="url"
+                      value={moyenState.helloasso.lien}
+                      onChange={(e) => setMoyenState((s) => ({ ...s, helloasso: { ...s.helloasso, lien: e.target.value } }))}
+                      placeholder="https://www.helloasso.com/…"
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Partenaire custom */}
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <label className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
                   <input
-                    type="text"
-                    value={paiementDetails.lydia ?? ''}
-                    onChange={(e) => setPaiementDetails((d) => ({ ...d, lydia: e.target.value || null }))}
-                    placeholder="06 00 00 00 00"
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                    type="checkbox"
+                    checked={moyenState.custom.enabled}
+                    onChange={(e) => setMoyenState((s) => ({ ...s, custom: { ...s.custom, enabled: e.target.checked } }))}
+                    className="accent-brand w-4 h-4 rounded"
                   />
+                  <span className="text-sm font-medium text-gray-700">Partenaire personnalisé</span>
+                </label>
+                {moyenState.custom.enabled && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Nom du partenaire</label>
+                      <input
+                        type="text"
+                        value={moyenState.custom.nom}
+                        onChange={(e) => setMoyenState((s) => ({ ...s, custom: { ...s.custom, nom: e.target.value } }))}
+                        placeholder="Ex : Lydia, SumUp…"
+                        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Lien de paiement</label>
+                      <input
+                        type="url"
+                        value={moyenState.custom.lien}
+                        onChange={(e) => setMoyenState((s) => ({ ...s, custom: { ...s.custom, lien: e.target.value } }))}
+                        placeholder="https://…"
+                        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Paiement en plusieurs fois */}
+              <div className="pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-xs font-medium text-gray-700">Paiement en plusieurs fois</span>
+                  <button
+                    type="button"
+                    onClick={() => setPaiementPlusieursFois((v) => !v)}
+                    className={`relative w-9 h-5 rounded-full transition-colors ${paiementPlusieursFois ? 'bg-brand' : 'bg-gray-200'}`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                        paiementPlusieursFois ? 'left-0.5 translate-x-4' : 'left-0.5'
+                      }`}
+                    />
+                  </button>
                 </div>
-              )}
-              {modePaiement === 'helloasso' && (
-                <div>
-                  <label className="text-xs font-medium text-gray-700 block mb-1.5">
-                    Lien HelloAsso
-                  </label>
-                  <input
-                    type="url"
-                    value={paiementDetails.helloasso ?? ''}
-                    onChange={(e) => setPaiementDetails((d) => ({ ...d, helloasso: e.target.value || null }))}
-                    placeholder="https://www.helloasso.com/…"
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
-              )}
+
+                {paiementPlusieursFois && (
+                  <div className="mt-3 space-y-3 pl-1">
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 block mb-1.5">Nombre d&apos;échéances</label>
+                      <select
+                        value={paiementPlusieursFoisNb}
+                        onChange={(e) => setPaiementPlusieursFoisNb(Number(e.target.value))}
+                        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
+                      >
+                        <option value={2}>2 fois</option>
+                        <option value={3}>3 fois</option>
+                        <option value={4}>4 fois</option>
+                      </select>
+                    </div>
+
+                    {moyenStateToPaiement(moyenState).length > 0 && (
+                      <div>
+                        <label className="text-xs font-medium text-gray-700 block mb-2">Disponible pour</label>
+                        <div className="space-y-1.5">
+                          {moyenStateToPaiement(moyenState).map((m) => {
+                            const labels: Record<string, string> = {
+                              virement: 'Virement bancaire',
+                              cheque_especes: 'Chèque / Espèces',
+                              helloasso: 'HelloAsso',
+                              custom: moyenState.custom.nom || 'Partenaire personnalisé',
+                            }
+                            return (
+                              <label key={m.type} className="flex items-center gap-2.5 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={paiementPlusieursFoisMoyens.includes(m.type)}
+                                  onChange={(e) =>
+                                    setPaiementPlusieursFoisMoyens((prev) =>
+                                      e.target.checked
+                                        ? [...prev, m.type]
+                                        : prev.filter((t) => t !== m.type),
+                                    )
+                                  }
+                                  className="accent-brand w-4 h-4 rounded"
+                                />
+                                <span className="text-sm text-gray-600">{labels[m.type]}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

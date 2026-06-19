@@ -13,6 +13,12 @@ export type PaiementDetails = {
   helloasso?: string | null
 }
 
+export type MoyenPaiement =
+  | { type: 'virement'; rib: string }
+  | { type: 'cheque_especes'; message: string }
+  | { type: 'helloasso'; lien: string }
+  | { type: 'custom'; nom: string; lien: string }
+
 export type ChampFormulaire = {
   id: string
   type:
@@ -42,7 +48,6 @@ export async function creerFormulaire(evenementId: string): Promise<ActionResult
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -58,7 +63,6 @@ export async function creerFormulaire(evenementId: string): Promise<ActionResult
     .single()
 
   if (error || !data) {
-    console.error('creerFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur création formulaire.' }
   }
 
@@ -77,7 +81,6 @@ export async function getFormulaireByEvenement(
     .maybeSingle()
 
   if (error) {
-    console.error('getFormulaireByEvenement error:', error)
     return { data: null, error: error.message }
   }
 
@@ -96,7 +99,6 @@ export async function getFormulaireById(id: string): Promise<ActionResult<Formul
     .single()
 
   if (error || !data) {
-    console.error('getFormulaireById error:', error)
     return { data: null, error: error?.message ?? 'Formulaire introuvable.' }
   }
 
@@ -115,6 +117,10 @@ export async function updateFormulaire(
   caution_mode?: string | null,
   caution_swikly_url?: string | null,
   message_confirmation?: string | null,
+  moyens_paiement?: MoyenPaiement[] | null,
+  paiement_plusieurs_fois?: boolean,
+  paiement_plusieurs_fois_nb?: number,
+  paiement_plusieurs_fois_moyens?: string[],
 ): Promise<ActionResult<Formulaire>> {
   const supabase = await createClient()
 
@@ -131,13 +137,16 @@ export async function updateFormulaire(
       caution_mode: caution_mode ?? null,
       caution_swikly_url: caution_swikly_url ?? null,
       message_confirmation: message_confirmation ?? null,
+      moyens_paiement: (moyens_paiement ?? null) as Database['public']['Tables']['formulaire_inscriptions']['Row']['moyens_paiement'],
+      paiement_plusieurs_fois: paiement_plusieurs_fois ?? false,
+      paiement_plusieurs_fois_nb: paiement_plusieurs_fois_nb ?? 2,
+      paiement_plusieurs_fois_moyens: paiement_plusieurs_fois_moyens ?? [],
     })
     .eq('id', id)
     .select()
     .single()
 
   if (error || !data) {
-    console.error('updateFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur mise à jour.' }
   }
 
@@ -155,7 +164,6 @@ export async function publierFormulaire(id: string): Promise<ActionResult<Formul
     .single()
 
   if (error || !data) {
-    console.error('publierFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur publication.' }
   }
 
@@ -173,7 +181,6 @@ export async function depublierFormulaire(id: string): Promise<ActionResult<Form
     .single()
 
   if (error || !data) {
-    console.error('depublierFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur dépublication.' }
   }
 

@@ -24,7 +24,6 @@ export async function creerEvenement(formData: FormData): Promise<ActionResult<E
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -35,7 +34,6 @@ export async function creerEvenement(formData: FormData): Promise<ActionResult<E
     .single()
 
   if (error || !data) {
-    console.error('creerEvenement error:', error)
     return { data: null, error: error?.message ?? 'Erreur création événement.' }
   }
 
@@ -47,7 +45,6 @@ export async function getEvenementsByBde(): Promise<ActionResult<Evenement[]>> {
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -58,7 +55,6 @@ export async function getEvenementsByBde(): Promise<ActionResult<Evenement[]>> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getEvenementsByBde error:', error)
     return { data: null, error: error.message }
   }
 
@@ -75,7 +71,6 @@ export async function getEvenementById(id: string): Promise<ActionResult<Eveneme
     .single()
 
   if (error || !data) {
-    console.error('getEvenementById error:', error)
     return { data: null, error: error?.message ?? 'Événement introuvable.' }
   }
 
@@ -146,6 +141,7 @@ export type EvenementComplet = {
     nb_inscriptions: number
   } | null
   cal_link: string | null
+  avis_lieu: { note: number; commentaire: string | null } | null
   devis_prestataires: {
     id: string
     type: string
@@ -171,12 +167,11 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
     .single()
   if (evtError || !evt) return { data: null, error: 'Événement introuvable.' }
 
-  const evtExtra = evt as typeof evt & { demande_id?: string | null }
-  const { data: demande } = evtExtra.demande_id
+  const { data: demande } = evt.demande_id
     ? await supabase
         .from('demandes_devis')
         .select('*, etablissement:etablissement_profiles(nom, ville, adresse, iban, bic, titulaire_compte)')
-        .eq('id', evtExtra.demande_id)
+        .eq('id', evt.demande_id)
         .maybeSingle()
     : { data: null }
 
@@ -212,7 +207,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   }
 
   let formulaire = null
-  const [{ data: formData }, { data: calConfig }, { data: devisPrestatairesData }] = await Promise.all([
+  const [{ data: formData }, { data: calConfig }, { data: devisPrestatairesData }, { data: avisLieuData }] = await Promise.all([
     supabase.from('formulaire_inscriptions').select('id, titre, publie, prix_total').eq('evenement_id', id).maybeSingle(),
     supabase.from('linkho_config').select('valeur').eq('cle', 'cal_link').maybeSingle(),
     supabase
@@ -220,6 +215,11 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       .select('id, type, nom, montant, statut, pdf_nom, created_at')
       .eq('evenement_id', id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('avis_lieux')
+      .select('note, commentaire')
+      .eq('evenement_id', id)
+      .maybeSingle(),
   ])
   const cal_link = calConfig?.valeur ?? null
   if (formData) {
@@ -239,6 +239,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       formulaire,
       cal_link,
       devis_prestataires: (devisPrestatairesData ?? []) as EvenementComplet['devis_prestataires'],
+      avis_lieu: avisLieuData as EvenementComplet['avis_lieu'],
     },
     error: null,
   }

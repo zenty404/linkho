@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { ChampFormulaire, PaiementDetails } from '@/lib/actions/formulaires'
+import type { ChampFormulaire, PaiementDetails, MoyenPaiement } from '@/lib/actions/formulaires'
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 
@@ -31,6 +31,10 @@ interface Props {
   cautionMode: string | null
   cautionSwiklyUrl: string | null
   messageConfirmation: string | null
+  moyensPaiement: MoyenPaiement[]
+  paiementPlusieursFois: boolean
+  paiementPlusieursFoisNb: number
+  paiementPlusieursFoisMoyens: string[]
 }
 
 // ─── Rendu d'un champ ─────────────────────────────────────────────────────────
@@ -269,15 +273,25 @@ export function PublicInscriptionForm({
   cautionMode,
   cautionSwiklyUrl,
   messageConfirmation,
+  moyensPaiement,
+  paiementPlusieursFois,
+  paiementPlusieursFoisNb,
+  paiementPlusieursFoisMoyens,
 }: Props) {
   const [values, setValues] = useState<Record<string, string | string[]>>({})
   const [prenom, setPrenom] = useState('')
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
+  const [carteFile, setCarteFile] = useState<File | null>(null)
+  const [moyenChoisi, setMoyenChoisi] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+
+  const moyenChoisiData = moyensPaiement.find((m) => m.type === moyenChoisi) ?? null
+  const supportePlusieursFois =
+    paiementPlusieursFois && paiementPlusieursFoisMoyens.includes(moyenChoisi)
 
   useEffect(() => {
     if (!modalOpen) return
@@ -306,7 +320,15 @@ export function PublicInscriptionForm({
     const res = await fetch('/api/inscriptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ formulaireId, prenom, nom, email, reponses }),
+      body: JSON.stringify({
+        formulaireId,
+        prenom,
+        nom,
+        email,
+        reponses,
+        moyen_paiement_choisi: moyenChoisi || null,
+        nb_echeances_choisies: supportePlusieursFois ? paiementPlusieursFoisNb : null,
+      }),
     })
     const result = await res.json()
     if (result.error) {
@@ -314,6 +336,18 @@ export function PublicInscriptionForm({
       setIsLoading(false)
       return
     }
+
+    if (carteFile && result.data?.id) {
+      try {
+        const fd = new FormData()
+        fd.append('inscriptionId', result.data.id)
+        fd.append('file', carteFile)
+        await fetch('/api/carte-etudiante', { method: 'POST', body: fd })
+      } catch {
+        // upload carte étudiante est optionnel — ne bloque pas la confirmation
+      }
+    }
+
     setSubmitted(true)
     setModalOpen(true)
   }
@@ -321,12 +355,31 @@ export function PublicInscriptionForm({
   // ─── Données confirmation ─────────────────────────────────────────────────
 
   const paiementMsg = (() => {
-    if (!modePaiement || prixTotal <= 0) return null
+    if (prixTotal <= 0) return null
+
+    // Nouveau système moyens_paiement
+    if (moyenChoisiData) {
+      switch (moyenChoisiData.type) {
+        case 'virement':
+          return moyenChoisiData.rib
+            ? null // affiché en bloc dédié ci-dessous
+            : `Veuillez effectuer un virement de ${fmt(prixTotal)}. L'IBAN vous sera communiqué par le BDE.`
+        case 'cheque_especes':
+          return moyenChoisiData.message || `Veuillez régler ${fmt(prixTotal)} par chèque ou en espèces au bureau du BDE.`
+        case 'helloasso':
+          return null
+        case 'custom':
+          return null
+      }
+    }
+
+    // Fallback ancien système
+    if (!modePaiement) return null
     const p = paiementDetails ?? {}
     switch (modePaiement) {
       case 'virement':
         return p.iban
-          ? `Veuillez effectuer un virement de ${fmt(prixTotal)} à l'IBAN suivant : ${p.iban}`
+          ? null
           : `Veuillez effectuer un virement de ${fmt(prixTotal)}. L'IBAN vous sera communiqué par le BDE.`
       case 'cheque':
         return p.ordre
@@ -370,12 +423,85 @@ export function PublicInscriptionForm({
           {/* Instructions paiement */}
           {prixTotal > 0 && (
             <div className="px-6 pb-4">
-              <div className="text-left bg-brand/5 border border-brand/20 rounded-xl px-4 py-4 space-y-1">
+              <div className="text-left bg-brand/5 border border-brand/20 rounded-xl px-4 py-4 space-y-2">
                 <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-2">Paiement</p>
-                {paiementMsg && (
+
+                {/* Nouveau système */}
+                {moyenChoisiData?.type === 'virement' && (
+                  <>
+                    <p className="text-sm text-navy leading-relaxed">
+                      Veuillez effectuer un virement de <strong>{fmt(prixTotal)}</strong>.
+                    </p>
+                    {(moyenChoisiData as Extract<MoyenPaiement, { type: 'virement' }>).rib && (
+                      <div className="bg-white rounded-lg border border-brand/20 px-3 py-2 space-y-0.5">
+                        <p className="text-xs text-gray-400">IBAN</p>
+                        <p className="text-sm font-mono font-medium text-navy">
+                          {(moyenChoisiData as Extract<MoyenPaiement, { type: 'virement' }>).rib}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">Libellé suggéré</p>
+                        <p className="text-sm font-mono text-navy">
+                          WEI - {nom.toUpperCase()} {prenom}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {moyenChoisiData?.type === 'cheque_especes' && paiementMsg && (
                   <p className="text-sm text-navy leading-relaxed">{paiementMsg}</p>
                 )}
-                {modePaiement === 'helloasso' && paiementDetails?.helloasso && (
+
+                {moyenChoisiData?.type === 'helloasso' && (
+                  <p className="text-sm text-navy leading-relaxed">
+                    Veuillez régler votre inscription via HelloAsso :{' '}
+                    <a
+                      href={(moyenChoisiData as Extract<MoyenPaiement, { type: 'helloasso' }>).lien}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand hover:text-brand-light font-medium underline"
+                    >
+                      Accéder au formulaire HelloAsso →
+                    </a>
+                  </p>
+                )}
+
+                {moyenChoisiData?.type === 'custom' && (
+                  <>
+                    <p className="text-sm text-navy leading-relaxed">
+                      Veuillez régler votre inscription via{' '}
+                      <strong>{(moyenChoisiData as Extract<MoyenPaiement, { type: 'custom' }>).nom}</strong>.
+                    </p>
+                    {(moyenChoisiData as Extract<MoyenPaiement, { type: 'custom' }>).lien && (
+                      <a
+                        href={(moyenChoisiData as Extract<MoyenPaiement, { type: 'custom' }>).lien}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block text-sm text-brand hover:text-brand-light font-medium underline"
+                      >
+                        Accéder au paiement →
+                      </a>
+                    )}
+                  </>
+                )}
+
+                {/* Paiement en plusieurs fois */}
+                {supportePlusieursFois && (
+                  <p className="text-sm text-navy leading-relaxed border-t border-brand/10 pt-2">
+                    Paiement possible en <strong>{paiementPlusieursFoisNb} fois</strong>. Le BDE vous contactera pour organiser les échéances.
+                  </p>
+                )}
+
+                {/* Fallback ancien système */}
+                {!moyenChoisiData && paiementMsg && (
+                  <p className="text-sm text-navy leading-relaxed">{paiementMsg}</p>
+                )}
+                {!moyenChoisiData && modePaiement === 'virement' && paiementDetails?.iban && (
+                  <div className="bg-white rounded-lg border border-brand/20 px-3 py-2">
+                    <p className="text-xs text-gray-400">IBAN</p>
+                    <p className="text-sm font-mono font-medium text-navy">{paiementDetails.iban}</p>
+                  </div>
+                )}
+                {!moyenChoisiData && modePaiement === 'helloasso' && paiementDetails?.helloasso && (
                   <p className="text-sm text-navy leading-relaxed">
                     Veuillez régler votre inscription via HelloAsso :{' '}
                     <a
@@ -388,9 +514,14 @@ export function PublicInscriptionForm({
                     </a>
                   </p>
                 )}
-                {!paiementMsg && modePaiement !== 'helloasso' && (
+                {!moyenChoisiData && !paiementMsg && modePaiement !== 'helloasso' && moyensPaiement.length === 0 && (
                   <p className="text-sm text-gray-500">
                     Les informations de paiement vous seront communiquées par email.
+                  </p>
+                )}
+                {!moyenChoisiData && moyensPaiement.length > 0 && !moyenChoisi && (
+                  <p className="text-sm text-gray-500">
+                    Les informations de paiement dépendent du moyen choisi.
                   </p>
                 )}
               </div>
@@ -562,6 +693,73 @@ export function PublicInscriptionForm({
               </div>
             </div>
           )}
+
+          {/* Moyen de paiement */}
+          {moyensPaiement.length > 0 && prixTotal > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                Moyen de paiement
+              </p>
+              <div className="space-y-2">
+                {moyensPaiement.map((m) => {
+                  const labels: Record<string, string> = {
+                    virement: 'Virement bancaire',
+                    cheque_especes: 'Chèque / Espèces',
+                    helloasso: 'HelloAsso',
+                    custom: (m as Extract<MoyenPaiement, { type: 'custom' }>).nom || 'Partenaire',
+                  }
+                  return (
+                    <label key={m.type} className="flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-lg cursor-pointer hover:border-brand/60 hover:bg-brand/5 transition-colors">
+                      <input
+                        type="radio"
+                        name="moyen_paiement"
+                        value={m.type}
+                        checked={moyenChoisi === m.type}
+                        onChange={() => setMoyenChoisi(m.type)}
+                        className="accent-brand w-4 h-4"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{labels[m.type]}</span>
+                    </label>
+                  )
+                })}
+              </div>
+
+              {supportePlusieursFois && (
+                <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-600 shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <p className="text-sm text-amber-800">
+                    Paiement en <strong>{paiementPlusieursFoisNb} fois</strong> disponible pour ce moyen. Le BDE vous contactera pour organiser les échéances.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Carte étudiante */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+              Carte étudiante
+            </p>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Carte étudiante <span className="text-gray-400 font-normal">(optionnel)</span>
+            </label>
+            <label className="flex items-center gap-3 px-4 py-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-brand/60 hover:bg-brand/5 transition-colors">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400 shrink-0">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+              </svg>
+              <span className="text-sm text-gray-500">
+                {carteFile ? carteFile.name : 'Sélectionner un fichier jpg, png ou pdf'}
+              </span>
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="sr-only"
+                onChange={(e) => setCarteFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">

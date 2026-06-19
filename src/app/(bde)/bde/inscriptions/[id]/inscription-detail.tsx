@@ -6,7 +6,8 @@ import Link from 'next/link'
 import type { InscriptionWithDetails } from '@/lib/actions/inscriptions'
 import type { ChampFormulaire } from '@/lib/actions/formulaires'
 import {
-  updateStatutInscription,
+  validerInscription,
+  refuserInscription,
   ajouterEcheance,
   confirmerEcheance,
 } from '@/lib/actions/inscriptions'
@@ -17,6 +18,7 @@ const STATUT_META: Record<string, { label: string; cls: string }> = {
   en_attente: { label: 'En attente', cls: 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200' },
   validee:    { label: 'Validée',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200' },
   annulee:    { label: 'Annulée',    cls: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200' },
+  refusee:    { label: 'Refusée',    cls: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200' },
 }
 
 const PAIEMENT_META: Record<string, { label: string; cls: string }> = {
@@ -93,10 +95,19 @@ export function InscriptionDetail({ inscription, champs }: Props) {
   const totalPaye = sortedEcheances.filter((e) => e.paye).reduce((s, e) => s + e.montant, 0)
   const totalEcheances = sortedEcheances.reduce((s, e) => s + e.montant, 0)
 
-  function handleStatut(statut: 'validee' | 'annulee') {
+  function handleValider() {
     setError(null)
     startTransition(async () => {
-      const res = await updateStatutInscription(inscription.id, statut)
+      const res = await validerInscription(inscription.id)
+      if (res.error) setError(res.error)
+      else router.refresh()
+    })
+  }
+
+  function handleRefuser() {
+    setError(null)
+    startTransition(async () => {
+      const res = await refuserInscription(inscription.id)
       if (res.error) setError(res.error)
       else router.refresh()
     })
@@ -165,7 +176,7 @@ export function InscriptionDetail({ inscription, champs }: Props) {
           <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-2">
             <button
               type="button"
-              onClick={() => handleStatut('validee')}
+              onClick={handleValider}
               disabled={isPending}
               className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50"
             >
@@ -173,15 +184,35 @@ export function InscriptionDetail({ inscription, champs }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => handleStatut('annulee')}
+              onClick={handleRefuser}
               disabled={isPending}
               className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
             >
-              Annuler l&apos;inscription
+              Refuser l&apos;inscription
             </button>
           </div>
         )}
       </div>
+
+      {/* Carte étudiante */}
+      {inscription.carte_etudiante_url && (
+        <SectionCard title="Carte étudiante">
+          <div className="flex items-center gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-400 shrink-0">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <span className="text-sm text-gray-600">{inscription.carte_etudiante_nom ?? 'Document'}</span>
+            <a
+              href={`/api/carte-etudiante/${inscription.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto text-sm font-semibold text-brand hover:text-brand-light transition-colors"
+            >
+              Voir la carte →
+            </a>
+          </div>
+        </SectionCard>
+      )}
 
       {/* Informations */}
       <SectionCard title="Informations">

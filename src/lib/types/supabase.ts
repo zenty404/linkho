@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      avis_lieux: {
+        Row: {
+          bde_id: string
+          commentaire: string | null
+          created_at: string
+          etablissement_id: string
+          evenement_id: string
+          id: string
+          note: number
+        }
+        Insert: {
+          bde_id: string
+          commentaire?: string | null
+          created_at?: string
+          etablissement_id: string
+          evenement_id: string
+          id?: string
+          note: number
+        }
+        Update: {
+          bde_id?: string
+          commentaire?: string | null
+          created_at?: string
+          etablissement_id?: string
+          evenement_id?: string
+          id?: string
+          note?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avis_lieux_bde_id_fkey"
+            columns: ["bde_id"]
+            isOneToOne: false
+            referencedRelation: "bde_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avis_lieux_etablissement_id_fkey"
+            columns: ["etablissement_id"]
+            isOneToOne: false
+            referencedRelation: "etablissement_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avis_lieux_evenement_id_fkey"
+            columns: ["evenement_id"]
+            isOneToOne: false
+            referencedRelation: "evenements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avis_linkho: {
+        Row: {
+          bde_id: string
+          commentaire: string | null
+          created_at: string
+          id: string
+          note: number
+        }
+        Insert: {
+          bde_id: string
+          commentaire?: string | null
+          created_at?: string
+          id?: string
+          note: number
+        }
+        Update: {
+          bde_id?: string
+          commentaire?: string | null
+          created_at?: string
+          id?: string
+          note?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avis_linkho_bde_id_fkey"
+            columns: ["bde_id"]
+            isOneToOne: false
+            referencedRelation: "bde_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bde_profiles: {
         Row: {
           actif: boolean
@@ -721,6 +805,7 @@ export type Database = {
           created_at: string
           date_debut: string | null
           date_fin: string | null
+          demande_id: string | null
           description: string | null
           id: string
           nb_places_max: number | null
@@ -735,6 +820,7 @@ export type Database = {
           created_at?: string
           date_debut?: string | null
           date_fin?: string | null
+          demande_id?: string | null
           description?: string | null
           id?: string
           nb_places_max?: number | null
@@ -749,6 +835,7 @@ export type Database = {
           created_at?: string
           date_debut?: string | null
           date_fin?: string | null
+          demande_id?: string | null
           description?: string | null
           id?: string
           nb_places_max?: number | null
@@ -845,7 +932,11 @@ export type Database = {
           id: string
           message_confirmation: string | null
           mode_paiement: string | null
+          moyens_paiement: Json | null
           paiement_details: Json | null
+          paiement_plusieurs_fois: boolean
+          paiement_plusieurs_fois_moyens: string[] | null
+          paiement_plusieurs_fois_nb: number
           prix_total: number | null
           publie: boolean
           publie_le: string | null
@@ -864,7 +955,11 @@ export type Database = {
           id?: string
           message_confirmation?: string | null
           mode_paiement?: string | null
+          moyens_paiement?: Json | null
           paiement_details?: Json | null
+          paiement_plusieurs_fois?: boolean
+          paiement_plusieurs_fois_moyens?: string[] | null
+          paiement_plusieurs_fois_nb?: number
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null
@@ -883,7 +978,11 @@ export type Database = {
           id?: string
           message_confirmation?: string | null
           mode_paiement?: string | null
+          moyens_paiement?: Json | null
           paiement_details?: Json | null
+          paiement_plusieurs_fois?: boolean
+          paiement_plusieurs_fois_moyens?: string[] | null
+          paiement_plusieurs_fois_nb?: number
           prix_total?: number | null
           publie?: boolean
           publie_le?: string | null
@@ -986,6 +1085,8 @@ export type Database = {
       inscriptions: {
         Row: {
           bde_id: string
+          carte_etudiante_nom: string | null
+          carte_etudiante_url: string | null
           caution_montant: number | null
           caution_payee: boolean
           created_at: string
@@ -994,6 +1095,8 @@ export type Database = {
           formulaire_id: string
           id: string
           montant_total: number
+          moyen_paiement_choisi: string | null
+          nb_echeances_choisies: number | null
           nom: string
           prenom: string
           reponses: Json
@@ -1003,6 +1106,8 @@ export type Database = {
         }
         Insert: {
           bde_id: string
+          carte_etudiante_nom?: string | null
+          carte_etudiante_url?: string | null
           caution_montant?: number | null
           caution_payee?: boolean
           created_at?: string
@@ -1011,6 +1116,8 @@ export type Database = {
           formulaire_id: string
           id?: string
           montant_total?: number
+          moyen_paiement_choisi?: string | null
+          nb_echeances_choisies?: number | null
           nom: string
           prenom: string
           reponses?: Json
@@ -1020,6 +1127,8 @@ export type Database = {
         }
         Update: {
           bde_id?: string
+          carte_etudiante_nom?: string | null
+          carte_etudiante_url?: string | null
           caution_montant?: number | null
           caution_payee?: boolean
           created_at?: string
@@ -1028,6 +1137,8 @@ export type Database = {
           formulaire_id?: string
           id?: string
           montant_total?: number
+          moyen_paiement_choisi?: string | null
+          nb_echeances_choisies?: number | null
           nom?: string
           prenom?: string
           reponses?: Json

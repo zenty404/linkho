@@ -9,9 +9,7 @@ const supabaseAdmin = createClient<Database>(
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { formulaireId, prenom, nom, email, reponses } = body
-
-  console.log('formulaireId reçu:', formulaireId)
+  const { formulaireId, prenom, nom, email, reponses, moyen_paiement_choisi, nb_echeances_choisies } = body
 
   const { data: formulaire, error: formError } = await supabaseAdmin
     .from('formulaire_inscriptions')
@@ -19,9 +17,6 @@ export async function POST(request: NextRequest) {
     .eq('id', formulaireId)
     .eq('publie', true)
     .maybeSingle()
-
-  console.log('formulaire trouvé:', formulaire)
-  console.log('erreur:', formError)
 
   if (!formulaire) {
     return NextResponse.json({ error: 'Formulaire introuvable.' }, { status: 404 })
@@ -39,6 +34,8 @@ export async function POST(request: NextRequest) {
       reponses: reponses ?? {},
       montant_total: formulaire.prix_total ?? 0,
       caution_montant: formulaire.caution_montant ?? null,
+      moyen_paiement_choisi: moyen_paiement_choisi ?? null,
+      nb_echeances_choisies: nb_echeances_choisies ?? null,
       statut: 'en_attente',
       statut_paiement: 'en_attente',
     })

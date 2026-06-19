@@ -34,7 +34,6 @@ export async function updateProfilBde(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateProfilBde error:', error)
     return { success: false, error: error.message }
   }
 
@@ -132,7 +131,6 @@ export async function updateProfilEtablissement(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateProfilEtablissement error:', error)
     return { success: false, error: error.message }
   }
 
@@ -159,7 +157,6 @@ export async function updateIban(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateIban error:', error)
     return { success: false, error: error.message }
   }
 
@@ -183,7 +180,6 @@ export async function updateEquipements(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateEquipements error:', error)
     return { data: null, error: error.message }
   }
 
@@ -205,7 +201,6 @@ export async function updateTagsEquipements(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateTagsEquipements error:', error)
     return { data: null, error: error.message }
   }
 
@@ -227,7 +222,6 @@ export async function updateTypesEvenements(
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('updateTypesEvenements error:', error)
     return { data: null, error: error.message }
   }
 
@@ -270,7 +264,6 @@ export async function ajouterIndisponibilite(
     })
 
   if (error) {
-    console.error('ajouterIndisponibilite error:', error)
     return { data: null, error: error.message }
   }
 
@@ -289,7 +282,6 @@ export async function supprimerIndisponibilite(id: string): Promise<ActionResult
     .eq('etablissement_id', etabId)
 
   if (error) {
-    console.error('supprimerIndisponibilite error:', error)
     return { data: null, error: error.message }
   }
 
@@ -335,7 +327,6 @@ export async function ajouterPhoto(
     .single()
 
   if (error || !data) {
-    console.error('ajouterPhoto error:', error)
     return { data: null, error: error?.message ?? 'Erreur ajout photo.' }
   }
 
@@ -354,7 +345,7 @@ export async function supprimerPhoto(
     const { error: storageErr } = await supabase.storage
       .from('etablissement-photos')
       .remove([decodeURIComponent(match[1])])
-    if (storageErr) console.error('Storage delete error:', storageErr)
+    void storageErr
   }
 
   const { error } = await supabase
@@ -363,7 +354,6 @@ export async function supprimerPhoto(
     .eq('id', photoId)
 
   if (error) {
-    console.error('supprimerPhoto error:', error)
     return { data: null, error: error.message }
   }
 

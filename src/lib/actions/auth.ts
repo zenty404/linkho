@@ -86,7 +86,6 @@ export async function signUp(
   })
 
   if (error) {
-    console.error('Supabase signUp error:', error.message, error.status)
     const msg = error.message.toLowerCase()
     if (msg.includes('already registered') || msg.includes('user already exists')) {
       return { error: 'Un compte existe déjà avec cet email.' }
