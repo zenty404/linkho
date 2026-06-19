@@ -23,13 +23,14 @@ export async function GET(
 
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
   const { data: reservation, error } = await supabase
     .from('reservations')
     .select('*, devis:devis(numero, tva_taux, etablissement_id, bde_id, date_evenement_debut, date_evenement_fin), etablissement:etablissement_profiles(nom, adresse, ville, code_postal, telephone, email_contact), bde:bde_profiles(nom, ecole, ville)')
     .eq('id', reservationId)
     .single()
-
-  console.log('[pdf/facture] reservationId:', reservationId, 'error:', error)
 
   if (error || !reservation) {
     return NextResponse.json({ error: 'Réservation introuvable.', detail: error?.message }, { status: 404 })
@@ -47,7 +48,7 @@ export async function GET(
     .eq('id', etabId)
     .single()
 
-  console.log('[pdf/facture] legal fields error:', legalError)
+  void legalError
 
   const etabLegal = etabLegalRaw as Record<string, unknown> | null
 

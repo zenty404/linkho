@@ -263,17 +263,12 @@ export async function confirmerDisponibilite(
 
   try {
     const adminCl = createAdminClient()
-    console.log('[confirmerDisponibilite] fetching admin email and bde info, bde_id:', demande.bde_id)
     const [adminRow, bdeRow] = await Promise.all([
       adminCl.from('users').select('email').eq('role', 'admin').limit(1).maybeSingle(),
       adminCl.from('bde_profiles').select('nom, ecole').eq('id', demande.bde_id).maybeSingle(),
     ])
-    console.log('[confirmerDisponibilite] adminRow:', JSON.stringify(adminRow))
-    console.log('[confirmerDisponibilite] bdeRow:', JSON.stringify(bdeRow))
     if (!adminRow.data?.email) {
-      console.error('[confirmerDisponibilite] no admin email found — adminRow.error:', adminRow.error)
     } else {
-      console.log('[confirmerDisponibilite] sending email to', adminRow.data.email)
       await sendEmail(
         adminRow.data.email,
         'Nouvelle disponibilité à valider — LINKHO',
@@ -288,10 +283,8 @@ export async function confirmerDisponibilite(
           montantPropose: montant_propose,
         }),
       )
-      console.log('[confirmerDisponibilite] email sent')
     }
   } catch (e) {
-    console.error('[confirmerDisponibilite] email error:', e)
   }
 
   return { data: null, error: null }

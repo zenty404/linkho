@@ -17,13 +17,14 @@ export async function GET(
   const { id } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
   const { data: devis, error: devisError } = await supabase
     .from('devis')
     .select('*, items:devis_items(libelle, description, quantite, prix_unitaire), etablissement:etablissement_profiles(nom, adresse, ville, code_postal, telephone, email_contact, site_web), bde:bde_profiles(nom, ecole, ville)')
     .eq('id', id)
     .single()
-
-  console.log('[pdf/devis] id:', id, 'error:', devisError, 'found:', !!devis)
 
   if (devisError || !devis) {
     return NextResponse.json({ error: 'Devis introuvable.', detail: devisError?.message }, { status: 404 })
@@ -38,7 +39,7 @@ export async function GET(
     .eq('id', devis.etablissement_id)
     .single()
 
-  console.log('[pdf/devis] legal fields error:', legalError)
+  void legalError
 
   const etabLegal = etabLegalRaw as Record<string, unknown> | null
   const bdeRaw = devis.bde as BdeRow | null

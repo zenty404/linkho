@@ -105,7 +105,6 @@ export async function validerCompte(
     .eq('user_id', userId)
 
   if (error) {
-    console.error('validerCompte error:', error)
     return { data: null, error: error.message }
   }
 
@@ -123,7 +122,6 @@ export async function validerCompte(
         createElement(CompteValideEmail, {}),
       )
     } catch (e) {
-      console.error('[validerCompte] email error:', e)
     }
   }
 
@@ -151,7 +149,6 @@ export async function refuserCompte(
   const admin = createAdminClient()
   const { error: deleteError } = await admin.auth.admin.deleteUser(userId)
   if (deleteError) {
-    console.error('refuserCompte deleteUser error:', deleteError)
     return { data: null, error: deleteError.message }
   }
 
@@ -163,7 +160,6 @@ export async function refuserCompte(
         createElement(CompteRefuseEmail, { motif }),
       )
     } catch (e) {
-      console.error('[refuserCompte] email error:', e)
     }
   }
 
@@ -350,7 +346,6 @@ export async function validerDisponibiliteAdmin(
       )
     }
   } catch (e) {
-    console.error('[validerDisponibiliteAdmin] email error:', e)
   }
 
   revalidatePath('/admin/reservations')

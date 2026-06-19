@@ -14,6 +14,9 @@ export async function GET(
   const { reservationId } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+
   const { data: reservation, error } = await supabase
     .from('reservations')
     .select(

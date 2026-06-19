@@ -48,7 +48,6 @@ export async function creerFormulaire(evenementId: string): Promise<ActionResult
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -64,7 +63,6 @@ export async function creerFormulaire(evenementId: string): Promise<ActionResult
     .single()
 
   if (error || !data) {
-    console.error('creerFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur création formulaire.' }
   }
 
@@ -83,7 +81,6 @@ export async function getFormulaireByEvenement(
     .maybeSingle()
 
   if (error) {
-    console.error('getFormulaireByEvenement error:', error)
     return { data: null, error: error.message }
   }
 
@@ -102,7 +99,6 @@ export async function getFormulaireById(id: string): Promise<ActionResult<Formul
     .single()
 
   if (error || !data) {
-    console.error('getFormulaireById error:', error)
     return { data: null, error: error?.message ?? 'Formulaire introuvable.' }
   }
 
@@ -151,7 +147,6 @@ export async function updateFormulaire(
     .single()
 
   if (error || !data) {
-    console.error('updateFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur mise à jour.' }
   }
 
@@ -169,7 +164,6 @@ export async function publierFormulaire(id: string): Promise<ActionResult<Formul
     .single()
 
   if (error || !data) {
-    console.error('publierFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur publication.' }
   }
 
@@ -187,7 +181,6 @@ export async function depublierFormulaire(id: string): Promise<ActionResult<Form
     .single()
 
   if (error || !data) {
-    console.error('depublierFormulaire error:', error)
     return { data: null, error: error?.message ?? 'Erreur dépublication.' }
   }
 

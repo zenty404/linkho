@@ -61,7 +61,6 @@ export async function getDevisById(id: string): Promise<ActionResult<DevisWithIt
     .single()
 
   if (error || !data) {
-    console.error('getDevisById error:', error)
     return { data: null, error: error?.message ?? 'Devis introuvable.' }
   }
 
@@ -73,7 +72,6 @@ export async function getDevisByBde(): Promise<ActionResult<Devis[]>> {
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -84,7 +82,6 @@ export async function getDevisByBde(): Promise<ActionResult<Devis[]>> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getDevisByBde error:', error)
     return { data: null, error: error.message }
   }
 
@@ -109,7 +106,6 @@ export async function createDevis(formData: FormData): Promise<ActionResult<Devi
 
   const { data: etablissementId, error: rpcError } = await supabase.rpc('get_etablissement_id')
   if (rpcError || !etablissementId) {
-    console.error('get_etablissement_id error:', rpcError)
     return { data: null, error: 'Profil établissement introuvable.' }
   }
 
@@ -120,7 +116,6 @@ export async function createDevis(formData: FormData): Promise<ActionResult<Devi
     .single()
 
   if (demandeError || !demande) {
-    console.error('Demande fetch error:', demandeError)
     return { data: null, error: 'Demande introuvable.' }
   }
 
@@ -150,7 +145,6 @@ export async function createDevis(formData: FormData): Promise<ActionResult<Devi
     .single()
 
   if (devisError || !devisData) {
-    console.error('createDevis insert error:', devisError)
     return { data: null, error: devisError?.message ?? 'Erreur lors de la création du devis.' }
   }
 
@@ -187,7 +181,6 @@ export async function updateDevis(
     .single()
 
   if (error || !data) {
-    console.error('updateDevis error:', error)
     return { data: null, error: error?.message ?? 'Erreur mise à jour devis.' }
   }
 
@@ -206,7 +199,6 @@ export async function envoyerDevis(id: string): Promise<ActionResult<Devis>> {
     .single()
 
   if (error || !data) {
-    console.error('envoyerDevis error:', error)
     return { data: null, error: error?.message ?? 'Impossible d\'envoyer le devis.' }
   }
 
@@ -230,7 +222,6 @@ export async function envoyerDevis(id: string): Promise<ActionResult<Devis>> {
       )
     }
   } catch (e) {
-    console.error('[envoyerDevis] email error:', e)
   }
 
   return { data, error: null }
@@ -269,7 +260,6 @@ export async function addDevisItem(
     .single()
 
   if (error || !data) {
-    console.error('addDevisItem error:', error)
     return { data: null, error: error?.message ?? 'Erreur ajout prestation.' }
   }
 
@@ -301,7 +291,6 @@ export async function updateDevisItem(
     .single()
 
   if (error || !data) {
-    console.error('updateDevisItem error:', error)
     return { data: null, error: error?.message ?? 'Erreur mise à jour prestation.' }
   }
 
@@ -322,7 +311,6 @@ export async function deleteDevisItem(itemId: string): Promise<ActionResult<null
   const { error } = await supabase.from('devis_items').delete().eq('id', itemId)
 
   if (error) {
-    console.error('deleteDevisItem error:', error)
     return { data: null, error: error.message }
   }
 
@@ -340,7 +328,6 @@ export async function getDevisByEtablissement(): Promise<ActionResult<DevisAvecB
 
   const { data: etablissementId, error: rpcError } = await supabase.rpc('get_etablissement_id')
   if (rpcError || !etablissementId) {
-    console.error('get_etablissement_id error:', rpcError)
     return { data: null, error: 'Profil établissement introuvable.' }
   }
 
@@ -351,7 +338,6 @@ export async function getDevisByEtablissement(): Promise<ActionResult<DevisAvecB
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getDevisByEtablissement error:', error)
     return { data: null, error: error.message }
   }
 
@@ -372,7 +358,6 @@ export async function accepterDevis(id: string): Promise<ActionResult<Devis>> {
     .single()
 
   if (error || !data) {
-    console.error('accepterDevis error:', error)
     return { data: null, error: error?.message ?? 'Impossible d\'accepter le devis.' }
   }
 
@@ -395,7 +380,6 @@ export async function accepterDevis(id: string): Promise<ActionResult<Devis>> {
       )
     }
   } catch (e) {
-    console.error('[accepterDevis] email error:', e)
   }
 
   return { data, error: null }
@@ -413,7 +397,6 @@ export async function refuserDevis(id: string): Promise<ActionResult<Devis>> {
     .single()
 
   if (error || !data) {
-    console.error('refuserDevis error:', error)
     return { data: null, error: error?.message ?? 'Impossible de refuser le devis.' }
   }
 
@@ -432,7 +415,6 @@ export async function refuserDevis(id: string): Promise<ActionResult<Devis>> {
       )
     }
   } catch (e) {
-    console.error('[refuserDevis] email error:', e)
   }
 
   return { data, error: null }

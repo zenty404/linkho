@@ -31,7 +31,6 @@ export async function creerProfilBde(
     .insert({ user_id: user.id, nom, ecole, ville, telephone })
 
   if (error) {
-    console.error('creerProfilBde error:', error)
     return { error: error.message }
   }
 
@@ -86,7 +85,6 @@ export async function creerProfilEtablissement(
   })
 
   if (error) {
-    console.error('creerProfilEtablissement error:', error)
     return { error: error.message }
   }
 

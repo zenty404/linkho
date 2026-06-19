@@ -24,7 +24,6 @@ export async function creerEvenement(formData: FormData): Promise<ActionResult<E
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -35,7 +34,6 @@ export async function creerEvenement(formData: FormData): Promise<ActionResult<E
     .single()
 
   if (error || !data) {
-    console.error('creerEvenement error:', error)
     return { data: null, error: error?.message ?? 'Erreur création événement.' }
   }
 
@@ -47,7 +45,6 @@ export async function getEvenementsByBde(): Promise<ActionResult<Evenement[]>> {
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -58,7 +55,6 @@ export async function getEvenementsByBde(): Promise<ActionResult<Evenement[]>> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getEvenementsByBde error:', error)
     return { data: null, error: error.message }
   }
 
@@ -75,7 +71,6 @@ export async function getEvenementById(id: string): Promise<ActionResult<Eveneme
     .single()
 
   if (error || !data) {
-    console.error('getEvenementById error:', error)
     return { data: null, error: error?.message ?? 'Événement introuvable.' }
   }
 

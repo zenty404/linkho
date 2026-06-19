@@ -93,7 +93,6 @@ export async function getDashboardBde(): Promise<ActionResult<DashboardBdeData>>
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -199,7 +198,6 @@ export async function getDashboardEtablissement(): Promise<
 
   const { data: etablissementId, error: rpcError } = await supabase.rpc('get_etablissement_id')
   if (rpcError || !etablissementId) {
-    console.error('get_etablissement_id error:', rpcError)
     return { data: null, error: 'Profil établissement introuvable.' }
   }
 

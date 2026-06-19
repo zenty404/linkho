@@ -7,8 +7,8 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function sendEmail(to: string, subject: string, react: ReactElement) {
   try {
     await resend.emails.send({ from: 'LINKHO <noreply@linkho.fr>', to, subject, react })
-  } catch (error) {
-    console.error('[sendEmail] error:', error)
+  } catch {
+    // silent — email failure must not crash callers
   }
 }
 

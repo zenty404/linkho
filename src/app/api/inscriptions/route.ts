@@ -11,17 +11,12 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { formulaireId, prenom, nom, email, reponses, moyen_paiement_choisi, nb_echeances_choisies } = body
 
-  console.log('formulaireId reçu:', formulaireId)
-
   const { data: formulaire, error: formError } = await supabaseAdmin
     .from('formulaire_inscriptions')
     .select('evenement_id, bde_id, prix_total, publie, caution_montant')
     .eq('id', formulaireId)
     .eq('publie', true)
     .maybeSingle()
-
-  console.log('formulaire trouvé:', formulaire)
-  console.log('erreur:', formError)
 
   if (!formulaire) {
     return NextResponse.json({ error: 'Formulaire introuvable.' }, { status: 404 })

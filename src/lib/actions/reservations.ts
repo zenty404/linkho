@@ -43,7 +43,6 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
     .single()
 
   if (devisError || !devis) {
-    console.error('creerReservation - devis:', devisError)
     return { data: null, error: 'Devis introuvable ou non accepté.' }
   }
 
@@ -86,7 +85,6 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
     .single()
 
   if (resError || !reservation) {
-    console.error('creerReservation - insert:', resError)
     return { data: null, error: resError?.message ?? 'Erreur création réservation.' }
   }
 
@@ -112,7 +110,7 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
     },
   ])
 
-  if (paiementsError) console.error('creerReservation - paiements:', paiementsError)
+  void paiementsError
 
   // Devis → 'signe'
   const { error: updateError } = await supabase
@@ -120,7 +118,7 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
     .update({ statut: 'signe' })
     .eq('id', devisId)
 
-  if (updateError) console.error('creerReservation - devis update:', updateError)
+  void updateError
 
   try {
     const { data: bdeCtx } = await supabase
@@ -142,7 +140,6 @@ export async function creerReservation(devisId: string): Promise<ActionResult<Re
       )
     }
   } catch (e) {
-    console.error('[creerReservation] email error:', e)
   }
 
   return { data: reservation, error: null }
@@ -155,7 +152,6 @@ export async function getReservationsByBde(): Promise<ActionResult<ReservationWi
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -166,7 +162,6 @@ export async function getReservationsByBde(): Promise<ActionResult<ReservationWi
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getReservationsByBde error:', error)
     return { data: null, error: error.message }
   }
 
@@ -180,7 +175,6 @@ export async function getReservationsByEtablissement(): Promise<
 
   const { data: etablissementId, error: rpcError } = await supabase.rpc('get_etablissement_id')
   if (rpcError || !etablissementId) {
-    console.error('get_etablissement_id error:', rpcError)
     return { data: null, error: 'Profil établissement introuvable.' }
   }
 
@@ -191,7 +185,6 @@ export async function getReservationsByEtablissement(): Promise<
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getReservationsByEtablissement error:', error)
     return { data: null, error: error.message }
   }
 
@@ -208,7 +201,6 @@ export async function getReservationById(id: string): Promise<ActionResult<Reser
     .single()
 
   if (error || !data) {
-    console.error('getReservationById error:', error)
     return { data: null, error: error?.message ?? 'Réservation introuvable.' }
   }
 
@@ -242,7 +234,6 @@ export async function confirmerPaiement(paiementId: string): Promise<ActionResul
     .single()
 
   if (error || !data) {
-    console.error('confirmerPaiement error:', error)
     return { data: null, error: error?.message ?? 'Erreur confirmation paiement.' }
   }
 
@@ -326,7 +317,6 @@ export async function confirmerPaiement(paiementId: string): Promise<ActionResul
       }
     }
   } catch (e) {
-    console.error('[confirmerPaiement] email error:', e)
   }
 
   return { data, error: null }
@@ -436,7 +426,6 @@ export async function cloturerReservation(reservationId: string): Promise<Action
       )
     }
   } catch (e) {
-    console.error('[cloturerReservation] email error:', e)
   }
 
   return { data: null, error: null }

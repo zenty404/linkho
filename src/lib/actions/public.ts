@@ -377,7 +377,6 @@ export async function createDemandeEtEvenement(input: {
       )
     }
   } catch (e) {
-    console.error('[createDemandeEtEvenement] email error:', e)
   }
 
   const suggestions = await getLieuxSuggeres({

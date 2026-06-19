@@ -383,7 +383,8 @@ export async function markAsRead(demandeId: string | null) {
     ? await base.is('demande_id', null)
     : await base.eq('demande_id', demandeId)
 
-  console.log('[markAsRead] userId:', user.id, 'demandeId:', demandeId, 'error:', error, 'count:', count)
+  void error
+  void count
 
   revalidatePath('/bde/messagerie')
   revalidatePath('/etablissement/messagerie')

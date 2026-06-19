@@ -28,7 +28,6 @@ export async function getInscriptionsByEvenement(
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -40,7 +39,6 @@ export async function getInscriptionsByEvenement(
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getInscriptionsByEvenement error:', error)
     return { data: null, error: error.message }
   }
 
@@ -54,7 +52,6 @@ export async function getInscriptionsByFormulaire(
 
   const { data: bdeId, error: rpcError } = await supabase.rpc('get_bde_id')
   if (rpcError || !bdeId) {
-    console.error('get_bde_id error:', rpcError)
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
@@ -66,7 +63,6 @@ export async function getInscriptionsByFormulaire(
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('getInscriptionsByFormulaire error:', error)
     return { data: null, error: error.message }
   }
 
@@ -85,7 +81,6 @@ export async function getInscriptionById(
     .single()
 
   if (error || !data) {
-    console.error('getInscriptionById error:', error)
     return { data: null, error: error?.message ?? 'Inscription introuvable.' }
   }
 
@@ -108,7 +103,6 @@ export async function updateStatutInscription(
     .single()
 
   if (error || !data) {
-    console.error('updateStatutInscription error:', error)
     return { data: null, error: error?.message ?? 'Erreur mise à jour statut.' }
   }
 
@@ -149,7 +143,6 @@ export async function ajouterEcheance(
     .single()
 
   if (error || !data) {
-    console.error('ajouterEcheance error:', error)
     return { data: null, error: error?.message ?? 'Erreur ajout échéance.' }
   }
 
@@ -176,7 +169,6 @@ export async function confirmerEcheance(
     .single()
 
   if (error || !data) {
-    console.error('confirmerEcheance error:', error)
     return { data: null, error: error?.message ?? 'Erreur confirmation échéance.' }
   }
 
@@ -239,7 +231,6 @@ export async function marquerCautionRecue(id: string): Promise<ActionResult<Insc
     .single()
 
   if (error || !data) {
-    console.error('marquerCautionRecue error:', error)
     return { data: null, error: error?.message ?? 'Erreur.' }
   }
 
@@ -298,7 +289,6 @@ export async function validerInscription(inscriptionId: string): Promise<ActionR
       }),
     )
   } catch (e) {
-    console.error('[validerInscription] email error:', e)
   }
 
   return { data: null, error: null }
@@ -341,7 +331,6 @@ export async function refuserInscription(inscriptionId: string): Promise<ActionR
       }),
     )
   } catch (e) {
-    console.error('[refuserInscription] email error:', e)
   }
 
   return { data: null, error: null }
@@ -408,7 +397,6 @@ export async function creerInscription(
     .single()
 
   if (error || !data) {
-    console.error('creerInscription error:', error)
     return { data: null, error: error?.message ?? "Erreur lors de l'inscription." }
   }
 
@@ -433,7 +421,6 @@ export async function creerInscription(
       }),
     )
   } catch (e) {
-    console.error('[creerInscription] email error:', e)
   }
 
   return { data, error: null }
