@@ -1409,6 +1409,8 @@ export type Database = {
           solde_montant: number
           statut: string
           statut_solde: string | null
+          stripe_payment_intent_acompte: string | null
+          stripe_payment_intent_solde: string | null
           updated_at: string
         }
         Insert: {
@@ -1436,6 +1438,8 @@ export type Database = {
           solde_montant: number
           statut?: string
           statut_solde?: string | null
+          stripe_payment_intent_acompte?: string | null
+          stripe_payment_intent_solde?: string | null
           updated_at?: string
         }
         Update: {
@@ -1463,6 +1467,8 @@ export type Database = {
           solde_montant?: number
           statut?: string
           statut_solde?: string | null
+          stripe_payment_intent_acompte?: string | null
+          stripe_payment_intent_solde?: string | null
           updated_at?: string
         }
         Relationships: [
