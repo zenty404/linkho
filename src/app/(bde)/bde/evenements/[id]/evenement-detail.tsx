@@ -10,7 +10,7 @@ import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 
-import { signerDevisPrestataire, refuserDevisPrestataire } from '@/lib/actions/devis-prestataires'
+import { initierSignatureYousign, refuserDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import { laisserAvisLieu } from '@/lib/actions/avis'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 
@@ -879,16 +879,16 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                           setDpError(null)
                           setDpPendingId(dp.id)
                           startTransition(async () => {
-                            const res = await signerDevisPrestataire(dp.id)
+                            const res = await initierSignatureYousign(dp.id)
                             setDpPendingId(null)
                             if (res.error) { setDpError(res.error); return }
-                            router.refresh()
+                            window.open(res.data!.signatureLink, '_blank')
                           })
                         }}
                         disabled={isPending}
                         className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
-                        {dpPendingId === dp.id && isPending ? 'En cours…' : '✓ Signer'}
+                        {dpPendingId === dp.id && isPending ? 'Préparation…' : 'Signer électroniquement'}
                       </button>
                       <button
                         onClick={() => {

@@ -425,6 +425,10 @@ export type Database = {
           statut: string
           type: string
           updated_at: string
+          yousign_signature_link: string | null
+          yousign_signature_link_expires_at: string | null
+          yousign_signature_request_id: string | null
+          yousign_signer_id: string | null
         }
         Insert: {
           created_at?: string
@@ -438,6 +442,10 @@ export type Database = {
           statut?: string
           type: string
           updated_at?: string
+          yousign_signature_link?: string | null
+          yousign_signature_link_expires_at?: string | null
+          yousign_signature_request_id?: string | null
+          yousign_signer_id?: string | null
         }
         Update: {
           created_at?: string
@@ -451,6 +459,10 @@ export type Database = {
           statut?: string
           type?: string
           updated_at?: string
+          yousign_signature_link?: string | null
+          yousign_signature_link_expires_at?: string | null
+          yousign_signature_request_id?: string | null
+          yousign_signer_id?: string | null
         }
         Relationships: [
           {
