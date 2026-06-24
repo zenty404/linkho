@@ -8,6 +8,7 @@ type Props = {
   reference: string
   montant: number
   evenementId: string
+  titre?: string
 }
 
 function fmtEuros(n: number) {
@@ -30,12 +31,12 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export function PaiementIban({ ibanVirtuel, reference, montant, evenementId }: Props) {
+export function PaiementIban({ ibanVirtuel, reference, montant, evenementId, titre = "Paiement de l'acompte" }: Props) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] p-6">
       <div className="bg-white rounded-2xl p-8 max-w-md w-full flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-navy)]">Paiement de l&apos;acompte</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-navy)]">{titre}</h1>
           <p className="text-sm text-gray-500 mt-1">Effectuez un virement vers l&apos;IBAN ci-dessous</p>
         </div>
 

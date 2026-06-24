@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail, getBdeEmail } from '@/lib/emails/send'
 import { AcompteConfirmeEmail } from '@/emails/acompte-confirme'
+import { SoldeConfirmeEmail } from '@/emails/solde-confirme'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -101,6 +102,59 @@ export async function POST(request: Request) {
           .from('reservations')
           .update({ statut_solde: 'paye' })
           .eq('id', reservationId)
+
+        try {
+          const bdeEmail = bdeId ? await getBdeEmail(bdeId) : null
+
+          const { data: reservation } = await adminClient
+            .from('reservations')
+            .select('solde_montant, demande_id, devis_id')
+            .eq('id', reservationId)
+            .single()
+
+          let evenementId: string | null = null
+          let evenementNom: string | null = null
+
+          const demandeId = reservation?.demande_id
+          if (demandeId) {
+            const { data: evt } = await adminClient
+              .from('evenements')
+              .select('id, nom')
+              .eq('demande_id', demandeId)
+              .maybeSingle()
+            evenementId = evt?.id ?? null
+            evenementNom = evt?.nom ?? null
+          } else if (reservation?.devis_id) {
+            const { data: devis } = await adminClient
+              .from('devis')
+              .select('demande_id')
+              .eq('id', reservation.devis_id)
+              .single()
+            if (devis?.demande_id) {
+              const { data: evt } = await adminClient
+                .from('evenements')
+                .select('id, nom')
+                .eq('demande_id', devis.demande_id)
+                .maybeSingle()
+              evenementId = evt?.id ?? null
+              evenementNom = evt?.nom ?? null
+            }
+          }
+
+          if (bdeEmail && evenementId) {
+            await sendEmail(
+              bdeEmail,
+              'Solde confirmé — LINKHO',
+              createElement(SoldeConfirmeEmail, {
+                evenementNom: evenementNom ?? 'votre événement',
+                montantSolde: reservation?.solde_montant ?? 0,
+                evenementId,
+              }),
+            )
+          }
+        } catch {
+          // email failure must not fail the webhook
+        }
       }
 
       break
