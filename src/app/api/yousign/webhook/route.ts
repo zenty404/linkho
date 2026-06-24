@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   }
 
-  const signatureRequestId = payload.data?.signer?.signature_request?.id
+  const signatureRequestId = payload.data?.signature_request?.id
   if (!signatureRequestId) {
     return NextResponse.json({ received: true })
   }
