@@ -1409,6 +1409,7 @@ export type Database = {
           solde_montant: number
           statut: string
           statut_solde: string | null
+          stripe_customer_id: string | null
           stripe_payment_intent_acompte: string | null
           stripe_payment_intent_solde: string | null
           updated_at: string
@@ -1438,6 +1439,7 @@ export type Database = {
           solde_montant: number
           statut?: string
           statut_solde?: string | null
+          stripe_customer_id?: string | null
           stripe_payment_intent_acompte?: string | null
           stripe_payment_intent_solde?: string | null
           updated_at?: string
@@ -1467,6 +1469,7 @@ export type Database = {
           solde_montant?: number
           statut?: string
           statut_solde?: string | null
+          stripe_customer_id?: string | null
           stripe_payment_intent_acompte?: string | null
           stripe_payment_intent_solde?: string | null
           updated_at?: string

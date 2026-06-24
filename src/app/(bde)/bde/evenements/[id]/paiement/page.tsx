@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getEvenementComplet } from '@/lib/actions/evenements'
+import { creerPaymentIntentAcompte } from '@/lib/actions/paiements'
+import { PaiementIban } from './paiement-iban'
 
 export default async function PaiementPage({
   params,
@@ -15,33 +17,33 @@ export default async function PaiementPage({
   if (!reservation) notFound()
 
   const isAcompte = reservation.statut === 'en_attente_acompte'
-  const isSolde = reservation.statut_solde === 'en_attente'
+  if (!isAcompte) notFound()
 
-  if (!isAcompte && !isSolde) notFound()
+  const piResult = await creerPaymentIntentAcompte(reservation.id)
 
-  const titre = isAcompte ? "Paiement de l'acompte" : 'Paiement du solde'
-  const montant = isAcompte ? reservation.acompte_montant : reservation.solde_montant
+  if (piResult.error || !piResult.data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] p-6">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full flex flex-col gap-5">
+          <h1 className="text-xl font-bold text-[var(--color-navy)]">Erreur de paiement</h1>
+          <p className="text-sm text-red-600">{piResult.error ?? 'Une erreur est survenue.'}</p>
+          <Link
+            href={`/bde/evenements/${id}`}
+            className="inline-block text-center rounded-xl border border-[var(--color-navy)] text-[var(--color-navy)] px-5 py-3 text-sm font-medium hover:bg-[var(--color-navy)] hover:text-white transition-colors"
+          >
+            Retour à mon événement
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-navy)] p-6">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full flex flex-col gap-6">
-        <h1 className="text-2xl font-bold text-[var(--color-navy)]">{titre}</h1>
-
-        <p className="text-5xl font-bold text-[var(--color-brand)]">
-          {montant.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-        </p>
-
-        <p className="text-gray-500 text-sm">
-          Les informations de paiement seront disponibles prochainement.
-        </p>
-
-        <Link
-          href={`/bde/evenements/${id}`}
-          className="inline-block text-center rounded-xl border border-[var(--color-navy)] text-[var(--color-navy)] px-5 py-3 text-sm font-medium hover:bg-[var(--color-navy)] hover:text-white transition-colors"
-        >
-          Retour à mon événement
-        </Link>
-      </div>
-    </div>
+    <PaiementIban
+      ibanVirtuel={piResult.data.ibanVirtuel}
+      reference={piResult.data.reference}
+      montant={reservation.acompte_montant}
+      evenementId={id}
+    />
   )
 }

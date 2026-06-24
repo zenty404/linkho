@@ -546,37 +546,14 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
             ) : (
               <p className="text-sm text-gray-500">Référence de virement en cours de génération.</p>
             )}
-            {(() => {
-              const etab = evenement.demande?.etablissement
-              if (etab?.iban || etab?.titulaire_compte) {
-                return (
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-1.5">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Virement à effectuer</p>
-                    {etab.titulaire_compte && (
-                      <div className="flex gap-2 text-sm">
-                        <span className="text-gray-400 w-24 shrink-0">Titulaire</span>
-                        <span className="text-navy font-medium">{etab.titulaire_compte}</span>
-                      </div>
-                    )}
-                    {etab.iban && (
-                      <div className="flex gap-2 text-sm">
-                        <span className="text-gray-400 w-24 shrink-0">IBAN</span>
-                        <span className="text-navy font-mono">{etab.iban}</span>
-                      </div>
-                    )}
-                    {etab.bic && (
-                      <div className="flex gap-2 text-sm">
-                        <span className="text-gray-400 w-24 shrink-0">BIC</span>
-                        <span className="text-navy font-mono">{etab.bic}</span>
-                      </div>
-                    )}
-                  </div>
-                )
-              }
-              return (
-                <p className="text-sm text-gray-400">Coordonnées bancaires non renseignées — contactez l&apos;établissement.</p>
-              )
-            })()}
+            {!acomptePaiement?.confirme && reservation.statut === 'en_attente_acompte' && (
+              <Link
+                href={`/bde/evenements/${evenement.id}/paiement`}
+                className="flex items-center justify-center w-full py-3 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+              >
+                Payer l&apos;acompte
+              </Link>
+            )}
             {acomptePaiement && (
               <div>
                 {(!acomptePaiement.justificatif_nom || showReplace[acomptePaiement.id]) ? (
