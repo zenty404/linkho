@@ -7,21 +7,16 @@ type Props = { evenementNom: string; montantSolde: number; evenementId: string }
 
 export function SoldeConfirmeEmail({ evenementNom, montantSolde, evenementId }: Props) {
   return (
-    <BaseLayout previewText="Votre solde a été confirmé — facture disponible">
-      <Text style={t.h1}>Solde confirmé ✓</Text>
+    <BaseLayout previewText={`Solde confirmé — ${evenementNom}`}>
+      <Text style={t.h1}>Solde confirmé ✅</Text>
       <Text style={t.body}>
-        Le solde de votre réservation pour <strong>{evenementNom}</strong> a bien été reçu et confirmé.
-        Votre événement est désormais entièrement réglé.
+        Votre solde de <strong>{fmtEuro(montantSolde)}</strong> a bien été reçu pour{' '}
+        <strong>{evenementNom}</strong>. Votre réservation est clôturée.
       </Text>
       <Hr style={t.divider} />
-      <Text style={t.label}>Montant solde</Text>
-      <Text style={t.amount}>{fmtEuro(montantSolde)}</Text>
-      <Text style={t.muted}>
-        Votre facture de solde est disponible dans votre espace LINKHO.
-      </Text>
       <Section style={{ marginTop: '24px' }}>
         <Button href={`${APP_URL}/bde/evenements/${evenementId}`} style={t.btn}>
-          Télécharger la facture
+          Voir mon événement
         </Button>
       </Section>
     </BaseLayout>
