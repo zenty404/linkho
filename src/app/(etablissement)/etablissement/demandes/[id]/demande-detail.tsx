@@ -341,28 +341,6 @@ export default function DemandeDetail({ demande }: Props) {
               )}
             </div>
 
-            {acomptePaiement && (
-              <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 mb-0.5">Référence virement attendue</p>
-                  <p className="text-sm font-mono text-navy truncate">{acomptePaiement.reference_virement}</p>
-                </div>
-                <CopyButton text={acomptePaiement.reference_virement} />
-              </div>
-            )}
-
-            {acomptePaiement && !acomptePaiement.confirme && (
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={false}
-                  onChange={() => handleAction(() => confirmerPaiement(acomptePaiement.id))}
-                  disabled={isPending}
-                  className="w-4 h-4 accent-brand"
-                />
-                <span className="text-sm text-navy">J&apos;ai bien reçu le virement d&apos;acompte</span>
-              </label>
-            )}
             {acomptePaiement?.justificatif_url && (
               <a
                 href={`/api/justificatif/${acomptePaiement.id}`}
@@ -404,28 +382,6 @@ export default function DemandeDetail({ demande }: Props) {
               )}
             </div>
 
-            {soldePaiement && (
-              <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 mb-0.5">Référence virement attendue</p>
-                  <p className="text-sm font-mono text-navy truncate">{soldePaiement.reference_virement}</p>
-                </div>
-                <CopyButton text={soldePaiement.reference_virement} />
-              </div>
-            )}
-
-            {soldePaiement && !soldePaiement.confirme && (
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={false}
-                  onChange={() => handleAction(() => confirmerPaiement(soldePaiement.id))}
-                  disabled={isPending}
-                  className="w-4 h-4 accent-brand"
-                />
-                <span className="text-sm text-navy">J&apos;ai bien reçu le solde</span>
-              </label>
-            )}
             {soldePaiement?.justificatif_url && (
               <a
                 href={`/api/justificatif/${soldePaiement.id}`}
