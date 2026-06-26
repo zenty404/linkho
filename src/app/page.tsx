@@ -55,7 +55,7 @@ export default async function HomePage() {
                     priority
                   />
                 </div>
-                <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                   Vos événements étudiants,{' '}
                   <span className="block">
                     simplement{' '}
@@ -161,10 +161,10 @@ export default async function HomePage() {
           <form
             action="/rechercher"
             method="get"
-            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex items-center divide-x divide-gray-100"
+            className="bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col md:flex-row md:items-center md:divide-x divide-gray-100"
           >
             {/* Participants */}
-            <div className="flex items-center gap-3 px-5 py-4 flex-1">
+            <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
               </svg>
@@ -180,7 +180,7 @@ export default async function HomePage() {
               </div>
             </div>
             {/* Date début */}
-            <div className="flex items-center gap-3 px-5 py-4 flex-1">
+            <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
               </svg>
@@ -194,7 +194,7 @@ export default async function HomePage() {
               </div>
             </div>
             {/* Date fin */}
-            <div className="flex items-center gap-3 px-5 py-4 flex-1">
+            <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
               </svg>
@@ -208,7 +208,7 @@ export default async function HomePage() {
               </div>
             </div>
             {/* Type événement */}
-            <div className="flex items-center gap-3 px-5 py-4 flex-1">
+            <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
               <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
@@ -232,7 +232,7 @@ export default async function HomePage() {
             <div className="px-3 py-3">
               <button
                 type="submit"
-                className="bg-brand text-white font-bold px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors flex items-center gap-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-brand text-white font-bold px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -255,7 +255,7 @@ export default async function HomePage() {
               De la recherche à l&apos;événement, LINKHO simplifie chaque étape.
             </p>
           </div>
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               {
                 n: 1,
@@ -340,7 +340,7 @@ export default async function HomePage() {
 
           {lieuxAffiches.length > 0 ? (
             <>
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {lieuxAffiches.map((lieu) => {
                   const photo = getPhoto(lieu)
                   return (

@@ -40,7 +40,7 @@ export default function Navbar() {
   }, [])
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-full px-6 h-14 flex items-center gap-8 border border-gray-100 whitespace-nowrap">
+    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white shadow-lg rounded-full px-4 md:px-6 h-14 flex items-center gap-4 md:gap-8 border border-gray-100 max-w-[calc(100vw-2rem)] whitespace-nowrap">
       <Link href="/" className="flex items-center flex-shrink-0">
         <Image
           src="/LOGO PRINCIPAL.svg"
@@ -76,7 +76,7 @@ export default function Navbar() {
         {user ? (
           <Link
             href={getDashboardUrl(user.role)}
-            className="text-sm bg-brand text-white font-bold px-4 py-2 rounded-full hover:bg-brand/90 transition-colors"
+            className="text-xs md:text-sm bg-brand text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full hover:bg-brand/90 transition-colors"
           >
             Mon espace
           </Link>
@@ -84,13 +84,16 @@ export default function Navbar() {
           <>
             <Link
               href="/login"
-              className="text-sm text-navy font-semibold px-4 py-2 rounded-full border border-navy/20 hover:bg-navy/5 transition-colors"
+              className="text-xs md:text-sm text-navy font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-navy/20 hover:bg-navy/5 transition-colors"
             >
-              Connexion
+              <span className="hidden md:inline">Connexion</span>
+              <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
             </Link>
             <Link
               href="/register"
-              className="text-sm bg-brand text-white font-bold px-4 py-2 rounded-full hover:bg-brand/90 transition-colors"
+              className="text-xs md:text-sm bg-brand text-white font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-full hover:bg-brand/90 transition-colors"
             >
               Inscription
             </Link>
