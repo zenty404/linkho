@@ -18,7 +18,6 @@ const ROUTE_TITLES: Record<string, string> = {
   '/etablissement/lieux': 'Lieux',
   '/etablissement/calendrier': 'Calendrier',
   '/etablissement/demandes': 'Demandes',
-  '/etablissement/devis': 'Devis',
   '/etablissement/reservations': 'Réservations',
   '/etablissement/factures': 'Factures',
   '/etablissement/messages': 'Messages',

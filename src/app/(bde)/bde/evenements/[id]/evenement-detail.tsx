@@ -10,7 +10,7 @@ import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
 import { creerFormulaire, publierFormulaire } from '@/lib/actions/formulaires'
 
-import { initierSignatureYousign, refuserDevisPrestataire } from '@/lib/actions/devis-prestataires'
+import { initierSignatureYousign } from '@/lib/actions/devis-prestataires'
 import { laisserAvisLieu } from '@/lib/actions/avis'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 
@@ -101,6 +101,8 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
   const [motifRefus, setMotifRefus] = useState('')
   const [dpPendingId, setDpPendingId] = useState<string | null>(null)
   const [dpError, setDpError] = useState<string | null>(null)
+  const [dpRefusModalId, setDpRefusModalId] = useState<string | null>(null)
+  const [dpRefusMotif, setDpRefusMotif] = useState('')
   const [avisNote, setAvisNote] = useState(0)
   const [avisCommentaire, setAvisCommentaire] = useState('')
   const [avisSubmitted, setAvisSubmitted] = useState(false)
@@ -873,40 +875,82 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                   </div>
 
                   {dp.statut === 'en_attente' && (
-                    <div className="flex gap-2 pt-3 border-t border-gray-100">
-                      <button
-                        onClick={() => {
-                          setDpError(null)
-                          setDpPendingId(dp.id)
-                          startTransition(async () => {
-                            const res = await initierSignatureYousign(dp.id)
-                            setDpPendingId(null)
-                            if (res.error) { setDpError(res.error); return }
-                            window.open(res.data!.signatureLink, '_blank')
-                          })
-                        }}
-                        disabled={isPending}
-                        className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {dpPendingId === dp.id && isPending ? 'Préparation…' : 'Signer électroniquement'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDpError(null)
-                          setDpPendingId(dp.id)
-                          startTransition(async () => {
-                            const res = await refuserDevisPrestataire(dp.id)
-                            setDpPendingId(null)
-                            if (res.error) { setDpError(res.error); return }
-                            router.refresh()
-                          })
-                        }}
-                        disabled={isPending}
-                        className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {dpPendingId === dp.id && isPending ? 'En cours…' : 'Refuser'}
-                      </button>
-                    </div>
+                    dpRefusModalId === dp.id ? (
+                      <div className="pt-3 border-t border-gray-100 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-navy">Contacter le support LINKHO</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Expliquez pourquoi vous souhaitez refuser ce devis</p>
+                        </div>
+                        <div>
+                          <textarea
+                            value={dpRefusMotif}
+                            onChange={(e) => setDpRefusMotif(e.target.value)}
+                            placeholder="Décrivez la raison de votre refus…"
+                            rows={3}
+                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                          />
+                          <p className={`text-xs mt-1 ${dpRefusMotif.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                            {dpRefusMotif.trim().length} / 20 caractères minimum
+                          </p>
+                        </div>
+                        {dpError && (
+                          <p className="text-xs text-red-500">{dpError}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => { setDpRefusModalId(null); setDpRefusMotif(''); setDpError(null) }}
+                            className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const motif = dpRefusMotif.trim()
+                              if (motif.length < 20) return
+                              setDpError(null)
+                              startTransition(async () => {
+                                const res = await sendMessage(null, `Refus devis prestataire ${dp.type} - ${dp.nom} : ${motif}`)
+                                if (res.error) { setDpError(res.error); return }
+                                setDpRefusModalId(null)
+                                setDpRefusMotif('')
+                                router.refresh()
+                              })
+                            }}
+                            disabled={isPending || dpRefusMotif.trim().length < 20}
+                            className="flex-1 py-2 bg-navy hover:bg-navy/90 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isPending ? 'Envoi…' : 'Envoyer'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => {
+                            setDpError(null)
+                            setDpPendingId(dp.id)
+                            startTransition(async () => {
+                              const res = await initierSignatureYousign(dp.id)
+                              setDpPendingId(null)
+                              if (res.error) { setDpError(res.error); return }
+                              window.open(res.data!.signatureLink, '_blank')
+                            })
+                          }}
+                          disabled={isPending}
+                          className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {dpPendingId === dp.id && isPending ? 'Préparation…' : 'Signer électroniquement'}
+                        </button>
+                        <button
+                          onClick={() => { setDpRefusModalId(dp.id); setDpRefusMotif(''); setDpError(null) }}
+                          className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold rounded-lg transition-colors"
+                        >
+                          Refuser / Contacter le support
+                        </button>
+                      </div>
+                    )
                   )}
                 </div>
               )

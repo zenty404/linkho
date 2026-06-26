@@ -80,7 +80,7 @@ function SectionCard({
   children,
 }: {
   title: string
-  href: string
+  href?: string
   linkLabel?: string
   children: React.ReactNode
 }) {
@@ -88,9 +88,11 @@ function SectionCard({
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h2 className="text-sm font-semibold text-navy">{title}</h2>
-        <Link href={href} className="text-xs text-brand hover:text-brand-light font-medium transition-colors">
-          {linkLabel}
-        </Link>
+        {href && (
+          <Link href={href} className="text-xs text-brand hover:text-brand-light font-medium transition-colors">
+            {linkLabel}
+          </Link>
+        )}
       </div>
       {children}
     </div>
@@ -129,10 +131,7 @@ function ReservationEtabRow({ r }: { r: ReservationEtab }) {
 function DevisEtabRow({ d }: { d: DevisRecentEtab }) {
   const montant = d.total_ttc ?? d.sous_total_ht
   return (
-    <Link
-      href={`/etablissement/devis/${d.id}`}
-      className="flex items-center justify-between px-6 py-3.5 border-b border-gray-50 last:border-0 hover:bg-gray-50/70 transition-colors gap-4"
-    >
+    <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-50 last:border-0 gap-4">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-navy font-mono">{d.numero}</p>
         <p className="text-xs text-gray-400 mt-0.5 truncate">{d.bde?.nom ?? '—'}</p>
@@ -141,7 +140,7 @@ function DevisEtabRow({ d }: { d: DevisRecentEtab }) {
         <span className="text-sm font-semibold text-navy tabular-nums">{fmt(montant)}</span>
         <Badge statut={d.statut} meta={DEVIS_STATUS} />
       </div>
-    </Link>
+    </div>
   )
 }
 
@@ -265,7 +264,7 @@ export default async function EtablissementDashboardPage() {
         </SectionCard>
 
         {/* Devis récents */}
-        <SectionCard title="Devis récents" href="/etablissement/devis" linkLabel="Voir tous →">
+        <SectionCard title="Devis récents">
           {d.recentDevis.length === 0 ? (
             <EmptyRow text="Aucun devis." />
           ) : (
