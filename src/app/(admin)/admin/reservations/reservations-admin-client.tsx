@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition, useRef } from 'react'
 import { cloturerReservation } from '@/lib/actions/reservations'
-import { validerDisponibiliteAdmin } from '@/lib/actions/admin'
+import { validerDisponibiliteAdmin, marquerAcompteReverseEtab, marquerSoldeReverseEtab } from '@/lib/actions/admin'
 import { deposerDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import type { ReservationWithDetails } from '@/lib/actions/reservations'
 import type { DisponibiliteAValider } from '@/lib/actions/admin'
@@ -27,7 +27,8 @@ const STATUT_STYLES: Record<string, string> = {
 
 function fmtDate(s: string | null) {
   if (!s) return '—'
-  return new Date(s + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+  const d = s.includes('T') ? new Date(s) : new Date(s + 'T12:00:00')
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function fmtEuros(n: number) {
@@ -201,6 +202,28 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
     setPendingId(id)
     startTransition(async () => {
       const res = await cloturerReservation(id)
+      setPendingId(null)
+      if (res.error) { setActionError(res.error); return }
+      router.refresh()
+    })
+  }
+
+  function handleReverserAcompte(id: string) {
+    setActionError(null)
+    setPendingId(id)
+    startTransition(async () => {
+      const res = await marquerAcompteReverseEtab(id)
+      setPendingId(null)
+      if (res.error) { setActionError(res.error); return }
+      router.refresh()
+    })
+  }
+
+  function handleReverserSolde(id: string) {
+    setActionError(null)
+    setPendingId(id)
+    startTransition(async () => {
+      const res = await marquerSoldeReverseEtab(id)
       setPendingId(null)
       if (res.error) { setActionError(res.error); return }
       router.refresh()
@@ -409,7 +432,7 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUT_STYLES[r.statut] ?? 'bg-gray-100 text-gray-600'}`}>
                   {r.statut}
                 </span>
-                <div className="flex justify-end">
+                <div className="flex flex-col items-end gap-1.5">
                   {(r.statut === 'confirmee' || r.statut === 'en_cours') && r.evenement_id && (
                     <button
                       onClick={() => setOpenModalForEvenementId(r.evenement_id!)}
@@ -418,6 +441,32 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                       + Devis prestataire
                     </button>
                   )}
+                  {r.acompte_reverse_le ? (
+                    <span className="text-xs text-green-600 font-medium whitespace-nowrap">
+                      Acompte reversé ✓ {fmtDate(r.acompte_reverse_le)}
+                    </span>
+                  ) : (r.statut === 'confirmee' || r.statut === 'en_cours') ? (
+                    <button
+                      onClick={() => handleReverserAcompte(r.id)}
+                      disabled={isPending && pendingId === r.id}
+                      className="px-3 py-1.5 border border-gray-200 hover:border-brand text-gray-600 hover:text-navy text-xs font-medium rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                    >
+                      Reverser acompte étab
+                    </button>
+                  ) : null}
+                  {r.solde_reverse_le ? (
+                    <span className="text-xs text-green-600 font-medium whitespace-nowrap">
+                      Solde reversé ✓ {fmtDate(r.solde_reverse_le)}
+                    </span>
+                  ) : r.statut_solde === 'paye' ? (
+                    <button
+                      onClick={() => handleReverserSolde(r.id)}
+                      disabled={isPending && pendingId === r.id}
+                      className="px-3 py-1.5 border border-gray-200 hover:border-brand text-gray-600 hover:text-navy text-xs font-medium rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                    >
+                      Reverser solde étab
+                    </button>
+                  ) : null}
                 </div>
               </div>
             ))}

@@ -371,3 +371,35 @@ export async function updateTauxCommission(
   if (error) return { data: null, error: error.message }
   return { data: null, error: null }
 }
+
+export async function marquerAcompteReverseEtab(reservationId: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { error } = await supabase
+    .from('reservations')
+    .update({ acompte_reverse_le: new Date().toISOString() })
+    .eq('id', reservationId)
+
+  if (error) return { data: null, error: error.message }
+  revalidatePath('/admin/reservations')
+  revalidatePath('/etablissement/demandes')
+  return { data: null, error: null }
+}
+
+export async function marquerSoldeReverseEtab(reservationId: string): Promise<ActionResult<null>> {
+  const supabase = await createClient()
+  const { data: role } = await supabase.rpc('get_user_role')
+  if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
+
+  const { error } = await supabase
+    .from('reservations')
+    .update({ solde_reverse_le: new Date().toISOString() })
+    .eq('id', reservationId)
+
+  if (error) return { data: null, error: error.message }
+  revalidatePath('/admin/reservations')
+  revalidatePath('/etablissement/demandes')
+  return { data: null, error: null }
+}

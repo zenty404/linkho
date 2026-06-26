@@ -1398,6 +1398,7 @@ export type Database = {
       reservations: {
         Row: {
           acompte_montant: number
+          acompte_reverse_le: string | null
           bde_id: string
           caution_montant: number | null
           commission_montant: number
@@ -1419,6 +1420,7 @@ export type Database = {
           reference: string
           solde_expire_at: string | null
           solde_montant: number
+          solde_reverse_le: string | null
           statut: string
           statut_solde: string | null
           stripe_customer_id: string | null
@@ -1428,6 +1430,7 @@ export type Database = {
         }
         Insert: {
           acompte_montant: number
+          acompte_reverse_le?: string | null
           bde_id: string
           caution_montant?: number | null
           commission_montant: number
@@ -1449,6 +1452,7 @@ export type Database = {
           reference: string
           solde_expire_at?: string | null
           solde_montant: number
+          solde_reverse_le?: string | null
           statut?: string
           statut_solde?: string | null
           stripe_customer_id?: string | null
@@ -1458,6 +1462,7 @@ export type Database = {
         }
         Update: {
           acompte_montant?: number
+          acompte_reverse_le?: string | null
           bde_id?: string
           caution_montant?: number | null
           commission_montant?: number
@@ -1479,6 +1484,7 @@ export type Database = {
           reference?: string
           solde_expire_at?: string | null
           solde_montant?: number
+          solde_reverse_le?: string | null
           statut?: string
           statut_solde?: string | null
           stripe_customer_id?: string | null

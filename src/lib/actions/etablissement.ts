@@ -46,6 +46,9 @@ export type DemandeComplete = {
     solde_montant: number
     commission_montant: number
     commission_taux: number
+    montant_ht: number
+    acompte_reverse_le: string | null
+    solde_reverse_le: string | null
     expire_at: string | null
     paiements: {
       id: string
@@ -111,6 +114,9 @@ async function buildDemandeComplete(
         solde_montant: resRaw.solde_montant,
         commission_montant: resRaw.commission_montant,
         commission_taux: resRaw.commission_taux,
+        montant_ht: resRaw.montant_ht,
+        acompte_reverse_le: resRaw.acompte_reverse_le ?? null,
+        solde_reverse_le: resRaw.solde_reverse_le ?? null,
         expire_at: resRaw.expire_at ?? null,
         paiements: resRaw.paiements ?? [],
       }
@@ -133,6 +139,9 @@ async function buildDemandeComplete(
         solde_montant: resRaw.solde_montant,
         commission_montant: resRaw.commission_montant,
         commission_taux: resRaw.commission_taux,
+        montant_ht: resRaw.montant_ht,
+        acompte_reverse_le: resRaw.acompte_reverse_le ?? null,
+        solde_reverse_le: resRaw.solde_reverse_le ?? null,
         expire_at: resRaw.expire_at ?? null,
         paiements: resRaw.paiements ?? [],
       }

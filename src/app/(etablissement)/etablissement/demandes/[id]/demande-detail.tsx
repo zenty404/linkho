@@ -331,11 +331,15 @@ export default function DemandeDetail({ demande }: Props) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Montant acompte</p>
-                <p className="text-lg font-bold text-navy">{fmtEuros(reservation!.acompte_montant)}</p>
+                <p className="text-xs text-gray-400 mb-0.5">Acompte net établissement</p>
+                <p className="text-lg font-bold text-navy">{fmtEuros((reservation!.montant_ht - reservation!.commission_montant) * 0.3)}</p>
               </div>
-              {acomptePaiement?.confirme ? (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">✓ Acompte reçu</span>
+              {reservation!.acompte_reverse_le ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                  Versé ✅ le {new Date(reservation!.acompte_reverse_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              ) : acomptePaiement?.confirme ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">Reçu par LINKHO — reversement en cours</span>
               ) : (
                 <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">En attente</span>
               )}
@@ -372,11 +376,15 @@ export default function DemandeDetail({ demande }: Props) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Montant solde</p>
-                <p className="text-lg font-bold text-navy">{fmtEuros(reservation!.solde_montant)}</p>
+                <p className="text-xs text-gray-400 mb-0.5">Solde net établissement</p>
+                <p className="text-lg font-bold text-navy">{fmtEuros((reservation!.montant_ht - reservation!.commission_montant) * 0.7)}</p>
               </div>
-              {soldePaiement?.confirme ? (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">✓ Solde reçu</span>
+              {reservation!.solde_reverse_le ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">
+                  Versé ✅ le {new Date(reservation!.solde_reverse_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              ) : soldePaiement?.confirme ? (
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">Reçu par LINKHO — reversement en cours</span>
               ) : (
                 <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">En attente</span>
               )}
