@@ -258,6 +258,18 @@ export async function confirmerDisponibilite(
 
   if (error) return { data: null, error: error.message }
 
+  const supabaseAdmin = createAdminClient()
+  const { error: indispoError } = await supabaseAdmin
+    .from('indisponibilites')
+    .insert({
+      etablissement_id: etablissementId,
+      date_debut: demande.date_debut,
+      date_fin: demande.date_fin,
+      motif: 'Réservation confirmée — bloqué automatiquement',
+    })
+
+  if (indispoError) return { data: null, error: indispoError.message }
+
   revalidatePath('/etablissement/demandes')
   revalidatePath(`/etablissement/demandes/${demandeId}`)
 
