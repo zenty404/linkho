@@ -261,6 +261,7 @@ export default function DevisWidget({
           .rdp-day_range_end:not([disabled]) { background-color: #f49915 !important; color: white !important; }
           .rdp-day_range_middle:not([disabled]) { background-color: rgba(247,181,71,0.3) !important; color: #071634 !important; }
           .rdp-button:hover:not([disabled]):not(.rdp-day_selected) { background-color: #f7b547 !important; color: white !important; }
+          .rdp-day_disabled, .rdp-day_disabled:hover { opacity: 0.35 !important; background-color: transparent !important; color: inherit !important; cursor: not-allowed !important; }
         `}</style>
 
         {/* En-tête prix */}

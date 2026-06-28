@@ -25,6 +25,8 @@ export type FiltresLieux = {
   tags_equipements?: string[]
   types_evenements?: string[]
   avec_hebergement?: boolean
+  date_debut?: string
+  date_fin?: string
 }
 
 export async function getLieuxPublics(
@@ -57,6 +59,40 @@ export async function getLieuxPublics(
   }
   if (filtres.types_evenements && filtres.types_evenements.length > 0) {
     query = query.overlaps('types_evenements', filtres.types_evenements)
+  }
+
+  if (filtres.date_debut && filtres.date_fin) {
+    const [{ data: indisposOccupees }, { data: resasOccupees }] = await Promise.all([
+      supabase
+        .from('indisponibilites')
+        .select('etablissement_id')
+        .lt('date_debut', filtres.date_fin)
+        .gt('date_fin', filtres.date_debut),
+      supabase
+        .from('reservations')
+        .select('etablissement_id, devis(date_evenement_debut, date_evenement_fin)')
+        .in('statut', STATUTS_BLOQUANTS),
+    ])
+
+    type DevisDateRow = { date_evenement_debut: string; date_evenement_fin: string }
+
+    const idsIndispos = (indisposOccupees ?? [])
+      .map((i) => i.etablissement_id)
+      .filter((id): id is string => Boolean(id))
+
+    const idsResas = (resasOccupees ?? [])
+      .filter((r) => {
+        const d = r.devis as DevisDateRow | null
+        if (!d) return false
+        return d.date_evenement_debut < filtres.date_fin! && d.date_evenement_fin > filtres.date_debut!
+      })
+      .map((r) => r.etablissement_id)
+      .filter((id): id is string => Boolean(id))
+
+    const excludeIds = [...new Set([...idsIndispos, ...idsResas])]
+    if (excludeIds.length > 0) {
+      query = query.not('id', 'in', `(${excludeIds.join(',')})`)
+    }
   }
 
   const { data, error } = await query

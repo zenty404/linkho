@@ -34,6 +34,8 @@ export default async function Page({
     tags_equipements: equipements.length > 0 ? equipements : undefined,
     types_evenements: types_evenements.length > 0 ? types_evenements : undefined,
     avec_hebergement: avec_hebergement || undefined,
+    date_debut: date_debut || undefined,
+    date_fin: date_fin || undefined,
   })
 
   return (
