@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
-import { AnimateIn } from '@/components/public/animate-in'
+import { MotionSection } from '@/components/public/motion-section'
 import type { AvisLinkho } from '@/lib/actions/avis'
 
 type LieuCard = {
@@ -33,7 +33,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
 
               {/* Texte */}
               <div>
-                <AnimateIn animation="fadeInLeft" delay={0}>
+                <MotionSection direction="left" delay={0}>
                   <div className="mb-10">
                     <Image
                       src="/LOGO ENTIER VF FULL BLANC.svg"
@@ -50,14 +50,14 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                       <span className="text-brand">réussis.</span>
                     </span>
                   </h1>
-                </AnimateIn>
-                <AnimateIn animation="fadeInLeft" delay={100}>
+                </MotionSection>
+                <MotionSection direction="left" delay={100}>
                   <p className="text-white/70 text-lg mb-10 leading-relaxed max-w-lg">
                     Lieux, transport, sécurité... Tout ce dont vous avez besoin pour
                     organiser vos événements, au même endroit, en quelques clics.
                   </p>
-                </AnimateIn>
-                <AnimateIn animation="fadeInLeft" delay={200}>
+                </MotionSection>
+                <MotionSection direction="left" delay={200}>
                   <div className="flex flex-wrap gap-3">
                     {[
                       {
@@ -102,46 +102,46 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                       </span>
                     ))}
                   </div>
-                </AnimateIn>
+                </MotionSection>
               </div>
 
               {/* Mosaïque photos */}
-              <AnimateIn animation="fadeInRight" delay={150} className="hidden md:block">
+              <MotionSection direction="right" delay={100} className="hidden md:block">
                 <div className="relative" style={{ height: '480px' }}>
-                {heroPhotos[0] && (
-                  <div
-                    className="absolute rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
-                    style={{ width: '55%', height: '65%', top: '8%', left: '0%', transform: 'rotate(-2deg)', zIndex: 2 }}
-                  >
-                    <Image src={heroPhotos[0]} fill className="object-cover" alt="Lieu" />
-                  </div>
-                )}
-                {heroPhotos[1] && (
-                  <div
-                    className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '40%', height: '38%', top: '0%', right: '0%', transform: 'rotate(2deg)', zIndex: 3 }}
-                  >
-                    <Image src={heroPhotos[1]} fill className="object-cover" alt="Lieu" />
-                  </div>
-                )}
-                {heroPhotos[2] && (
-                  <div
-                    className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '38%', height: '36%', top: '32%', right: '2%', transform: 'rotate(-1.5deg)', zIndex: 3 }}
-                  >
-                    <Image src={heroPhotos[2]} fill className="object-cover" alt="Lieu" />
-                  </div>
-                )}
-                {heroPhotos[3] && (
-                  <div
-                    className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '42%', height: '34%', bottom: '0%', right: '8%', transform: 'rotate(1deg)', zIndex: 4 }}
-                  >
-                    <Image src={heroPhotos[3]} fill className="object-cover" alt="Lieu" />
-                  </div>
-                )}
+                  {heroPhotos[0] && (
+                    <div
+                      className="absolute rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
+                      style={{ width: '55%', height: '65%', top: '8%', left: '0%', transform: 'rotate(-2deg)', zIndex: 2 }}
+                    >
+                      <Image src={heroPhotos[0]} fill className="object-cover" alt="Lieu" />
+                    </div>
+                  )}
+                  {heroPhotos[1] && (
+                    <div
+                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                      style={{ width: '40%', height: '38%', top: '0%', right: '0%', transform: 'rotate(2deg)', zIndex: 3 }}
+                    >
+                      <Image src={heroPhotos[1]} fill className="object-cover" alt="Lieu" />
+                    </div>
+                  )}
+                  {heroPhotos[2] && (
+                    <div
+                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                      style={{ width: '38%', height: '36%', top: '32%', right: '2%', transform: 'rotate(-1.5deg)', zIndex: 3 }}
+                    >
+                      <Image src={heroPhotos[2]} fill className="object-cover" alt="Lieu" />
+                    </div>
+                  )}
+                  {heroPhotos[3] && (
+                    <div
+                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                      style={{ width: '42%', height: '34%', bottom: '0%', right: '8%', transform: 'rotate(1deg)', zIndex: 4 }}
+                    >
+                      <Image src={heroPhotos[3]} fill className="object-cover" alt="Lieu" />
+                    </div>
+                  )}
                 </div>
-              </AnimateIn>
+              </MotionSection>
 
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
 
         {/* Barre de recherche */}
         <div className="relative z-10 mx-auto max-w-5xl w-full px-6 -mb-8">
-          <AnimateIn animation="scaleIn" delay={0}>
+          <MotionSection direction="scale">
             <form
               action="/rechercher"
               method="get"
@@ -233,7 +233,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 </button>
               </div>
             </form>
-          </AnimateIn>
+          </MotionSection>
         </div>
       </section>
 
@@ -291,20 +291,18 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 desc: "Transport, sécurité — notre équipe vous accompagne jusqu'à l'événement.",
               },
             ].map(({ n, icon, title, desc }, i) => (
-              <AnimateIn key={n} animation="fadeInUp" delay={i * 100}>
-                <div className="flex flex-col items-center text-center gap-4">
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
-                      {icon}
-                    </div>
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shadow">
-                      {n}
-                    </span>
+              <MotionSection key={n} direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
+                    {icon}
                   </div>
-                  <h3 className="text-base font-bold text-navy">{title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shadow">
+                    {n}
+                  </span>
                 </div>
-              </AnimateIn>
+                <h3 className="text-base font-bold text-navy">{title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              </MotionSection>
             ))}
           </div>
         </div>
@@ -337,7 +335,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
             <>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {lieuxAffiches.map((lieu, i) => (
-                  <AnimateIn key={lieu.id} animation="fadeInUp" delay={i * 100}>
+                  <MotionSection key={lieu.id} direction="up" delay={i * 100}>
                     <Link
                       href={`/lieux/${lieu.id}`}
                       className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 block"
@@ -389,7 +387,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                         </div>
                       </div>
                     </Link>
-                  </AnimateIn>
+                  </MotionSection>
                 ))}
               </div>
               <div className="mt-10 text-center md:hidden">
@@ -423,28 +421,26 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               {avisLinkho.map((a, i) => (
-                <AnimateIn key={a.id} animation="fadeInUp" delay={i * 100}>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-3">
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }, (_, j) => (
-                        <span key={j} className={`text-lg ${j < a.note ? 'text-brand' : 'text-gray-200'}`}>
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    {a.commentaire && (
-                      <p className="text-gray-600 text-sm leading-relaxed flex-1">
-                        &ldquo;{a.commentaire}&rdquo;
-                      </p>
-                    )}
-                    {a.bde && (
-                      <div className="pt-3 border-t border-gray-100">
-                        <p className="text-sm font-semibold text-navy">{a.bde.nom}</p>
-                        {a.bde.ecole && <p className="text-xs text-gray-400">{a.bde.ecole}</p>}
-                      </div>
-                    )}
+                <MotionSection key={a.id} direction="up" delay={i * 100} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-3">
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }, (_, j) => (
+                      <span key={j} className={`text-lg ${j < a.note ? 'text-brand' : 'text-gray-200'}`}>
+                        ★
+                      </span>
+                    ))}
                   </div>
-                </AnimateIn>
+                  {a.commentaire && (
+                    <p className="text-gray-600 text-sm leading-relaxed flex-1">
+                      &ldquo;{a.commentaire}&rdquo;
+                    </p>
+                  )}
+                  {a.bde && (
+                    <div className="pt-3 border-t border-gray-100">
+                      <p className="text-sm font-semibold text-navy">{a.bde.nom}</p>
+                      {a.bde.ecole && <p className="text-xs text-gray-400">{a.bde.ecole}</p>}
+                    </div>
+                  )}
+                </MotionSection>
               ))}
             </div>
           </div>
@@ -453,7 +449,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────── */}
       <section id="a-propos" className="py-24 px-6 bg-navy">
-        <AnimateIn animation="scaleIn" delay={0} className="max-w-3xl mx-auto text-center">
+        <MotionSection direction="scale" className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Prêt à organiser un événement inoubliable ?
           </h2>
@@ -470,7 +466,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
             </svg>
           </Link>
-        </AnimateIn>
+        </MotionSection>
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
