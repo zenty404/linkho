@@ -256,6 +256,22 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
             </form>
           </MotionSection>
         </div>
+
+        {/* Arrondi bas hero */}
+        <div className="relative">
+          <svg
+            viewBox="0 0 1440 60"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full block"
+            preserveAspectRatio="none"
+            style={{ marginBottom: '-2px' }}
+          >
+            <path
+              d="M0,0 C360,60 1080,60 1440,0 L1440,60 L0,60 Z"
+              fill="#f9fafb"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* ── COMMENT ÇA MARCHE ────────────────────────────────────────────── */}
