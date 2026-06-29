@@ -628,6 +628,113 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
         </div>
       </section>
 
+      {/* ── ÉTABLISSEMENTS ── */}
+      <section className="bg-navy py-24 px-6 overflow-hidden relative">
+
+        {/* Décoration fond */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:70px_70px]" />
+
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+
+            {/* Colonne gauche — texte */}
+            <MotionSection direction="left">
+              <div>
+                <p className="text-brand text-sm font-semibold uppercase tracking-widest mb-4">
+                  Propriétaires &amp; gestionnaires
+                </p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-6">
+                  Vous proposez un lieu événementiel ?
+                </h2>
+                <p className="text-white/60 text-lg mb-10 leading-relaxed">
+                  Rejoignez LINKHO et donnez de la visibilité à votre espace auprès de milliers d&apos;associations étudiantes partout en France.
+                </p>
+
+                {/* Arguments */}
+                <ul className="space-y-4 mb-10">
+                  {[
+                    'Visibilité auprès de milliers de BDE',
+                    'Réservations et paiements 100% sécurisés',
+                    'Contrats signés électroniquement',
+                    'Tableau de bord dédié pour gérer vos demandes',
+                    'Accompagnement personnalisé',
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-3 text-white/80 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-3 h-3 text-brand" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/register?role=etablissement"
+                  className="inline-flex items-center gap-2 bg-brand text-white font-bold px-8 py-4 rounded-xl hover:bg-brand/90 transition-colors"
+                >
+                  Référencer mon lieu
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+            </MotionSection>
+
+            {/* Colonne droite — carte visuelle */}
+            <MotionSection direction="right" delay={150}>
+              <div className="relative">
+                {/* Carte principale */}
+                <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border border-white/30">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-brand/20 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205 3 1m1.5.5-1.5-.5M6.75 7.364V3h-3v18m3-13.636 10.5-3.819" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm">Domaine des Pins</p>
+                      <p className="text-white/50 text-xs">Bordeaux · 120 pers.</p>
+                    </div>
+                  </div>
+
+                  {/* Stats fictives */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    {[
+                      { label: 'Demandes reçues', value: '24' },
+                      { label: 'Réservations', value: '8' },
+                      { label: 'Note moyenne', value: '4.9/5' },
+                      { label: 'Revenus générés', value: '32 000 €' },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-white/15 rounded-xl p-3">
+                        <p className="text-white font-bold text-lg">{value}</p>
+                        <p className="text-white/50 text-xs">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-white/40">
+                    <div className="w-2 h-2 rounded-full bg-green-400" />
+                    Compte actif · Mis à jour aujourd&apos;hui
+                  </div>
+                </div>
+
+                {/* Badge flottant */}
+                <motion.div
+                  className="absolute -top-4 -right-4 bg-brand text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg"
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+                >
+                  🎓 3 nouvelles demandes
+                </motion.div>
+              </div>
+            </MotionSection>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer className="bg-[#040e22] py-12 px-6 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
