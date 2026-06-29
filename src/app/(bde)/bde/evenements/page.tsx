@@ -2,6 +2,60 @@ import Link from 'next/link'
 import { getEvenementsByBde, getEvenementComplet } from '@/lib/actions/evenements'
 import type { EvenementComplet } from '@/lib/actions/evenements'
 
+const STEPS = [
+  { key: 1, label: 'Demande envoyée' },
+  { key: 2, label: 'Dispo confirmée' },
+  { key: 3, label: 'Validée LINKHO' },
+  { key: 4, label: 'Acompte payé' },
+  { key: 5, label: 'Terminé' },
+]
+
+function getStepInfo(evt: EvenementComplet): { step: number; error: boolean } {
+  const { reservation, demande } = evt
+
+  if (demande?.statut === 'refusee') return { step: 2, error: true }
+  if (reservation?.statut === 'annulee') return { step: 4, error: true }
+
+  if (reservation?.statut === 'terminee') return { step: 5, error: false }
+  if (reservation?.statut === 'commission_reversee') return { step: 5, error: false }
+  if (reservation?.statut === 'confirmee' || reservation?.statut === 'en_cours') return { step: 4, error: false }
+  if (reservation?.statut === 'acompte_confirme') return { step: 4, error: false }
+  if (reservation?.statut === 'en_attente_acompte') return { step: 3, error: false }
+  if (demande?.statut_disponibilite === 'disponible') return { step: 3, error: false }
+  if (demande?.statut_disponibilite === 'non_disponible') return { step: 2, error: true }
+  if (demande) return { step: 2, error: false }
+
+  return { step: 1, error: false }
+}
+
+function ProgressTracker({ evt }: { evt: EvenementComplet }) {
+  const { step, error } = getStepInfo(evt)
+  return (
+    <div className="flex items-center gap-0 w-full mt-3">
+      {STEPS.map((s, i) => {
+        const done = step > s.key
+        const current = step === s.key
+        const dotColor = done || current
+          ? error && current ? 'bg-red-500' : 'bg-brand'
+          : 'bg-gray-200'
+        const lineColor = done ? 'bg-brand' : 'bg-gray-200'
+        return (
+          <div key={s.key} className="flex flex-col items-center flex-1">
+            <div className="flex items-center w-full">
+              {i > 0 && <div className={`flex-1 h-0.5 ${lineColor}`} />}
+              <div className={`w-3 h-3 rounded-full flex-shrink-0 ${dotColor} ${current ? 'ring-2 ring-brand/30 ring-offset-1' : ''}`} />
+              {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 ${done ? 'bg-brand' : 'bg-gray-200'}`} />}
+            </div>
+            <span className={`text-[10px] mt-1.5 text-center leading-tight ${current ? 'text-brand font-semibold' : done ? 'text-gray-500' : 'text-gray-300'}`}>
+              {s.label}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 type DisplayStatut = { label: string; style: string }
 
 function getDisplayStatut(evt: EvenementComplet): DisplayStatut {
@@ -55,7 +109,7 @@ export default async function BdeEvenementsPage() {
         </div>
         <Link
           href="/rechercher"
-          className="flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-sm font-semibold rounded-xl transition-colors"
         >
           <span className="text-base leading-none">+</span>
           Nouvel événement
@@ -87,26 +141,26 @@ export default async function BdeEvenementsPage() {
             return (
               <div
                 key={e.id}
-                className="bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center gap-4"
+                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy truncate">{e.nom}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{label}</p>
-                  {(debut || fin) && (
-                    <p className="text-xs text-gray-500 mt-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-navy text-base truncate">{e.nom}</p>
+                    <p className="text-sm text-gray-400 mt-0.5">
                       {debut}{fin && debut !== fin ? ` → ${fin}` : ''}
                     </p>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${style}`}>{label}</span>
+                    <Link
+                      href={`/bde/evenements/${e.id}`}
+                      className="px-4 py-1.5 text-xs font-bold bg-brand text-white rounded-xl hover:bg-brand/90 transition-colors"
+                    >
+                      Voir →
+                    </Link>
+                  </div>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${style}`}>
-                  {label}
-                </span>
-                <Link
-                  href={`/bde/evenements/${e.id}`}
-                  className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-navy border border-navy/20 rounded-lg hover:bg-navy/5 transition-colors"
-                >
-                  Voir
-                </Link>
+                <ProgressTracker evt={e} />
               </div>
             )
           })}

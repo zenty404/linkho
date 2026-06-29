@@ -20,7 +20,7 @@ export default async function BdeLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <AppSidebar space="bde" displayName={displayName} />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <DashboardHeader />
+        <DashboardHeader displayName={displayName} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>

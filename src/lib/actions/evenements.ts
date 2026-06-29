@@ -188,20 +188,22 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
     devis = devisData
   }
 
+  // Chercher la réservation — d'abord par demande_id (nouveau workflow)
   let reservation = null
-  if (devis) {
-    const { data: resData } = await supabase
-      .from('reservations')
-      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
-      .eq('devis_id', devis.id)
-      .maybeSingle()
-    reservation = resData
-  }
-  if (!reservation && demande) {
+  if (demande) {
     const { data: resData } = await supabase
       .from('reservations')
       .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
       .eq('demande_id', demande.id)
+      .maybeSingle()
+    reservation = resData
+  }
+  // Fallback par devis_id (ancien workflow)
+  if (!reservation && devis) {
+    const { data: resData } = await supabase
+      .from('reservations')
+      .select('*, paiements(id, type, montant, reference_virement, confirme, confirme_le, justificatif_url, justificatif_nom)')
+      .eq('devis_id', devis.id)
       .maybeSingle()
     reservation = resData
   }

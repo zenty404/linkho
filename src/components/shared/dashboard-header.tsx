@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { signOut } from '@/lib/actions/auth'
 
 const ROUTE_TITLES: Record<string, string> = {
   // BDE
@@ -52,19 +53,32 @@ function getPageTitle(pathname: string) {
   return prefix ? ROUTE_TITLES[prefix] : 'LINKHO'
 }
 
-export function DashboardHeader() {
+export function DashboardHeader({ displayName }: { displayName?: string }) {
   const pathname = usePathname()
   const title = getPageTitle(pathname)
   const spaceLabel = getSpaceLabel(pathname)
 
   return (
-    <header className="h-14 bg-white border-b border-gray-100 flex items-center px-6 shrink-0">
-      <div>
+    <header className="h-14 bg-white border-b border-gray-100 flex items-center px-6 shrink-0 gap-4">
+      <div className="flex-1">
         <h1 className="text-sm font-semibold text-navy leading-none">{title}</h1>
         <p className="text-xs text-gray-400 mt-1">
           {spaceLabel} / {title}
         </p>
       </div>
+      {displayName && (
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-sm text-gray-500 font-medium">{displayName}</span>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="text-xs text-gray-400 hover:text-navy border border-gray-200 rounded-lg px-3 py-1.5 transition-colors hover:border-gray-300 hover:bg-gray-50"
+            >
+              Déconnexion
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   )
 }

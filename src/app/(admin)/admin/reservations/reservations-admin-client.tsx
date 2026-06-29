@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition, useRef } from 'react'
-import { cloturerReservation } from '@/lib/actions/reservations'
+import { cloturerReservation, confirmerPaiement } from '@/lib/actions/reservations'
 import { validerDisponibiliteAdmin, marquerAcompteReverseEtab, marquerSoldeReverseEtab } from '@/lib/actions/admin'
 import { deposerDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import type { ReservationWithDetails } from '@/lib/actions/reservations'
@@ -230,6 +230,17 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
     })
   }
 
+  function handleConfirmerAcompte(paiementId: string) {
+    setActionError(null)
+    setPendingId(paiementId)
+    startTransition(async () => {
+      const res = await confirmerPaiement(paiementId)
+      setPendingId(null)
+      if (res.error) { setActionError(res.error); return }
+      router.refresh()
+    })
+  }
+
   function handleValider(demandeId: string) {
     const montant = montants[demandeId]
     if (!montant || montant <= 0) return
@@ -433,6 +444,15 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   {r.statut}
                 </span>
                 <div className="flex flex-col items-end gap-1.5">
+                  {r.paiements?.find(p => p.type === 'acompte' && !p.confirme) && (
+                    <button
+                      onClick={() => handleConfirmerAcompte(r.paiements!.find(p => p.type === 'acompte')!.id)}
+                      disabled={isPending}
+                      className="px-3 py-1.5 border border-brand text-brand hover:bg-brand hover:text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                    >
+                      ✓ Confirmer acompte
+                    </button>
+                  )}
                   {(r.statut === 'confirmee' || r.statut === 'en_cours') && r.evenement_id && (
                     <button
                       onClick={() => setOpenModalForEvenementId(r.evenement_id!)}

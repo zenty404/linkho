@@ -53,22 +53,30 @@ function KpiCard({
   label,
   value,
   sub,
-  iconCls,
+  color,
 }: {
   icon: React.ReactNode
   label: string
   value: string
   sub?: string
-  iconCls: string
+  color: 'navy' | 'brand' | 'blue' | 'green'
 }) {
+  const colors = {
+    navy: 'bg-navy text-white',
+    brand: 'bg-brand text-white',
+    blue: 'bg-blue-500 text-white',
+    green: 'bg-emerald-500 text-white',
+  }
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${iconCls}`}>
-        {icon}
+    <div className={`rounded-2xl p-5 ${colors[color]}`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium opacity-80">{label}</span>
+        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+          {icon}
+        </div>
       </div>
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="text-2xl font-bold text-navy tabular-nums leading-tight">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5 truncate">{sub}</p>}
+      <p className="text-3xl font-bold">{value}</p>
+      {sub && <p className="text-sm opacity-70 mt-1 truncate">{sub}</p>}
     </div>
   )
 }
@@ -230,26 +238,26 @@ export default async function BdeDashboardPage() {
           icon={<CalendarIcon />}
           label="Réservations en cours"
           value={String(d.reservationsEnCours)}
-          iconCls="bg-navy"
+          color="navy"
         />
         <KpiCard
           icon={<FileIcon />}
           label="Devis en attente"
           value={String(d.devisEnAttente)}
-          iconCls="bg-brand"
+          color="brand"
         />
         <KpiCard
           icon={<ClockIcon />}
           label="Prochaine réservation"
           value={prochaineDate}
           sub={prochaineLieu}
-          iconCls="bg-blue-500"
+          color="blue"
         />
         <KpiCard
           icon={<UsersIcon />}
           label="Inscriptions totales"
           value={String(d.inscriptionsTotal)}
-          iconCls="bg-emerald-500"
+          color="green"
         />
       </div>
 
