@@ -1,10 +1,33 @@
 'use client'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
 import { MotionSection } from '@/components/public/motion-section'
 import type { AvisLinkho } from '@/lib/actions/avis'
+
+function ConnectorLine({ delay }: { delay: number }) {
+  return (
+    <div className="flex items-center justify-center w-16 flex-shrink-0">
+      <motion.svg
+        width="48"
+        height="12"
+        viewBox="0 0 48 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        initial={{ opacity: 0, scaleX: 0 }}
+        whileInView={{ opacity: 1, scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: delay / 1000, duration: 0.5, ease: 'easeOut' }}
+        style={{ originX: 0 }}
+      >
+        <line x1="0" y1="6" x2="38" y2="6" stroke="#f49915" strokeWidth="2" strokeDasharray="4 3" />
+        <path d="M36 2 L44 6 L36 10" stroke="#f49915" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </motion.svg>
+    </div>
+  )
+}
 
 type LieuCard = {
   id: string
@@ -285,8 +308,8 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
               De la recherche à l&apos;événement, LINKHO simplifie chaque étape.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
+          {(() => {
+            const steps = [
               {
                 n: 1,
                 icon: (
@@ -327,21 +350,55 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 title: "On s'occupe du reste",
                 desc: "Transport, sécurité — notre équipe vous accompagne jusqu'à l'événement.",
               },
-            ].map(({ n, icon, title, desc }, i) => (
-              <MotionSection key={n} direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4">
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
-                    {icon}
-                  </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-navy text-xs font-bold flex items-center justify-center shadow">
-                    {n}
-                  </span>
+            ]
+            return (
+              <>
+                {/* Mobile : grille 2 colonnes sans connecteurs */}
+                <div className="grid grid-cols-2 gap-8 md:hidden">
+                  {steps.map(({ n, icon, title, desc }, i) => (
+                    <MotionSection key={n} direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
+                          {icon}
+                        </div>
+                        <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shadow">
+                          {n}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-bold text-navy">{title}</h3>
+                      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                    </MotionSection>
+                  ))}
                 </div>
-                <h3 className="text-base font-bold text-navy">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-              </MotionSection>
-            ))}
-          </div>
+
+                {/* Desktop : flex avec connecteurs entre icônes */}
+                <div className="hidden md:flex items-start justify-center gap-0">
+                  {steps.map((step, i) => (
+                    <div key={step.n} className="flex items-start">
+                      <MotionSection direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4 w-44">
+                        <div className="relative">
+                          <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
+                            {step.icon}
+                          </div>
+                          <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shadow">
+                            {step.n}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-bold text-navy">{step.title}</h3>
+                        <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                      </MotionSection>
+
+                      {i < steps.length - 1 && (
+                        <div className="flex items-center h-16 flex-shrink-0">
+                          <ConnectorLine delay={i * 150 + 200} />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )
+          })()}
         </div>
       </section>
 
