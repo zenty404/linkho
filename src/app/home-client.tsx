@@ -284,14 +284,14 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
         {/* Arrondi bas hero */}
         <div className="relative">
           <svg
-            viewBox="0 0 1440 60"
+            viewBox="0 0 1440 100"
             xmlns="http://www.w3.org/2000/svg"
             className="w-full block"
             preserveAspectRatio="none"
             style={{ marginBottom: '-2px' }}
           >
             <path
-              d="M0,0 C360,60 1080,60 1440,0 L1440,60 L0,60 Z"
+              d="M0,0 C360,100 1080,100 1440,0 L1440,100 L0,100 Z"
               fill="#f9fafb"
             />
           </svg>
