@@ -632,33 +632,18 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       <footer className="bg-[#040e22] py-12 px-6 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
-            <Image
-              src="/LOGO ENTIER VF FULL BLANC.svg"
-              alt="LINKHO"
-              width={140}
-              height={44}
-            />
+            <Image src="/LOGO ENTIER VF FULL BLANC.svg" alt="LINKHO" width={140} height={44} />
             <div className="flex flex-wrap justify-center gap-6 text-sm">
-              <Link href="/rechercher" className="text-white/50 hover:text-white transition-colors">
-                Rechercher un lieu
-              </Link>
-              <a href="#comment-ca-marche" className="text-white/50 hover:text-white transition-colors">
-                Comment ça marche ?
-              </a>
-              <Link href="/register" className="text-white/50 hover:text-white transition-colors">
-                Inscription
-              </Link>
+              <Link href="/rechercher" className="text-white/50 hover:text-white transition-colors">Rechercher un lieu</Link>
+              <a href="#comment-ca-marche" className="text-white/50 hover:text-white transition-colors">Comment ça marche ?</a>
+              <Link href="/register" className="text-white/50 hover:text-white transition-colors">Inscription</Link>
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-white/30 text-sm">© 2026 LINKHO. Tous droits réservés.</p>
             <div className="flex gap-6 text-sm text-white/30">
-              <Link href="/mentions-legales" className="hover:text-white/60 transition-colors">
-                Mentions légales
-              </Link>
-              <Link href="/cgu" className="hover:text-white/60 transition-colors">
-                CGU
-              </Link>
+              <Link href="/mentions-legales" className="hover:text-white/60 transition-colors">Mentions légales</Link>
+              <Link href="/cgu" className="hover:text-white/60 transition-colors">CGU</Link>
             </div>
           </div>
         </div>
