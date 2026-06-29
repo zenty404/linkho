@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
@@ -21,6 +22,20 @@ type Props = {
 }
 
 export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Props) {
+  const [dateDebut, setDateDebut] = useState('')
+  const [dateFin, setDateFin] = useState('')
+  const [typeEvenement, setTypeEvenement] = useState('')
+
+  function handleDateDebutChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setDateDebut(val)
+    if (val && (!dateFin || dateFin <= val)) {
+      const next = new Date(val)
+      next.setDate(next.getDate() + 1)
+      setDateFin(next.toISOString().split('T')[0])
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -181,6 +196,8 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   <input
                     name="date_debut"
                     type="date"
+                    value={dateDebut}
+                    onChange={handleDateDebutChange}
                     className="text-sm text-navy font-medium outline-none w-full"
                   />
                 </div>
@@ -195,6 +212,8 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   <input
                     name="date_fin"
                     type="date"
+                    value={dateFin}
+                    onChange={(e) => setDateFin(e.target.value)}
                     className="text-sm text-navy font-medium outline-none w-full"
                   />
                 </div>
@@ -209,6 +228,8 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</p>
                   <select
                     name="type"
+                    value={typeEvenement}
+                    onChange={(e) => setTypeEvenement(e.target.value)}
                     className="text-sm text-navy font-medium outline-none bg-transparent w-full"
                   >
                     <option value="">Tous</option>

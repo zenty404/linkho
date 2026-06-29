@@ -37,7 +37,7 @@ function nbNuits(from: Date, to: Date): number {
 type Props = {
   lieu: LieuDetail
   reservationsOccupees: PeriodeOccupee[]
-  initialDates: { date_debut: string; date_fin: string; participants: string }
+  initialDates: { date_debut: string; date_fin: string; participants: string; type: string }
   avis: AvisLieu[]
 }
 
@@ -298,6 +298,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                     numberOfMonths={2}
                     disabled={disabledDates}
                     fromMonth={today}
+                    defaultMonth={range?.from ?? today}
                   />
                 </div>
                 {range?.from && range?.to && (
@@ -331,6 +332,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                 initialParticipants={
                   initialDates.participants ? parseInt(initialDates.participants, 10) : undefined
                 }
+                initialType={initialDates.type || undefined}
               />
             </div>
           </div>

@@ -24,12 +24,13 @@ export default async function Page({
   const date_debut = typeof sp.date_debut === 'string' ? sp.date_debut : ''
   const date_fin = typeof sp.date_fin === 'string' ? sp.date_fin : ''
   const participants = typeof sp.participants === 'string' ? sp.participants : ''
+  const type = typeof sp.type === 'string' ? sp.type : ''
 
   return (
     <LieuDetailClient
       lieu={lieu}
       reservationsOccupees={reservationsOccupees}
-      initialDates={{ date_debut, date_fin, participants }}
+      initialDates={{ date_debut, date_fin, participants, type }}
       avis={avisResult.data ?? []}
     />
   )

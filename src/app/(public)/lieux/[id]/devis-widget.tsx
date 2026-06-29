@@ -23,6 +23,7 @@ type Props = {
   dateDebut?: string
   dateFin?: string
   initialParticipants?: number
+  initialType?: string
 }
 
 function parseLocalDate(s: string): Date {
@@ -46,6 +47,7 @@ export default function DevisWidget({
   dateDebut,
   dateFin,
   initialParticipants,
+  initialType,
 }: Props) {
   const typesDisponibles =
     typesAcceptes.length > 0
@@ -53,8 +55,12 @@ export default function DevisWidget({
       : TYPES_EVENEMENT
   const router = useRouter()
 
+  const initialTypeValue = initialType
+    ? (TYPES_EVENEMENT.find((t) => t.label === initialType)?.value ?? '')
+    : ''
+
   const [participants, setParticipants] = useState(initialParticipants ?? 1)
-  const [typeEvenement, setTypeEvenement] = useState('')
+  const [typeEvenement, setTypeEvenement] = useState(initialTypeValue)
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
