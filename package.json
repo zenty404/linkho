@@ -29,6 +29,7 @@
     "react-email": "^6.5.0",
     "react-hook-form": "^7.76.1",
     "resend": "^6.12.4",
+    "rough-notation": "^0.5.1",
     "stripe": "^22.2.2",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"

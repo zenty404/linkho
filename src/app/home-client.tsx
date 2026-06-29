@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
 import { MotionSection } from '@/components/public/motion-section'
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal'
+import { Highlighter } from '@/components/ui/highlighter'
 import type { AvisLinkho } from '@/lib/actions/avis'
 
 function ConnectorLine({ delay }: { delay: number }) {
@@ -409,7 +410,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
           <div className="flex items-end justify-between mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-navy mb-2">
-                Nos lieux partenaires
+                <Highlighter action="underline" color="#f49915" strokeWidth={2} isView={true}>Nos lieux partenaires</Highlighter>
               </h2>
               <p className="text-gray-500">
                 Des espaces vérifiés pour tous vos événements étudiants.
@@ -566,7 +567,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
         {/* Contenu */}
         <div className="relative z-10 max-w-2xl mx-auto text-center mb-16">
           <p className="text-brand text-sm font-semibold uppercase tracking-widest mb-6">L&apos;équipe</p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-navy mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-navy mb-6 flex flex-wrap justify-center items-center gap-x-3 leading-tight">
             <VerticalCutReveal
               splitBy="words"
               staggerDuration={0.15}
@@ -574,8 +575,19 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
               transition={{ type: "spring", stiffness: 250, damping: 30, delay: 0.2 }}
               containerClassName="justify-center items-center leading-tight"
             >
-              {"Prêts à organiser votre événement inoubliable ?"}
+              {"Prêts à organiser votre événement"}
             </VerticalCutReveal>
+            <Highlighter action="underline" color="#f49915" strokeWidth={2} isView={true}>
+              <VerticalCutReveal
+                splitBy="words"
+                staggerDuration={0.15}
+                staggerFrom="first"
+                transition={{ type: "spring", stiffness: 250, damping: 30, delay: 0.6 }}
+                containerClassName="justify-center items-center leading-tight"
+              >
+                {"inoubliable ?"}
+              </VerticalCutReveal>
+            </Highlighter>
           </h2>
           <motion.p
             className="text-gray-500 text-lg mb-8 leading-relaxed"
@@ -644,7 +656,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   Propriétaires &amp; gestionnaires
                 </p>
                 <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-6">
-                  Vous proposez un lieu événementiel ?
+                  Vous proposez un lieu <Highlighter action="underline" color="#f49915" strokeWidth={2} isView={true}>événementiel ?</Highlighter>
                 </h2>
                 <p className="text-white/60 text-lg mb-10 leading-relaxed">
                   Rejoignez LINKHO et donnez de la visibilité à votre espace auprès de milliers d&apos;associations étudiantes partout en France.
