@@ -360,7 +360,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   {steps.map(({ n, icon, title, desc }, i) => (
                     <MotionSection key={n} direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4">
                       <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-navy flex items-center justify-center">
                           {icon}
                         </div>
                         <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shadow">
@@ -379,7 +379,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                     <div key={step.n} className="flex items-start">
                       <MotionSection direction="up" delay={i * 100} className="flex flex-col items-center text-center gap-4 w-44">
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-brand flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-2xl bg-white shadow-md text-navy flex items-center justify-center">
                             {step.icon}
                           </div>
                           <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shadow">
@@ -562,7 +562,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
         </svg>
 
         {/* Grid background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#07163415_1px,transparent_1px),linear-gradient(to_bottom,#07163415_1px,transparent_1px)] bg-[size:70px_70px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_100%,#000_70%,transparent_110%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#07163425_1px,transparent_1px),linear-gradient(to_bottom,#07163425_1px,transparent_1px)] bg-[size:70px_70px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_100%,#000_70%,transparent_110%)]" />
 
         {/* Contenu */}
         <div className="relative z-10 max-w-2xl mx-auto text-center mb-16">
