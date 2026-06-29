@@ -75,7 +75,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 <MotionSection direction="left" delay={0}>
                   <div className="mb-10">
                     <Image
-                      src="/LOGO ENTIER VF FULL BLANC.svg"
+                      src="/LOGO ENTIER VF BLANC.svg"
                       alt="LINKHO"
                       width={160}
                       height={50}
