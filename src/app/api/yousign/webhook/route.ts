@@ -48,6 +48,13 @@ export async function POST(request: Request) {
       .eq('id', edl.id)
 
     if (bothSigned) {
+      if (edl.type === 'depart') {
+        await adminClient
+          .from('reservations')
+          .update({ statut: 'confirmee' })
+          .eq('id', edl.reservation_id)
+      }
+
       const { data: res } = await adminClient
         .from('reservations')
         .select('demande_id, bde_id')

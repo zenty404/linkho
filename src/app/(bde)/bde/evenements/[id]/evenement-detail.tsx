@@ -64,16 +64,21 @@ function CopyButton({ text }: { text: string }) {
 }
 
 function getCurrentStep(evt: EvenementComplet): number {
-  const { demande, devis, reservation } = evt
+  const { demande, devis, reservation, etats_des_lieux } = evt
+  const edlDepartSigne = etats_des_lieux?.find((e) => e.type === 'depart')?.statut === 'signe'
+
   if (!demande) return 1
   if (reservation?.statut === 'annulee') return 1
   if (!devis && !reservation) return 1
   if (!devis && reservation) {
-    // Direct flow: reservation created from disponibilité validation, no devis
     const acompte = reservation.paiements.find((p) => p.type === 'acompte')
     if (!acompte?.confirme) return 3
     const statut = reservation.statut
-    if (statut === 'confirmee') return 4
+    if (statut === 'confirmee' && !edlDepartSigne) return 4
+    if (statut === 'confirmee' && edlDepartSigne) {
+      const solde = reservation.paiements.find((p) => p.type === 'solde')
+      return solde?.confirme ? 6 : 5
+    }
     if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
       const solde = reservation.paiements.find((p) => p.type === 'solde')
       return solde?.confirme ? 6 : 5
@@ -85,7 +90,11 @@ function getCurrentStep(evt: EvenementComplet): number {
   const acompte = reservation.paiements.find((p) => p.type === 'acompte')
   if (!acompte?.confirme) return 3
   const statut = reservation.statut
-  if (statut === 'confirmee') return 4
+  if (statut === 'confirmee' && !edlDepartSigne) return 4
+  if (statut === 'confirmee' && edlDepartSigne) {
+    const solde = reservation.paiements.find((p) => p.type === 'solde')
+    return solde?.confirme ? 6 : 5
+  }
   if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
     const solde = reservation.paiements.find((p) => p.type === 'solde')
     return solde?.confirme ? 6 : 5
