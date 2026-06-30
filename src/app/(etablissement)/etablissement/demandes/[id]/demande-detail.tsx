@@ -8,6 +8,7 @@ import { refuserDemande, confirmerDisponibilite, refuserDisponibilite } from '@/
 import { confirmerPaiement } from '@/lib/actions/reservations'
 import { lancerEtatDesLieux } from '@/lib/actions/etats-des-lieux'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
+import { getBadge, RESERVATION_STATUTS, DEMANDE_STATUTS } from '@/lib/statuts'
 
 type Props = { demande: DemandeComplete }
 
@@ -60,17 +61,8 @@ export default function DemandeDetail({ demande }: Props) {
 
   const headerStatut: { label: string; style: string } = (() => {
     if (reservation) {
-      const styles: Record<string, string> = {
-        en_attente_acompte: 'bg-yellow-100 text-yellow-700',
-        terminee: 'bg-green-100 text-green-700',
-        commission_reversee: 'bg-orange-100 text-orange-700',
-        en_cours: 'bg-green-100 text-green-700',
-        confirmee: 'bg-green-100 text-green-700',
-        acompte_confirme: 'bg-amber-100 text-amber-700',
-        devis_signe: 'bg-blue-100 text-blue-700',
-        annulee: 'bg-red-100 text-red-700',
-      }
-      return { label: reservation.statut.replace(/_/g, ' '), style: styles[reservation.statut] ?? 'bg-gray-100 text-gray-600' }
+      const b = getBadge(reservation.statut, RESERVATION_STATUTS)
+      return { label: b.label, style: b.cls }
     }
     if (devis) {
       const styles: Record<string, string> = {
@@ -82,21 +74,8 @@ export default function DemandeDetail({ demande }: Props) {
       }
       return { label: `Devis ${devis.statut}`, style: styles[devis.statut] ?? 'bg-gray-100 text-gray-600' }
     }
-    if (demande.statut_disponibilite === 'en_attente') {
-      return { label: 'En attente de réponse', style: 'bg-amber-100 text-amber-700' }
-    }
-    if (demande.statut_disponibilite === 'disponible') {
-      return { label: 'Disponibilité confirmée', style: 'bg-green-100 text-green-700' }
-    }
-    if (demande.statut_disponibilite === 'non_disponible') {
-      return { label: 'Non disponible', style: 'bg-red-100 text-red-700' }
-    }
-    const demStyles: Record<string, string> = {
-      en_attente: 'bg-amber-100 text-amber-700',
-      acceptee: 'bg-green-100 text-green-700',
-      refusee: 'bg-red-100 text-red-700',
-    }
-    return { label: demande.statut, style: demStyles[demande.statut] ?? 'bg-gray-100 text-gray-600' }
+    const b = getBadge(demande.statut_disponibilite ?? demande.statut, DEMANDE_STATUTS)
+    return { label: b.label, style: b.cls }
   })()
 
   function handleAction(fn: () => Promise<{ data: unknown; error: string | null }>) {

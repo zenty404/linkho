@@ -7,22 +7,12 @@ import { validerDisponibiliteAdmin, marquerAcompteReverseEtab, marquerSoldeRever
 import { deposerDevisPrestataire } from '@/lib/actions/devis-prestataires'
 import type { ReservationWithDetails } from '@/lib/actions/reservations'
 import type { DisponibiliteAValider } from '@/lib/actions/admin'
+import { getBadge, RESERVATION_STATUTS } from '@/lib/statuts'
 
 type Props = {
   reservations: ReservationWithDetails[]
   error: string | null
   disponibilites: DisponibiliteAValider[]
-}
-
-const STATUT_STYLES: Record<string, string> = {
-  en_attente_acompte: 'bg-yellow-100 text-yellow-700',
-  devis_signe: 'bg-blue-100 text-blue-700',
-  acompte_confirme: 'bg-amber-100 text-amber-700',
-  confirmee: 'bg-green-100 text-green-700',
-  en_cours: 'bg-blue-100 text-blue-700',
-  commission_reversee: 'bg-orange-100 text-orange-700',
-  terminee: 'bg-gray-100 text-gray-600',
-  annulee: 'bg-red-100 text-red-700',
 }
 
 function fmtDate(s: string | null) {
@@ -363,8 +353,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-sm font-semibold text-navy font-mono">{r.reference}</p>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                      commission_reversee
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getBadge(r.statut, RESERVATION_STATUTS).cls}`}>
+                      {getBadge(r.statut, RESERVATION_STATUTS).label}
                     </span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -440,8 +430,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   {fmtDate(r.date_debut)} → {fmtDate(r.date_fin)}
                 </p>
                 <p className="text-right font-semibold text-navy">{fmtEuros(r.montant_ttc)}</p>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUT_STYLES[r.statut] ?? 'bg-gray-100 text-gray-600'}`}>
-                  {r.statut}
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${getBadge(r.statut, RESERVATION_STATUTS).cls}`}>
+                  {getBadge(r.statut, RESERVATION_STATUTS).label}
                 </span>
                 <div className="flex flex-col items-end gap-1.5">
                   {r.paiements?.find(p => p.type === 'acompte' && !p.confirme) && (

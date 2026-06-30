@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getDemandesEtablissement } from '@/lib/actions/etablissement'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
+import { getBadge, RESERVATION_STATUTS, DEMANDE_STATUTS } from '@/lib/statuts'
 
 const TYPE_LABELS: Record<string, string> = {
   soiree: 'Soirée', gala: 'Gala', wei: 'WEI', ski: 'Ski',
@@ -9,19 +10,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 function getDisplayStatut(d: DemandeComplete): { label: string; style: string } {
   if (d.reservation) {
-    const styles: Record<string, string> = {
-      terminee: 'bg-green-100 text-green-700',
-      commission_reversee: 'bg-orange-100 text-orange-700',
-      en_cours: 'bg-green-100 text-green-700',
-      confirmee: 'bg-green-100 text-green-700',
-      acompte_confirme: 'bg-amber-100 text-amber-700',
-      devis_signe: 'bg-blue-100 text-blue-700',
-      annulee: 'bg-red-100 text-red-700',
-    }
-    return {
-      label: d.reservation.statut.replace(/_/g, ' '),
-      style: styles[d.reservation.statut] ?? 'bg-gray-100 text-gray-600',
-    }
+    const b = getBadge(d.reservation.statut, RESERVATION_STATUTS)
+    return { label: b.label, style: b.cls }
   }
   if (d.devis) {
     const styles: Record<string, string> = {
@@ -34,12 +24,15 @@ function getDisplayStatut(d: DemandeComplete): { label: string; style: string } 
     return { label: `Devis ${d.devis.statut}`, style: styles[d.devis.statut] ?? 'bg-gray-100 text-gray-600' }
   }
   if (d.statut_disponibilite === 'disponible') {
-    return { label: 'Disponibilité confirmée', style: 'bg-green-100 text-green-700' }
+    const b = getBadge('disponible', DEMANDE_STATUTS)
+    return { label: b.label, style: b.cls }
   }
   if (d.statut_disponibilite === 'non_disponible') {
-    return { label: 'Non disponible', style: 'bg-red-100 text-red-700' }
+    const b = getBadge('non_disponible', DEMANDE_STATUTS)
+    return { label: b.label, style: b.cls }
   }
-  return { label: 'En attente de réponse', style: 'bg-amber-100 text-amber-700' }
+  const b = getBadge(d.statut, DEMANDE_STATUTS, 'En attente de réponse')
+  return { label: b.label, style: b.cls }
 }
 
 function fmtDate(s: string) {
