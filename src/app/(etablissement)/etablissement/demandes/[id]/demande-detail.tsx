@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
 import { refuserDemande, confirmerDisponibilite, refuserDisponibilite } from '@/lib/actions/etablissement'
-import { confirmerPaiement } from '@/lib/actions/reservations'
 import { lancerEtatDesLieux } from '@/lib/actions/etats-des-lieux'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 import { getBadge, RESERVATION_STATUTS, DEMANDE_STATUTS } from '@/lib/statuts'
@@ -34,17 +33,6 @@ function SectionCard({ children, className = '' }: { children: React.ReactNode; 
   )
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-  return (
-    <button
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-      className="text-xs text-brand hover:underline font-medium"
-    >
-      {copied ? '✓ Copié' : 'Copier'}
-    </button>
-  )
-}
 
 export default function DemandeDetail({ demande }: Props) {
   const router = useRouter()
@@ -89,11 +77,9 @@ export default function DemandeDetail({ demande }: Props) {
 
   const acomptePaiement = reservation?.paiements.find((p) => p.type === 'acompte') ?? null
   const soldePaiement = reservation?.paiements.find((p) => p.type === 'solde') ?? null
-  const commissionPaiement = reservation?.paiements.find((p) => p.type === 'commission') ?? null
 
   const showSection3 = reservation != null && reservation.statut !== 'annulee'
   const showSection4 = reservation != null && ['acompte_confirme', 'confirmee', 'en_cours', 'terminee', 'commission_reversee'].includes(reservation.statut)
-  const showSection5 = commissionPaiement != null && (soldePaiement?.confirme ?? false)
 
   const acompteConfirme = showSection4
   const edlArrivee = demande.etats_des_lieux.find((e) => e.type === 'arrivee') ?? null
@@ -538,69 +524,6 @@ export default function DemandeDetail({ demande }: Props) {
         </SectionCard>
       )}
 
-      {/* SECTION 4 — COMMISSION */}
-      {showSection5 && (
-        <SectionCard>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Commission LINKHO</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Montant commission ({Math.round((reservation?.commission_taux ?? 0) * 100)}%)</p>
-                <p className="text-lg font-bold text-navy">{fmtEuros(reservation!.commission_montant)}</p>
-              </div>
-              {reservation?.statut === 'terminee' ? (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">Clôturé ✓</span>
-              ) : commissionPaiement?.confirme ? (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">En attente de validation LINKHO</span>
-              ) : (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">À reverser</span>
-              )}
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">IBAN LINKHO</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-mono text-navy">FR76 XXXX XXXX XXXX XXXX XXXX XXX</p>
-                  <CopyButton text="FR76 XXXX XXXX XXXX XXXX XXXX XXX" />
-                </div>
-              </div>
-              {commissionPaiement && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Référence virement</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-mono text-navy">{commissionPaiement.reference_virement}</p>
-                    <CopyButton text={commissionPaiement.reference_virement} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {commissionPaiement && !commissionPaiement.confirme && (
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={false}
-                  onChange={() => handleAction(() => confirmerPaiement(commissionPaiement.id))}
-                  disabled={isPending}
-                  className="w-4 h-4 accent-brand"
-                />
-                <span className="text-sm text-navy">J&apos;ai reversé la commission à LINKHO</span>
-              </label>
-            )}
-            {reservation && (
-              <a
-                href={`/api/pdf/commission/${reservation.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-xs text-brand hover:underline font-medium"
-              >
-                ↓ Télécharger la facture de commission
-              </a>
-            )}
-          </div>
-        </SectionCard>
-      )}
     </div>
   )
 }
