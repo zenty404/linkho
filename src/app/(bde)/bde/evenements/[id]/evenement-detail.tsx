@@ -66,6 +66,9 @@ function CopyButton({ text }: { text: string }) {
 function getCurrentStep(evt: EvenementComplet): number {
   const { demande, devis, reservation, etats_des_lieux } = evt
   const edlDepartSigne = etats_des_lieux?.find((e) => e.type === 'depart')?.statut === 'signe'
+  const devisPrestatairesTraites =
+    evt.devis_prestataires.length === 0 ||
+    evt.devis_prestataires.every((dp) => dp.statut !== 'en_attente')
 
   if (!demande) return 1
   if (reservation?.statut === 'annulee') return 1
@@ -74,32 +77,36 @@ function getCurrentStep(evt: EvenementComplet): number {
     const acompte = reservation.paiements.find((p) => p.type === 'acompte')
     if (!acompte?.confirme) return 3
     const statut = reservation.statut
-    if (statut === 'confirmee' && !edlDepartSigne) return 4
+    if (statut === 'confirmee' && !edlDepartSigne) {
+      return devisPrestatairesTraites ? 5 : 4
+    }
     if (statut === 'confirmee' && edlDepartSigne) {
       const solde = reservation.paiements.find((p) => p.type === 'solde')
-      return solde?.confirme ? 6 : 5
+      return solde?.confirme ? 7 : 6
     }
     if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
       const solde = reservation.paiements.find((p) => p.type === 'solde')
-      return solde?.confirme ? 6 : 5
+      return solde?.confirme ? 7 : 6
     }
-    return 4
+    return devisPrestatairesTraites ? 5 : 4
   }
   if (['brouillon', 'envoye', 'accepte'].includes(devis!.statut)) return 2
   if (!reservation) return 3
   const acompte = reservation.paiements.find((p) => p.type === 'acompte')
   if (!acompte?.confirme) return 3
   const statut = reservation.statut
-  if (statut === 'confirmee' && !edlDepartSigne) return 4
+  if (statut === 'confirmee' && !edlDepartSigne) {
+    return devisPrestatairesTraites ? 5 : 4
+  }
   if (statut === 'confirmee' && edlDepartSigne) {
     const solde = reservation.paiements.find((p) => p.type === 'solde')
-    return solde?.confirme ? 6 : 5
+    return solde?.confirme ? 7 : 6
   }
   if (['en_cours', 'terminee', 'commission_reversee'].includes(statut)) {
     const solde = reservation.paiements.find((p) => p.type === 'solde')
-    return solde?.confirme ? 6 : 5
+    return solde?.confirme ? 7 : 6
   }
-  return 4
+  return devisPrestatairesTraites ? 5 : 4
 }
 
 export default function EvenementDetail({ evenement, suggestions }: Props) {
@@ -182,20 +189,23 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
               </p>
             )}
           </div>
-          {reservation && (
-            <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
-              ${reservation.statut === 'annulee' ? 'bg-red-100 text-red-700' :
-                reservation.statut === 'confirmee' ? 'bg-green-100 text-green-700' :
-                reservation.statut === 'en_cours' ? 'bg-blue-100 text-blue-700' :
-                reservation.statut === 'terminee' ? 'bg-gray-100 text-gray-600' :
-                'bg-amber-100 text-amber-700'}`}>
-              {reservation.statut === 'annulee' ? 'Annulée' :
-               reservation.statut === 'confirmee' ? 'Confirmée' :
-               reservation.statut === 'en_cours' ? 'En cours' :
-               reservation.statut === 'terminee' ? 'Terminée' :
-               reservation.statut}
-            </span>
-          )}
+          {reservation && (() => {
+            const statutLabels: Record<string, { label: string; cls: string }> = {
+              annulee: { label: 'Annulée', cls: 'bg-red-100 text-red-700' },
+              en_attente_acompte: { label: 'Acompte à régler', cls: 'bg-amber-100 text-amber-700' },
+              acompte_confirme: { label: 'Acompte payé', cls: 'bg-blue-100 text-blue-700' },
+              confirmee: { label: 'Solde à régler', cls: 'bg-orange-100 text-orange-700' },
+              en_cours: { label: 'Événement terminé', cls: 'bg-green-100 text-green-700' },
+              terminee: { label: 'Clôturé', cls: 'bg-gray-100 text-gray-600' },
+              commission_reversee: { label: 'Clôturé', cls: 'bg-gray-100 text-gray-600' },
+            }
+            const statutDisplay = statutLabels[reservation.statut] ?? { label: reservation.statut, cls: 'bg-gray-100 text-gray-600' }
+            return (
+              <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${statutDisplay.cls}`}>
+                {statutDisplay.label}
+              </span>
+            )
+          })()}
         </div>
       </div>
 
@@ -563,14 +573,159 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         </div>
       )}
 
-      {/* SECTION 4 — FORMULAIRE D'INSCRIPTION */}
+      {/* SECTION 4 — DEVIS PRESTATAIRES */}
+      {showSection4 && (
+        <div className={`rounded-xl border p-6 ${sectionCls(stepState(4))}`}>
+          <SectionHeader step={4} title="Devis prestataires" state={stepState(4)} />
+
+          {devis_prestataires.length === 0 ? (
+            <p className="text-sm text-gray-500">Aucun devis prestataire pour le moment.</p>
+          ) : (
+            <>
+              {dpError && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">
+                  {dpError}
+                </div>
+              )}
+              <div className="flex flex-col gap-3">
+                {devis_prestataires.map((dp) => {
+                  const badgeCls =
+                    dp.statut === 'signe'
+                      ? 'bg-green-100 text-green-700'
+                      : dp.statut === 'refuse'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-amber-100 text-amber-700'
+                  const badgeLabel =
+                    dp.statut === 'signe' ? 'Signé' : dp.statut === 'refuse' ? 'Refusé' : 'En attente'
+                  const typeLabel =
+                    dp.type === 'transport'
+                      ? 'Transport'
+                      : dp.type === 'securite'
+                        ? 'Sécurité'
+                        : 'Autre'
+
+                  return (
+                    <div key={dp.id} className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                              {typeLabel}
+                            </span>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeCls}`}>
+                              {badgeLabel}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-navy">{dp.nom}</p>
+                          {dp.montant != null && (
+                            <p className="text-xs text-gray-500 mt-0.5">{fmtEuros(dp.montant)}</p>
+                          )}
+                        </div>
+                        <a
+                          href={`/api/devis-prestataire/${dp.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-shrink-0 text-xs text-brand hover:underline font-medium"
+                        >
+                          ↓ Voir le PDF
+                        </a>
+                      </div>
+
+                      {dp.statut === 'en_attente' && (
+                        dpRefusModalId === dp.id ? (
+                          <div className="pt-3 border-t border-gray-100 space-y-3">
+                            <div>
+                              <p className="text-sm font-semibold text-navy">Contacter le support LINKHO</p>
+                              <p className="text-xs text-gray-500 mt-0.5">Expliquez pourquoi vous souhaitez refuser ce devis</p>
+                            </div>
+                            <div>
+                              <textarea
+                                value={dpRefusMotif}
+                                onChange={(e) => setDpRefusMotif(e.target.value)}
+                                placeholder="Décrivez la raison de votre refus…"
+                                rows={3}
+                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                              />
+                              <p className={`text-xs mt-1 ${dpRefusMotif.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                                {dpRefusMotif.trim().length} / 20 caractères minimum
+                              </p>
+                            </div>
+                            {dpError && (
+                              <p className="text-xs text-red-500">{dpError}</p>
+                            )}
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => { setDpRefusModalId(null); setDpRefusMotif(''); setDpError(null) }}
+                                className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const motif = dpRefusMotif.trim()
+                                  if (motif.length < 20) return
+                                  setDpError(null)
+                                  startTransition(async () => {
+                                    const res = await sendMessage(null, `Refus devis prestataire ${dp.type} - ${dp.nom} : ${motif}`)
+                                    if (res.error) { setDpError(res.error); return }
+                                    setDpRefusModalId(null)
+                                    setDpRefusMotif('')
+                                    router.refresh()
+                                  })
+                                }}
+                                disabled={isPending || dpRefusMotif.trim().length < 20}
+                                className="flex-1 py-2 bg-navy hover:bg-navy/90 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isPending ? 'Envoi…' : 'Envoyer'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 pt-3 border-t border-gray-100">
+                            <button
+                              onClick={() => {
+                                setDpError(null)
+                                setDpPendingId(dp.id)
+                                startTransition(async () => {
+                                  const res = await initierSignatureYousign(dp.id)
+                                  setDpPendingId(null)
+                                  if (res.error) { setDpError(res.error); return }
+                                  window.open(res.data!.signatureLink, '_blank')
+                                })
+                              }}
+                              disabled={isPending}
+                              className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {dpPendingId === dp.id && isPending ? 'Préparation…' : 'Signer électroniquement'}
+                            </button>
+                            <button
+                              onClick={() => { setDpRefusModalId(dp.id); setDpRefusMotif(''); setDpError(null) }}
+                              className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold rounded-lg transition-colors"
+                            >
+                              Refuser / Contacter le support
+                            </button>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* SECTION 5 — FORMULAIRE D'INSCRIPTION */}
       {showSection4 && (() => {
         const publicBase = process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
         const inscriptionUrl = formulaire ? `${publicBase}/inscription/${formulaire.id}` : ''
 
         return (
-          <div className={`rounded-xl border p-6 ${sectionCls(stepState(4))}`}>
-            <SectionHeader step={4} title="Formulaire d'inscription" state={stepState(4)} />
+          <div className={`rounded-xl border p-6 ${sectionCls(stepState(5))}`}>
+            <SectionHeader step={5} title="Formulaire d'inscription" state={stepState(5)} />
 
             {/* CAS 1 — Pas de formulaire */}
             {!formulaire && (
@@ -755,10 +910,10 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         </div>
       )}
 
-      {/* SECTION 5 — PAIEMENT SOLDE */}
+      {/* SECTION 6 — PAIEMENT SOLDE */}
       {showSection5 && (
-        <div className={`rounded-xl border p-6 ${sectionCls(stepState(5))}`}>
-          <SectionHeader step={5} title="Paiement du solde" state={stepState(5)} />
+        <div className={`rounded-xl border p-6 ${sectionCls(stepState(6))}`}>
+          <SectionHeader step={6} title="Paiement du solde" state={stepState(6)} />
           <div className="space-y-4">
             <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center justify-between">
               <div>
@@ -812,10 +967,10 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         </div>
       )}
 
-      {/* SECTION 6 — CLÔTURE */}
+      {/* SECTION 7 — CLÔTURE */}
       {showSection6 && (
         <div className={`rounded-xl border p-6 ${sectionCls('completed')}`}>
-          <SectionHeader step={6} title="Clôture" state="completed" />
+          <SectionHeader step={7} title="Clôture" state="completed" />
           <div className="space-y-4">
             <p className="text-sm text-gray-600">Votre événement est terminé. Merci d&apos;avoir utilisé LINKHO !</p>
             {reservation && (
@@ -844,7 +999,7 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
       )}
 
       {/* SECTION AVIS LIEU */}
-      {reservation && ['terminee', 'commission_reversee'].includes(reservation.statut) && (
+      {reservation && ['en_cours', 'terminee', 'commission_reversee'].includes(reservation.statut) && (
         <div className="rounded-xl border border-gray-200 p-6 bg-white">
           <h2 className="text-base font-bold text-navy mb-5">
             {avis_lieu || avisSubmitted ? 'Votre avis sur ce lieu' : 'Laisser un avis'}
@@ -923,145 +1078,6 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         </div>
       )}
 
-      {/* SECTION DEVIS PRESTATAIRES */}
-      {devis_prestataires.length > 0 && (
-        <div className="rounded-xl border border-gray-200 p-6 bg-white">
-          <h2 className="text-base font-bold text-navy mb-5">Devis prestataires</h2>
-
-          {dpError && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">
-              {dpError}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            {devis_prestataires.map((dp) => {
-              const badgeCls =
-                dp.statut === 'signe'
-                  ? 'bg-green-100 text-green-700'
-                  : dp.statut === 'refuse'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-amber-100 text-amber-700'
-              const badgeLabel =
-                dp.statut === 'signe' ? 'Signé' : dp.statut === 'refuse' ? 'Refusé' : 'En attente'
-              const typeLabel =
-                dp.type === 'transport'
-                  ? 'Transport'
-                  : dp.type === 'securite'
-                    ? 'Sécurité'
-                    : 'Autre'
-
-              return (
-                <div key={dp.id} className="bg-gray-50 rounded-lg border border-gray-100 p-4">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
-                          {typeLabel}
-                        </span>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeCls}`}>
-                          {badgeLabel}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold text-navy">{dp.nom}</p>
-                      {dp.montant != null && (
-                        <p className="text-xs text-gray-500 mt-0.5">{fmtEuros(dp.montant)}</p>
-                      )}
-                    </div>
-                    <a
-                      href={`/api/devis-prestataire/${dp.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-shrink-0 text-xs text-brand hover:underline font-medium"
-                    >
-                      ↓ Voir le PDF
-                    </a>
-                  </div>
-
-                  {dp.statut === 'en_attente' && (
-                    dpRefusModalId === dp.id ? (
-                      <div className="pt-3 border-t border-gray-100 space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-navy">Contacter le support LINKHO</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Expliquez pourquoi vous souhaitez refuser ce devis</p>
-                        </div>
-                        <div>
-                          <textarea
-                            value={dpRefusMotif}
-                            onChange={(e) => setDpRefusMotif(e.target.value)}
-                            placeholder="Décrivez la raison de votre refus…"
-                            rows={3}
-                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
-                          />
-                          <p className={`text-xs mt-1 ${dpRefusMotif.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
-                            {dpRefusMotif.trim().length} / 20 caractères minimum
-                          </p>
-                        </div>
-                        {dpError && (
-                          <p className="text-xs text-red-500">{dpError}</p>
-                        )}
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => { setDpRefusModalId(null); setDpRefusMotif(''); setDpError(null) }}
-                            className="flex-1 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const motif = dpRefusMotif.trim()
-                              if (motif.length < 20) return
-                              setDpError(null)
-                              startTransition(async () => {
-                                const res = await sendMessage(null, `Refus devis prestataire ${dp.type} - ${dp.nom} : ${motif}`)
-                                if (res.error) { setDpError(res.error); return }
-                                setDpRefusModalId(null)
-                                setDpRefusMotif('')
-                                router.refresh()
-                              })
-                            }}
-                            disabled={isPending || dpRefusMotif.trim().length < 20}
-                            className="flex-1 py-2 bg-navy hover:bg-navy/90 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isPending ? 'Envoi…' : 'Envoyer'}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2 pt-3 border-t border-gray-100">
-                        <button
-                          onClick={() => {
-                            setDpError(null)
-                            setDpPendingId(dp.id)
-                            startTransition(async () => {
-                              const res = await initierSignatureYousign(dp.id)
-                              setDpPendingId(null)
-                              if (res.error) { setDpError(res.error); return }
-                              window.open(res.data!.signatureLink, '_blank')
-                            })
-                          }}
-                          disabled={isPending}
-                          className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          {dpPendingId === dp.id && isPending ? 'Préparation…' : 'Signer électroniquement'}
-                        </button>
-                        <button
-                          onClick={() => { setDpRefusModalId(dp.id); setDpRefusMotif(''); setDpError(null) }}
-                          className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold rounded-lg transition-colors"
-                        >
-                          Refuser / Contacter le support
-                        </button>
-                      </div>
-                    )
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

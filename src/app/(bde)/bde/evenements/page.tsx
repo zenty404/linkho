@@ -16,9 +16,10 @@ function getStepInfo(evt: EvenementComplet): { step: number; error: boolean } {
   if (demande?.statut === 'refusee') return { step: 2, error: true }
   if (reservation?.statut === 'annulee') return { step: 4, error: true }
 
+  if (reservation?.statut === 'en_cours') return { step: 5, error: false }
   if (reservation?.statut === 'terminee') return { step: 5, error: false }
   if (reservation?.statut === 'commission_reversee') return { step: 5, error: false }
-  if (reservation?.statut === 'confirmee' || reservation?.statut === 'en_cours') return { step: 4, error: false }
+  if (reservation?.statut === 'confirmee') return { step: 4, error: false }
   if (reservation?.statut === 'acompte_confirme') return { step: 4, error: false }
   if (reservation?.statut === 'en_attente_acompte') return { step: 3, error: false }
   if (demande?.statut_disponibilite === 'disponible') return { step: 3, error: false }
@@ -70,7 +71,9 @@ function getDisplayStatut(evt: EvenementComplet): DisplayStatut {
     return { label: 'Clôture en cours', style: 'bg-orange-100 text-orange-700' }
   if (reservation?.statut === 'en_attente_acompte')
     return { label: 'Acompte à régler', style: 'bg-yellow-100 text-yellow-700' }
-  if (reservation?.statut && ['confirmee', 'en_cours', 'acompte_confirme'].includes(reservation.statut))
+  if (reservation?.statut === 'en_cours')
+    return { label: 'Événement terminé', style: 'bg-green-100 text-green-700' }
+  if (reservation?.statut && ['confirmee', 'acompte_confirme'].includes(reservation.statut))
     return { label: 'En cours', style: 'bg-blue-100 text-blue-700' }
   if (reservation?.statut === 'devis_signe')
     return { label: 'Réservé', style: 'bg-blue-100 text-blue-700' }

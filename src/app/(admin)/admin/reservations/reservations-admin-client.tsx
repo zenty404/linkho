@@ -453,6 +453,15 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                       ✓ Confirmer acompte
                     </button>
                   )}
+                  {r.paiements?.find(p => p.type === 'solde' && !p.confirme) && (
+                    <button
+                      onClick={() => handleConfirmerAcompte(r.paiements!.find(p => p.type === 'solde')!.id)}
+                      disabled={isPending}
+                      className="px-3 py-1.5 border border-brand text-brand hover:bg-brand hover:text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap disabled:opacity-50"
+                    >
+                      ✓ Confirmer solde
+                    </button>
+                  )}
                   {(r.statut === 'confirmee' || r.statut === 'en_cours') && r.evenement_id && (
                     <button
                       onClick={() => setOpenModalForEvenementId(r.evenement_id!)}
