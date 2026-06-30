@@ -151,6 +151,14 @@ export type EvenementComplet = {
     pdf_nom: string
     created_at: string
   }[]
+  etats_des_lieux: {
+    id: string
+    type: 'arrivee' | 'depart'
+    statut: 'non_lance' | 'en_attente_signature' | 'signe'
+    yousign_bde_signature_link: string | null
+    bde_signe_le: string | null
+    etab_signe_le: string | null
+  }[]
 }
 
 export async function getEvenementComplet(id: string): Promise<ActionResult<EvenementComplet>> {
@@ -209,7 +217,9 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   }
 
   let formulaire = null
-  const [{ data: formData }, { data: calConfig }, { data: devisPrestatairesData }, { data: avisLieuData }] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const edlTable = (supabase as any).from('etats_des_lieux') as any
+  const [{ data: formData }, { data: calConfig }, { data: devisPrestatairesData }, { data: avisLieuData }, edlResult] = await Promise.all([
     supabase.from('formulaire_inscriptions').select('id, titre, publie, prix_total').eq('evenement_id', id).maybeSingle(),
     supabase.from('linkho_config').select('valeur').eq('cle', 'cal_link').maybeSingle(),
     supabase
@@ -222,6 +232,12 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       .select('note, commentaire')
       .eq('evenement_id', id)
       .maybeSingle(),
+    reservation
+      ? edlTable
+          .select('id, type, statut, yousign_bde_signature_link, bde_signe_le, etab_signe_le')
+          .eq('reservation_id', reservation.id)
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] }),
   ])
   const cal_link = calConfig?.valeur ?? null
   if (formData) {
@@ -242,6 +258,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
       cal_link,
       devis_prestataires: (devisPrestatairesData ?? []) as EvenementComplet['devis_prestataires'],
       avis_lieu: avisLieuData as EvenementComplet['avis_lieu'],
+      etats_des_lieux: (edlResult.data ?? []) as EvenementComplet['etats_des_lieux'],
     },
     error: null,
   }

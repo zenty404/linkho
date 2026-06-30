@@ -149,6 +149,10 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
   const showSection5 = reservation != null && ['confirmee', 'en_cours', 'terminee'].includes(reservation.statut)
   const showSection6 = acomptePaiement?.confirme && soldePaiement?.confirme
 
+  const edlArrivee = evenement.etats_des_lieux.find((e) => e.type === 'arrivee') ?? null
+  const edlDepart = evenement.etats_des_lieux.find((e) => e.type === 'depart') ?? null
+  const edlDepartSigne = edlDepart?.statut === 'signe'
+
   return (
     <div className="max-w-2xl flex flex-col gap-5">
       {/* Header */}
@@ -656,6 +660,92 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         )
       })()}
 
+      {/* SECTION ÉTATS DES LIEUX */}
+      {showSection4 && (
+        <div className="rounded-xl border border-gray-200 p-6 bg-white">
+          <h2 className="text-base font-bold text-navy mb-5">États des lieux</h2>
+          <div className="space-y-3">
+            {/* Arrivée */}
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-navy mb-1">État des lieux d&apos;arrivée</p>
+                  {!edlArrivee && (
+                    <p className="text-xs text-gray-400">L&apos;établissement lancera cet état des lieux le jour J.</p>
+                  )}
+                  {edlArrivee?.statut === 'en_attente_signature' && (
+                    <div className="space-y-1">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 inline-block">
+                        En attente de signature
+                      </span>
+                      <p className="text-xs text-gray-500">
+                        BDE {edlArrivee.bde_signe_le ? '✓ signé' : '○ en attente'} · Établissement {edlArrivee.etab_signe_le ? '✓ signé' : '○ en attente'}
+                      </p>
+                    </div>
+                  )}
+                  {edlArrivee?.statut === 'signe' && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 inline-block">
+                      Signé par les deux parties ✓
+                    </span>
+                  )}
+                </div>
+                {edlArrivee?.statut === 'en_attente_signature' && edlArrivee.yousign_bde_signature_link && !edlArrivee.bde_signe_le && (
+                  <a
+                    href={edlArrivee.yousign_bde_signature_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    Signer
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Départ */}
+            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-navy mb-1">État des lieux de départ</p>
+                  {!edlDepart && (
+                    <p className="text-xs text-gray-400">
+                      {edlArrivee?.statut === 'signe'
+                        ? "L'établissement lancera cet état des lieux en fin d'événement."
+                        : "Disponible après signature de l'état des lieux d'arrivée."}
+                    </p>
+                  )}
+                  {edlDepart?.statut === 'en_attente_signature' && (
+                    <div className="space-y-1">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 inline-block">
+                        En attente de signature
+                      </span>
+                      <p className="text-xs text-gray-500">
+                        BDE {edlDepart.bde_signe_le ? '✓ signé' : '○ en attente'} · Établissement {edlDepart.etab_signe_le ? '✓ signé' : '○ en attente'}
+                      </p>
+                    </div>
+                  )}
+                  {edlDepart?.statut === 'signe' && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 inline-block">
+                      Signé par les deux parties ✓
+                    </span>
+                  )}
+                </div>
+                {edlDepart?.statut === 'en_attente_signature' && edlDepart.yousign_bde_signature_link && !edlDepart.bde_signe_le && (
+                  <a
+                    href={edlDepart.yousign_bde_signature_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 px-4 py-2 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    Signer
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SECTION 5 — PAIEMENT SOLDE */}
       {showSection5 && (
         <div className={`rounded-xl border p-6 ${sectionCls(stepState(5))}`}>
@@ -686,13 +776,18 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
                 </div>
               </div>
             )}
-            {!soldePaiement?.confirme && reservation!.statut_solde === 'en_attente' && (
+            {!soldePaiement?.confirme && reservation!.statut_solde === 'en_attente' && edlDepartSigne && (
               <Link
                 href={`/bde/evenements/${evenement.id}/paiement-solde`}
                 className="flex items-center justify-center w-full py-3 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
               >
                 Payer le solde
               </Link>
+            )}
+            {!soldePaiement?.confirme && reservation!.statut_solde === 'en_attente' && !edlDepartSigne && (
+              <p className="text-xs text-gray-400 text-center py-2">
+                Le paiement du solde sera débloqué après signature de l&apos;état des lieux de départ.
+              </p>
             )}
             {soldePaiement?.confirme && reservation && (
               <a

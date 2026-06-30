@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react'
 import type { DemandeComplete } from '@/lib/actions/etablissement'
 import { refuserDemande, confirmerDisponibilite, refuserDisponibilite } from '@/lib/actions/etablissement'
 import { confirmerPaiement } from '@/lib/actions/reservations'
+import { lancerEtatDesLieux } from '@/lib/actions/etats-des-lieux'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 
 type Props = { demande: DemandeComplete }
@@ -52,6 +53,8 @@ export default function DemandeDetail({ demande }: Props) {
   const [motifRefusDemande, setMotifRefusDemande] = useState('')
   const [showDispoForm, setShowDispoForm] = useState<'disponible' | 'non_disponible' | null>(null)
   const [motifNonDispo, setMotifNonDispo] = useState('')
+  const [edlPending, setEdlPending] = useState<'arrivee' | 'depart' | null>(null)
+  const [edlError, setEdlError] = useState<string | null>(null)
 
   const { devis, reservation } = demande
 
@@ -112,6 +115,10 @@ export default function DemandeDetail({ demande }: Props) {
   const showSection3 = reservation != null && reservation.statut !== 'annulee'
   const showSection4 = reservation != null && ['acompte_confirme', 'confirmee', 'en_cours', 'terminee', 'commission_reversee'].includes(reservation.statut)
   const showSection5 = commissionPaiement != null && (soldePaiement?.confirme ?? false)
+
+  const acompteConfirme = showSection4
+  const edlArrivee = demande.etats_des_lieux.find((e) => e.type === 'arrivee') ?? null
+  const edlDepart = demande.etats_des_lieux.find((e) => e.type === 'depart') ?? null
 
   return (
     <div className="max-w-2xl flex flex-col gap-5">
@@ -366,6 +373,144 @@ export default function DemandeDetail({ demande }: Props) {
               </a>
             )}
           </div>
+        </SectionCard>
+      )}
+
+      {/* SECTION ÉTATS DES LIEUX */}
+      {showSection3 && (
+        <SectionCard>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">États des lieux</h2>
+
+          {edlError && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">
+              {edlError}
+            </div>
+          )}
+
+          {!acompteConfirme ? (
+            <p className="text-sm text-gray-400">Disponible après confirmation de l&apos;acompte.</p>
+          ) : (
+            <div className="space-y-4">
+              {/* Arrivée */}
+              <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-navy mb-0.5">État des lieux d&apos;arrivée</p>
+                    {!edlArrivee && (
+                      <p className="text-xs text-gray-500">Non lancé</p>
+                    )}
+                    {edlArrivee?.statut === 'en_attente_signature' && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          En attente de signature
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          BDE {edlArrivee.bde_signe_le ? '✓' : '○'} · Établissement {edlArrivee.etab_signe_le ? '✓' : '○'}
+                        </span>
+                      </div>
+                    )}
+                    {edlArrivee?.statut === 'signe' && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 mt-1 inline-block">
+                        Signé ✓
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {edlArrivee?.statut === 'en_attente_signature' && edlArrivee.yousign_etab_signature_link && !edlArrivee.etab_signe_le && (
+                      <a
+                        href={edlArrivee.yousign_etab_signature_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors"
+                      >
+                        Signer
+                      </a>
+                    )}
+                    {!edlArrivee && (
+                      <button
+                        onClick={() => {
+                          if (!reservation) return
+                          setEdlError(null)
+                          setEdlPending('arrivee')
+                          startTransition(async () => {
+                            const res = await lancerEtatDesLieux(reservation.id, 'arrivee')
+                            setEdlPending(null)
+                            if (res.error) { setEdlError(res.error); return }
+                            router.refresh()
+                          })
+                        }}
+                        disabled={isPending || !reservation}
+                        className="px-3 py-1.5 bg-navy hover:bg-navy/90 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {edlPending === 'arrivee' && isPending ? 'Lancement…' : 'Lancer'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Départ */}
+              <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-navy mb-0.5">État des lieux de départ</p>
+                    {!edlDepart && edlArrivee?.statut !== 'signe' && (
+                      <p className="text-xs text-gray-400">Disponible après signature de l&apos;état des lieux d&apos;arrivée.</p>
+                    )}
+                    {!edlDepart && edlArrivee?.statut === 'signe' && (
+                      <p className="text-xs text-gray-500">Non lancé</p>
+                    )}
+                    {edlDepart?.statut === 'en_attente_signature' && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          En attente de signature
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          BDE {edlDepart.bde_signe_le ? '✓' : '○'} · Établissement {edlDepart.etab_signe_le ? '✓' : '○'}
+                        </span>
+                      </div>
+                    )}
+                    {edlDepart?.statut === 'signe' && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 mt-1 inline-block">
+                        Signé ✓
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {edlDepart?.statut === 'en_attente_signature' && edlDepart.yousign_etab_signature_link && !edlDepart.etab_signe_le && (
+                      <a
+                        href={edlDepart.yousign_etab_signature_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-brand hover:bg-brand-light text-navy text-xs font-semibold rounded-lg transition-colors"
+                      >
+                        Signer
+                      </a>
+                    )}
+                    {!edlDepart && edlArrivee?.statut === 'signe' && (
+                      <button
+                        onClick={() => {
+                          if (!reservation) return
+                          setEdlError(null)
+                          setEdlPending('depart')
+                          startTransition(async () => {
+                            const res = await lancerEtatDesLieux(reservation.id, 'depart')
+                            setEdlPending(null)
+                            if (res.error) { setEdlError(res.error); return }
+                            router.refresh()
+                          })
+                        }}
+                        disabled={isPending || !reservation}
+                        className="px-3 py-1.5 bg-navy hover:bg-navy/90 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {edlPending === 'depart' && isPending ? 'Lancement…' : 'Lancer'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </SectionCard>
       )}
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -13,11 +14,60 @@ export async function POST(request: Request) {
   }
 
   const signatureRequestId = payload.data?.signature_request?.id
+  const signerId: string | undefined = payload.data?.signer?.id
+
   if (!signatureRequestId) {
     return NextResponse.json({ received: true })
   }
 
   const adminClient = createAdminClient()
+
+  // ── États des lieux ──────────────────────────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const edlTable = (adminClient as any).from('etats_des_lieux') as any
+  const { data: edl } = await edlTable
+    .select('id, reservation_id, statut, yousign_bde_signer_id, yousign_etab_signer_id, bde_signe_le, etab_signe_le')
+    .eq('yousign_signature_request_id', signatureRequestId)
+    .maybeSingle()
+
+  if (edl && edl.statut !== 'signe') {
+    const now = new Date().toISOString()
+    const isBde = signerId && signerId === edl.yousign_bde_signer_id
+    const isEtab = signerId && signerId === edl.yousign_etab_signer_id
+
+    const bdeSigne = edl.bde_signe_le ?? (isBde ? now : null)
+    const etabSigne = edl.etab_signe_le ?? (isEtab ? now : null)
+    const bothSigned = bdeSigne != null && etabSigne != null
+
+    await edlTable
+      .update({
+        ...(isBde && !edl.bde_signe_le ? { bde_signe_le: now } : {}),
+        ...(isEtab && !edl.etab_signe_le ? { etab_signe_le: now } : {}),
+        ...(bothSigned ? { statut: 'signe', updated_at: now } : { updated_at: now }),
+      })
+      .eq('id', edl.id)
+
+    if (bothSigned) {
+      const { data: res } = await adminClient
+        .from('reservations')
+        .select('demande_id, bde_id')
+        .eq('id', edl.reservation_id)
+        .maybeSingle()
+      if (res?.demande_id) {
+        revalidatePath(`/etablissement/demandes/${res.demande_id}`)
+        const { data: evt } = await adminClient
+          .from('evenements')
+          .select('id')
+          .eq('demande_id', res.demande_id)
+          .maybeSingle()
+        if (evt) revalidatePath(`/bde/evenements/${evt.id}`)
+      }
+    }
+
+    return NextResponse.json({ received: true })
+  }
+
+  // ── Devis prestataires ───────────────────────────────────────────────────────
   await adminClient
     .from('devis_prestataires')
     .update({ statut: 'signe', signe_le: new Date().toISOString() })

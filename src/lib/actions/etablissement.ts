@@ -23,6 +23,14 @@ export type DemandeComplete = {
   message: string | null
   created_at: string
   bde: { nom: string; ecole: string; ville: string | null } | null
+  etats_des_lieux: {
+    id: string
+    type: 'arrivee' | 'depart'
+    statut: 'non_lance' | 'en_attente_signature' | 'signe'
+    yousign_etab_signature_link: string | null
+    bde_signe_le: string | null
+    etab_signe_le: string | null
+  }[]
   devis: {
     id: string
     numero: string
@@ -148,6 +156,17 @@ async function buildDemandeComplete(
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const edlTable = (supabase as any).from('etats_des_lieux') as any
+  const etatsDesLieux: DemandeComplete['etats_des_lieux'] = reservation
+    ? (
+        await edlTable
+          .select('id, type, statut, yousign_etab_signature_link, bde_signe_le, etab_signe_le')
+          .eq('reservation_id', reservation.id)
+          .order('created_at', { ascending: true })
+      ).data ?? []
+    : []
+
   return {
     id: demande.id,
     statut: demande.statut,
@@ -162,6 +181,7 @@ async function buildDemandeComplete(
     message: demande.message,
     created_at: demande.created_at,
     bde: demande.bde ?? null,
+    etats_des_lieux: etatsDesLieux,
     devis,
     reservation,
   }
