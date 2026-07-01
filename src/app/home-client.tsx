@@ -1,6 +1,9 @@
 'use client'
-import { useState } from 'react'
+import 'react-day-picker/dist/style.css'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { DayPicker } from 'react-day-picker'
+import { fr } from 'date-fns/locale'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
@@ -51,15 +54,59 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
   const [dateDebut, setDateDebut] = useState('')
   const [dateFin, setDateFin] = useState('')
   const [typeEvenement, setTypeEvenement] = useState('')
+  const [calDebutOpen, setCalDebutOpen] = useState(false)
+  const [calFinOpen, setCalFinOpen] = useState(false)
+  const [typeOpen, setTypeOpen] = useState(false)
 
-  function handleDateDebutChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value
-    setDateDebut(val)
-    if (val && (!dateFin || dateFin <= val)) {
-      const next = new Date(val)
-      next.setDate(next.getDate() + 1)
-      setDateFin(next.toISOString().split('T')[0])
+  const calDebutRef = useRef<HTMLDivElement>(null)
+  const calFinRef = useRef<HTMLDivElement>(null)
+  const typeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onMouseDown(e: MouseEvent) {
+      if (calDebutRef.current && !calDebutRef.current.contains(e.target as Node)) setCalDebutOpen(false)
+      if (calFinRef.current && !calFinRef.current.contains(e.target as Node)) setCalFinOpen(false)
+      if (typeRef.current && !typeRef.current.contains(e.target as Node)) setTypeOpen(false)
     }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [])
+
+  function toStr(date: Date): string {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
+  function toDate(str: string): Date | undefined {
+    if (!str) return undefined
+    const [y, m, d] = str.split('-').map(Number)
+    return new Date(y, m - 1, d)
+  }
+
+  function toDisplay(str: string): string {
+    if (!str) return ''
+    const [y, m, d] = str.split('-')
+    return `${d}/${m}/${y}`
+  }
+
+  function handleDateDebutSelect(date: Date | undefined) {
+    if (!date) { setDateDebut(''); return }
+    const val = toStr(date)
+    setDateDebut(val)
+    setCalDebutOpen(false)
+    if (!dateFin || dateFin <= val) {
+      const next = new Date(date)
+      next.setDate(next.getDate() + 1)
+      setDateFin(toStr(next))
+    }
+  }
+
+  function handleDateFinSelect(date: Date | undefined) {
+    if (!date) { setDateFin(''); return }
+    setDateFin(toStr(date))
+    setCalFinOpen(false)
   }
 
   return (
@@ -212,59 +259,104 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 </div>
               </div>
               {/* Date début */}
-              <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+              <div ref={calDebutRef} className="relative flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+                <input type="hidden" name="date_debut" value={dateDebut} />
                 <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                 </svg>
-                <div className="min-w-0">
+                <div className="min-w-0 w-full">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date début</p>
-                  <input
-                    name="date_debut"
-                    type="date"
-                    value={dateDebut}
-                    onChange={handleDateDebutChange}
-                    className="text-sm text-navy font-medium outline-none w-full"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => { setCalDebutOpen(v => !v); setCalFinOpen(false); setTypeOpen(false) }}
+                    className="text-sm font-medium text-left w-full outline-none"
+                  >
+                    {dateDebut ? <span className="text-navy">{toDisplay(dateDebut)}</span> : <span className="text-gray-300">jj/mm/aaaa</span>}
+                  </button>
                 </div>
+                {calDebutOpen && (
+                  <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-brand/20">
+                    <DayPicker
+                      mode="single"
+                      selected={toDate(dateDebut)}
+                      onSelect={handleDateDebutSelect}
+                      locale={fr}
+                      modifiersStyles={{
+                        selected: { backgroundColor: '#071634', color: 'white', borderRadius: '50%' },
+                        today: { fontWeight: 'bold', color: '#f49915' },
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               {/* Date fin */}
-              <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+              <div ref={calFinRef} className="relative flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+                <input type="hidden" name="date_fin" value={dateFin} />
                 <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                 </svg>
-                <div className="min-w-0">
+                <div className="min-w-0 w-full">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date fin</p>
-                  <input
-                    name="date_fin"
-                    type="date"
-                    value={dateFin}
-                    onChange={(e) => setDateFin(e.target.value)}
-                    className="text-sm text-navy font-medium outline-none w-full"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => { setCalFinOpen(v => !v); setCalDebutOpen(false); setTypeOpen(false) }}
+                    className="text-sm font-medium text-left w-full outline-none"
+                  >
+                    {dateFin ? <span className="text-navy">{toDisplay(dateFin)}</span> : <span className="text-gray-300">jj/mm/aaaa</span>}
+                  </button>
                 </div>
+                {calFinOpen && (
+                  <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-brand/20">
+                    <DayPicker
+                      mode="single"
+                      selected={toDate(dateFin)}
+                      onSelect={handleDateFinSelect}
+                      locale={fr}
+                      disabled={dateDebut ? { before: toDate(dateDebut)! } : undefined}
+                      modifiersStyles={{
+                        selected: { backgroundColor: '#071634', color: 'white', borderRadius: '50%' },
+                        today: { fontWeight: 'bold', color: '#f49915' },
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               {/* Type événement */}
-              <div className="flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+              <div ref={typeRef} className="relative flex items-center gap-3 px-4 py-3 md:px-5 md:py-4 flex-1 border-b border-gray-100 md:border-b-0">
+                <input type="hidden" name="type" value={typeEvenement} />
                 <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
                 </svg>
-                <div className="min-w-0">
+                <div className="min-w-0 w-full">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</p>
-                  <select
-                    name="type"
-                    value={typeEvenement}
-                    onChange={(e) => setTypeEvenement(e.target.value)}
-                    className="text-sm text-navy font-medium outline-none bg-transparent w-full"
+                  <button
+                    type="button"
+                    onClick={() => { setTypeOpen(v => !v); setCalDebutOpen(false); setCalFinOpen(false) }}
+                    className="text-sm font-medium text-left w-full outline-none flex items-center justify-between gap-1"
                   >
-                    <option value="">Tous</option>
-                    <option value="WEI">WEI</option>
-                    <option value="Soirée">Soirée</option>
-                    <option value="Gala">Gala</option>
-                    <option value="Séminaire">Séminaire</option>
-                    <option value="Autre">Autre</option>
-                  </select>
+                    <span className={typeEvenement ? 'text-navy' : 'text-gray-300'}>
+                      {typeEvenement || "Type d'événement"}
+                    </span>
+                    <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-7 7-7-7" />
+                    </svg>
+                  </button>
                 </div>
+                {typeOpen && (
+                  <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[160px]">
+                    {['', 'WEI', 'Soirée', 'Gala', 'Séminaire', 'Autre'].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => { setTypeEvenement(opt); setTypeOpen(false) }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-navy/5 transition-colors ${typeEvenement === opt ? 'text-navy font-semibold' : 'text-gray-600'}`}
+                      >
+                        {opt || 'Tous'}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* Bouton */}
               <div className="px-3 py-3">
