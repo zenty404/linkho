@@ -21,7 +21,7 @@ export function MotionSection({ children, className = '', delay = 0, direction =
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.15 }}
+      viewport={{ once: false, amount: 0.15 }}
       transition={{ duration: 0.6, ease: 'easeOut', delay: delay / 1000 }}
       variants={variants[direction]}
     >
