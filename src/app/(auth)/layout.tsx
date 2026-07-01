@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 const args = [
   'Trouvez votre lieu idéal parmi nos partenaires vérifiés',
@@ -15,13 +16,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:60px_60px]" />
 
         <div className="relative z-10">
-          <Image
-            src="/LOGO ENTIER VF FULL BLANC.svg"
-            alt="LINKHO"
-            width={140}
-            height={44}
-            priority
-          />
+          <Link href="/">
+            <Image
+              src="/LOGO ENTIER VF FULL BLANC.svg"
+              alt="LINKHO"
+              width={140}
+              height={44}
+              priority
+            />
+          </Link>
         </div>
 
         <div className="relative z-10">
@@ -53,6 +56,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Colonne droite — formulaire */}
       <div className="flex-1 bg-white flex flex-col items-center justify-center p-8 lg:p-16 min-h-screen">
+        {/* Lien retour */}
+        <div className="absolute top-6 left-6 lg:left-auto lg:right-auto">
+          <Link href="/" className="flex items-center gap-2 text-sm text-navy/50 hover:text-navy transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            Retour
+          </Link>
+        </div>
         {children}
       </div>
     </div>
