@@ -164,17 +164,18 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
   }, [lieux, tri])
 
   const sidebarContent = (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="font-bold text-white text-lg">Filtres</h2>
-        <button onClick={resetFiltres} className="text-xs text-brand hover:underline font-medium">
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center justify-between px-1">
+        <h2 className="font-bold text-navy text-lg">Filtres</h2>
+        <button onClick={resetFiltres} className="text-xs text-gray-400 hover:text-navy underline underline-offset-2 transition-colors">
           Réinitialiser
         </button>
       </div>
 
-      {/* Ville */}
-      <div>
-        <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
+      {/* Localisation */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <label className="block text-xs font-bold uppercase tracking-widest text-navy/70 mb-2">
           Localisation
         </label>
         <input
@@ -184,13 +185,13 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
           onBlur={handleTextBlur}
           onKeyDown={handleKeyDown}
           placeholder="Paris, Lyon…"
-          className="w-full text-sm px-3 py-2.5 rounded-xl border border-white/20 bg-white/10 text-white focus:outline-none focus:border-brand placeholder-white/40"
+          className="w-full text-sm px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-navy focus:outline-none focus:border-brand focus:ring-2 focus:ring-navy/20 placeholder-gray-300"
         />
       </div>
 
-      {/* Capacité */}
-      <div>
-        <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
+      {/* Participants */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <label className="block text-xs font-bold uppercase tracking-widest text-navy/70 mb-2">
           Participants minimum
         </label>
         <input
@@ -201,13 +202,13 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
           onBlur={handleTextBlur}
           onKeyDown={handleKeyDown}
           placeholder="50"
-          className="w-full text-sm px-3 py-2.5 rounded-xl border border-white/20 bg-white/10 text-white focus:outline-none focus:border-brand placeholder-white/40"
+          className="w-full text-sm px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-navy focus:outline-none focus:border-brand focus:ring-2 focus:ring-navy/20 placeholder-gray-300"
         />
       </div>
 
       {/* Budget */}
-      <div>
-        <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <label className="block text-xs font-bold uppercase tracking-widest text-navy/70 mb-2">
           Budget max (€)
         </label>
         <input
@@ -218,12 +219,12 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
           onBlur={handleTextBlur}
           onKeyDown={handleKeyDown}
           placeholder="5 000"
-          className="w-full text-sm px-3 py-2.5 rounded-xl border border-white/20 bg-white/10 text-white focus:outline-none focus:border-brand placeholder-white/40"
+          className="w-full text-sm px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-navy focus:outline-none focus:border-brand focus:ring-2 focus:ring-navy/20 placeholder-gray-300"
         />
       </div>
 
       {/* Hébergement */}
-      <div>
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
         <button
           type="button"
           onClick={toggleHebergement}
@@ -240,13 +241,13 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
               }`}
             />
           </div>
-          <span className="text-sm font-medium text-white">Avec hébergement</span>
+          <span className="text-sm font-medium text-navy/80">Avec hébergement</span>
         </button>
       </div>
 
       {/* Type d'événement */}
-      <div>
-        <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-widest text-navy/70 mb-3">
           Type d&apos;événement
         </p>
         <div className="space-y-2">
@@ -258,7 +259,7 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
                 onChange={() => toggleTypeEvenement(type)}
                 className="w-4 h-4 rounded accent-brand"
               />
-              <span className="text-sm text-white/80 group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-navy/80 group-hover:text-navy transition-colors">
                 {type}
               </span>
             </label>
@@ -267,8 +268,8 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
       </div>
 
       {/* Équipements */}
-      <div>
-        <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-widest text-navy/70 mb-3">
           Équipements
         </p>
         <div className="flex flex-wrap gap-1.5">
@@ -280,7 +281,7 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
               className={`px-2.5 py-1 text-xs font-medium rounded-full transition-colors ${
                 filtres.equipements.includes(eq)
                   ? 'bg-brand text-white'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'
+                  : 'bg-gray-100 text-navy/60 hover:bg-gray-200'
               }`}
             >
               {eq}
@@ -299,8 +300,8 @@ export default function RecherchePage({ lieux, initialFiltres, initialDates }: P
         <div className="flex gap-8 items-start">
 
           {/* ── Sidebar desktop ────────────────────────────────────────────── */}
-          <aside className="hidden md:block w-[280px] flex-shrink-0">
-            <div className="bg-navy rounded-2xl p-6 shadow-sm sticky top-24">
+          <aside className="hidden md:block w-[280px] flex-shrink-0 bg-gray-50 pr-6">
+            <div className="sticky top-24">
               {sidebarContent}
             </div>
           </aside>
