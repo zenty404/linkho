@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState, useRef } from 'react'
+import { useActionState, useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   updateProfilEtablissement,
   updateTagsEquipements,
@@ -597,6 +598,7 @@ interface Props {
 // ─── Composant principal ─────────────────────────────────────────────────────
 
 export function EtabParamsForm({ etab, email, etablissementId, photos, indisponibilites }: Props) {
+  const router = useRouter()
   const [infosState, infosAction, infosPending] = useActionState(
     updateProfilEtablissement,
     PARAM_INIT,
@@ -622,6 +624,12 @@ export function EtabParamsForm({ etab, email, etablissementId, photos, indisponi
     updateProfilEtablissement,
     PARAM_INIT,
   )
+
+  useEffect(() => {
+    if (cautionState?.success) {
+      router.refresh()
+    }
+  }, [cautionState?.success])
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
@@ -774,16 +782,23 @@ export function EtabParamsForm({ etab, email, etablissementId, photos, indisponi
       {/* 10. Caution */}
       <SectionCard title="Caution">
         <form action={cautionAction} className="space-y-4">
-          <Field
-            label="Montant de la caution (€)"
-            name="caution_montant"
-            type="number"
-            defaultValue={etab?.caution_montant}
-            placeholder="500"
-          />
-          <p className="text-xs text-gray-400 -mt-1">
-            Ce montant sera demandé au BDE à la réservation.
-          </p>
+          <div>
+            <label className="block text-sm font-medium text-navy mb-1.5">
+              Caution (€)
+            </label>
+            <input
+              name="caution_montant"
+              type="number"
+              min="0"
+              step="100"
+              defaultValue={etab?.caution_montant ?? ''}
+              placeholder="ex: 4000"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition"
+            />
+            <p className="text-xs text-gray-400 mt-1.5">
+              Montant total de la caution solidaire BDE. Les chèques seront automatiquement calculés par paliers (25%, 50%, 75%, 100% du montant).
+            </p>
+          </div>
           <StateMessages success={cautionState.success} error={cautionState.error} />
           <div className="pt-1"><SaveButton pending={cautionPending} /></div>
         </form>

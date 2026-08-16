@@ -326,6 +326,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                 lieuId={lieu.id}
                 lieuNom={lieu.nom}
                 prixBase={lieu.prix_base}
+                cautionMontant={lieu.caution_montant}
                 typesAcceptes={lieu.types_evenements ?? []}
                 dateDebut={dateDebut}
                 dateFin={dateFin}

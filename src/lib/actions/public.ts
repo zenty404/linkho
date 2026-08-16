@@ -146,6 +146,7 @@ export type LieuDetail = {
   nb_salles_de_bain: number | null
   superficie_m2: number | null
   prix_base: number | null
+  caution_montant: number | null
   equipements: string[] | null
   types_evenements: string[] | null
   photos: LieuPhoto[]
@@ -157,7 +158,7 @@ export async function getLieuById(id: string): Promise<LieuDetail | null> {
   const { data, error } = await supabase
     .from('etablissement_profiles')
     .select(
-      'id, nom, ville, adresse, code_postal, type_lieu, description, capacite_max, nb_couchages, nb_chambres, nb_salles_de_bain, superficie_m2, prix_base, equipements, types_evenements, actif, visible, etablissement_photos(id, url, est_principale, ordre)',
+      'id, nom, ville, adresse, code_postal, type_lieu, description, capacite_max, nb_couchages, nb_chambres, nb_salles_de_bain, superficie_m2, prix_base, caution_montant, equipements, types_evenements, actif, visible, etablissement_photos(id, url, est_principale, ordre)',
     )
     .eq('id', id)
     .single()
@@ -181,6 +182,7 @@ export async function getLieuById(id: string): Promise<LieuDetail | null> {
     nb_salles_de_bain: data.nb_salles_de_bain,
     superficie_m2: data.superficie_m2,
     prix_base: data.prix_base,
+    caution_montant: data.caution_montant,
     equipements: data.equipements,
     types_evenements: data.types_evenements,
     photos,

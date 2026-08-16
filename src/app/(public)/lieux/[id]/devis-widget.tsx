@@ -19,6 +19,7 @@ type Props = {
   lieuId: string
   lieuNom: string
   prixBase: number | null
+  cautionMontant: number | null
   typesAcceptes: string[]
   dateDebut?: string
   dateFin?: string
@@ -43,6 +44,7 @@ export default function DevisWidget({
   lieuId,
   lieuNom,
   prixBase,
+  cautionMontant,
   typesAcceptes,
   dateDebut,
   dateFin,
@@ -294,6 +296,28 @@ export default function DevisWidget({
 
             {error && (
               <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+            )}
+
+            {cautionMontant && cautionMontant > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-amber-800 mb-2">
+                  🔒 Caution solidaire BDE
+                </p>
+                <p className="text-sm text-amber-700 mb-3">
+                  Une caution de <strong>{cautionMontant.toLocaleString('fr-FR')} €</strong> sera demandée sous forme de chèques à remettre à l&apos;établissement le jour J.
+                </p>
+                <div className="space-y-1">
+                  {[0.25, 0.5, 0.75, 1].map((ratio) => (
+                    <div key={ratio} className="flex justify-between text-xs text-amber-700">
+                      <span>Chèque {Math.round(ratio * 100)}%</span>
+                      <span className="font-semibold">{Math.round(cautionMontant * ratio).toLocaleString('fr-FR')} €</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-amber-600 mt-2">
+                  En cas de dégâts, seul le chèque le plus proche du montant des dégâts est encaissé.
+                </p>
+              </div>
             )}
 
             <div className="space-y-2">
