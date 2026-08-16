@@ -14,6 +14,12 @@
   --color-navy-light: #0f2350;
   --color-brand: #f49915;
   --color-brand-light: #f7b547;
+
+  --color-mist: #f5f6fa;
+  --color-line: #e7eaf1;
+  --color-ink: #58627c;
+  --color-success: #0d8f72;
+  --color-success-light: #e7f6f1;
 }
 
 body {

@@ -128,6 +128,46 @@ function IconTrophy() {
   )
 }
 
+function IconCheckMini() {
+  return (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75 9 17.25 19.5 6.75" />
+    </svg>
+  )
+}
+
+function IconBuilding() {
+  return (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3.75h9a.75.75 0 0 1 .75.75V21H4.5V4.5a.75.75 0 0 1 0-.75Zm0 0v.75M15 9.75h4.5a.75.75 0 0 1 .75.75V21h-5.25M7.5 6.75h.008v.008H7.5V6.75Zm3 0h.008v.008h-.008V6.75Zm-3 3h.008v.008H7.5V9.75Zm3 0h.008v.008h-.008V9.75Zm-3 3h.008v.008H7.5v-.008Zm3 0h.008v.008h-.008v-.008Zm7.5-2.25h.008v.008H18v-.008Zm0 3h.008v.008H18v-.008Z" />
+    </svg>
+  )
+}
+
+function IconLockClosed() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+  )
+}
+
+function IconPhone() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+    </svg>
+  )
+}
+
+function IconCalendarPlain() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 9h18M4.5 5.25h15a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5v-12a1.5 1.5 0 0 1 1.5-1.5Z" />
+    </svg>
+  )
+}
+
 // ─── Card d'étape ─────────────────────────────────────────────────────────────
 
 function StepCard({
@@ -143,31 +183,30 @@ function StepCard({
   children: React.ReactNode
   tone?: 'white' | 'green' | 'amber'
 }) {
-  const toneCls =
-    tone === 'green' ? 'bg-green-50' :
-    tone === 'amber' ? 'bg-amber-50' :
-    'bg-white'
+  const accentCls =
+    tone === 'green' ? 'bg-success' :
+    tone === 'amber' ? 'bg-amber-400' :
+    'bg-navy/10'
   const iconBoxCls =
-    tone === 'green' ? 'bg-green-500/10 text-green-700' :
+    tone === 'green' ? 'bg-success/10 text-success' :
     tone === 'amber' ? 'bg-amber-500/10 text-amber-700' :
     'bg-navy/5 text-navy'
   return (
-    <div className={`rounded-2xl border border-gray-100 shadow-sm overflow-hidden ${toneCls}`}>
-      <div className="px-6 py-5 border-b border-gray-100/80">
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBoxCls}`}>
-            {icon}
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-navy">{title}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
-          </div>
+    <section className="rounded-2xl border border-line bg-white shadow-sm overflow-hidden">
+      <div className={`h-[3px] w-full ${accentCls}`} />
+      <div className="px-6 sm:px-8 pt-6 pb-5 flex items-center gap-3.5">
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${iconBoxCls}`}>
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-bold text-navy tracking-tight">{title}</h2>
+          <p className="text-xs text-ink mt-0.5">{subtitle}</p>
         </div>
       </div>
-      <div className="px-6 py-5">
+      <div className="px-6 sm:px-8 pb-7 sm:pb-8">
         {children}
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -192,44 +231,45 @@ function RoadmapTimeline({ currentStep, selectedStep, onSelect, cancelled }: {
   onSelect: (n: number) => void
   cancelled?: boolean
 }) {
-  void cancelled
   return (
-    <div className="bg-white border-b border-gray-100 w-full px-6 py-4 sticky top-0 z-10 shadow-sm">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center w-full">
-          {STEPS.map((step, i) => {
-            const done = currentStep > step.n
-            const current = currentStep === step.n
-            const selected = selectedStep === step.n
-            const clickable = done || current
-            return (
-              <div key={step.n} className="flex items-center flex-1">
-                <button
-                  onClick={() => clickable && onSelect(step.n)}
-                  disabled={!clickable}
-                  className="flex flex-col items-center gap-1 flex-shrink-0 disabled:cursor-not-allowed"
-                >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all
-                    ${selected ? 'scale-125 shadow-lg' : ''}
-                    ${done ? 'bg-green-500 border-green-500 text-white' :
-                      current ? 'bg-brand border-brand text-white' :
-                      'bg-white border-gray-200 text-gray-300'}`}>
-                    {done ? '✓' : step.n}
-                  </div>
-                  <span className={`text-[8px] font-medium text-center leading-tight w-12
-                    ${done ? 'text-green-600' : current ? 'text-brand' : 'text-gray-300'}`}>
-                    {step.label}
-                  </span>
-                </button>
-                {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-0.5 mb-3 ${done ? 'bg-green-400' : 'bg-gray-200'}`} />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
+    <nav aria-label="Progression de la réservation" className="flex items-start w-full">
+      {STEPS.map((step, i) => {
+        const done = !cancelled && currentStep > step.n
+        const current = !cancelled && currentStep === step.n
+        const selected = selectedStep === step.n
+        const clickable = done || current
+        const isLast = i === STEPS.length - 1
+        return (
+          <div key={step.n} className="flex items-start flex-1">
+            <button
+              onClick={() => clickable && onSelect(step.n)}
+              disabled={!clickable}
+              className="relative z-10 flex flex-col items-center gap-1.5 flex-shrink-0 disabled:cursor-not-allowed group"
+            >
+              <span
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold border transition-all
+                  ${done ? 'bg-green-400 border-green-400 text-navy' :
+                    current ? 'bg-brand border-brand text-white ring-4 ring-brand/30' :
+                    'bg-white/10 border-white/20 text-white/30'}
+                  ${selected && clickable ? 'scale-110' : ''}`}
+              >
+                {done ? <IconCheckMini /> : step.n}
+              </span>
+              <span className={`text-[11px] font-semibold text-center leading-tight w-16 sm:w-20
+                ${done ? 'text-green-300' : current ? 'text-brand font-bold' : 'text-white/30'}`}>
+                {step.label}
+              </span>
+            </button>
+            {!isLast && (
+              <div
+                className={`flex-1 h-0.5 mt-4 mx-1.5 rounded-full
+                  ${done ? 'bg-green-400/60' : 'bg-white/20'}`}
+              />
+            )}
+          </div>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -270,41 +310,41 @@ function StepDemande({
   return (
     <StepCard icon={<IconEnvelope />} title="Demande" subtitle="Demande envoyée à l'établissement">
       {demande ? (
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Établissement</p>
+              <p className="text-xs text-ink mb-0.5">Établissement</p>
               <p className="font-medium text-navy">{demande.etablissement?.nom ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Participants</p>
+              <p className="text-xs text-ink mb-0.5">Participants</p>
               <p className="font-medium text-navy">{demande.nb_participants}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Début</p>
+              <p className="text-xs text-ink mb-0.5">Début</p>
               <p className="font-medium text-navy">{fmtDate(dateDebut)}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Fin</p>
+              <p className="text-xs text-ink mb-0.5">Fin</p>
               <p className="font-medium text-navy">{fmtDate(dateFin)}</p>
             </div>
           </div>
           {demande.message && (
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Message</p>
-              <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <p className="text-xs text-ink mb-1.5">Message</p>
+              <p className="text-sm text-navy/80 bg-mist rounded-2xl p-4 border border-line">
                 {demande.message}
               </p>
             </div>
           )}
           {demande.statut_disponibilite === 'en_attente' && (
-            <p className="text-sm text-gray-500">En attente de réponse de l&apos;établissement.</p>
+            <p className="text-sm text-ink">En attente de réponse de l&apos;établissement.</p>
           )}
           {demande.statut_disponibilite === 'non_disponible' && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Non disponible</span>
               {demande.motif_refus && (
-                <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+                <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3.5">
                   <p className="text-xs font-semibold text-red-600 mb-1">Motif</p>
                   <p className="text-sm text-red-700">{demande.motif_refus}</p>
                 </div>
@@ -312,7 +352,7 @@ function StepDemande({
             </div>
           )}
           {demande.statut === 'refusee' && demande.motif_refus && demande.statut_disponibilite !== 'non_disponible' && (
-            <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+            <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3.5">
               <p className="text-xs font-semibold text-red-600 mb-1">Motif du refus</p>
               <p className="text-sm text-red-700">{demande.motif_refus}</p>
             </div>
@@ -325,27 +365,27 @@ function StepDemande({
                   <Link
                     key={lieu.id}
                     href={`/lieux/${lieu.id}`}
-                    className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
+                    className="flex items-center gap-3 bg-white border border-line rounded-2xl p-3 hover:border-brand/40 hover:bg-brand/5 transition-colors"
                   >
                     {lieu.photo_url ? (
                       <img
                         src={lieu.photo_url}
                         alt={lieu.nom}
-                        className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                        className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center text-gray-300 text-xl">
-                        🏛
+                      <div className="w-14 h-14 rounded-xl bg-mist flex-shrink-0 flex items-center justify-center text-ink/30">
+                        <IconBuilding />
                       </div>
                     )}
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-navy truncate">{lieu.nom}</p>
-                      {lieu.ville && <p className="text-xs text-gray-500">{lieu.ville}</p>}
+                      {lieu.ville && <p className="text-xs text-ink">{lieu.ville}</p>}
                       {lieu.capacite_max != null && (
-                        <p className="text-xs text-gray-400">jusqu&apos;à {lieu.capacite_max} personnes</p>
+                        <p className="text-xs text-ink/60">jusqu&apos;à {lieu.capacite_max} personnes</p>
                       )}
                     </div>
-                    <span className="ml-auto text-gray-300 flex-shrink-0">›</span>
+                    <span className="ml-auto text-ink/40 flex-shrink-0">›</span>
                   </Link>
                 ))}
               </div>
@@ -353,7 +393,7 @@ function StepDemande({
           )}
         </div>
       ) : (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-ink">
           En attente de réponse de l&apos;établissement.
         </p>
       )}
@@ -367,12 +407,14 @@ function StepDispo({ demande }: { demande: EvenementComplet['demande'] }) {
   return (
     <StepCard icon={<IconCalendarCheck />} title="Disponibilité" subtitle="L'établissement a confirmé sa disponibilité">
       {demande?.statut_disponibilite === 'disponible' ? (
-        <div className="space-y-2">
-          <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✓ Disponibilité confirmée</span>
-          <p className="text-sm text-gray-500">En attente de validation par l&apos;équipe LINKHO avant génération de la facture.</p>
+        <div className="space-y-3">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-success/10 text-success">
+            <IconCheckMini /> Disponibilité confirmée
+          </span>
+          <p className="text-sm text-ink">En attente de validation par l&apos;équipe LINKHO avant génération de la facture.</p>
         </div>
       ) : (
-        <p className="text-sm text-gray-500">En attente de confirmation de disponibilité par l&apos;établissement.</p>
+        <p className="text-sm text-ink">En attente de confirmation de disponibilité par l&apos;établissement.</p>
       )}
     </StepCard>
   )
@@ -406,69 +448,69 @@ function StepValidation({
   return (
     <StepCard icon={<IconDocumentText />} title="Devis" subtitle="LINKHO a validé votre demande">
       {!devis ? (
-        <p className="text-sm text-gray-500">En attente du devis de l&apos;établissement.</p>
+        <p className="text-sm text-ink">En attente du devis de l&apos;établissement.</p>
       ) : devis.statut === 'refuse' ? (
         <div className="space-y-3">
           <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
             Devis refusé
           </span>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-ink">
             L&apos;établissement peut vous proposer un nouveau devis suite à vos échanges.
           </p>
           <Link
             href="/rechercher"
-            className="inline-block bg-gray-50 text-navy font-semibold rounded-xl py-3 px-6 hover:bg-gray-100 transition-colors border border-gray-200 text-sm"
+            className="inline-block bg-mist text-navy font-semibold rounded-xl py-3 px-6 hover:bg-line/60 transition-colors border border-line text-sm"
           >
             Rechercher un autre lieu
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-500 font-mono">{devis.numero}</p>
+            <p className="text-xs text-ink font-mono">{devis.numero}</p>
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full
-              ${devis.statut === 'accepte' || devis.statut === 'signe' ? 'bg-green-100 text-green-700' :
+              ${devis.statut === 'accepte' || devis.statut === 'signe' ? 'bg-success/10 text-success' :
                 devis.statut === 'envoye' ? 'bg-blue-100 text-blue-700' :
-                'bg-gray-100 text-gray-600'}`}>
+                'bg-mist text-ink'}`}>
               {devis.statut}
             </span>
           </div>
 
           {devis.items.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-100 overflow-hidden">
-              <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b border-gray-100">
+            <div className="bg-mist/60 rounded-2xl border border-line overflow-hidden">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-2.5 text-xs font-semibold text-ink/70 uppercase tracking-wide border-b border-line">
                 <span>Prestation</span>
                 <span className="text-right">Qté</span>
                 <span className="text-right">Prix</span>
               </div>
               {devis.items.map((item) => (
-                <div key={item.id} className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-3 border-b border-gray-50 last:border-0 text-sm">
+                <div key={item.id} className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-3 border-b border-line/70 last:border-0 text-sm">
                   <span className="text-navy">{item.libelle}</span>
-                  <span className="text-right text-gray-500">{item.quantite}</span>
+                  <span className="text-right text-ink">{item.quantite}</span>
                   <span className="text-right text-navy font-medium">{fmtEuros(item.prix_unitaire)}</span>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="bg-white rounded-lg border border-gray-100 p-4 space-y-2 text-sm">
-            <div className="flex justify-between text-gray-600">
+          <div className="bg-mist/60 rounded-2xl border border-line p-4 space-y-2 text-sm">
+            <div className="flex justify-between text-ink">
               <span>Sous-total HT</span>
               <span>{fmtEuros(devis.sous_total_ht)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-ink">
               <span>TVA ({Math.round(devis.tva_taux * 100)}%)</span>
               <span>{fmtEuros((devis.total_ttc ?? 0) - devis.sous_total_ht)}</span>
             </div>
-            <div className="flex justify-between font-bold text-navy border-t border-gray-100 pt-2">
+            <div className="flex justify-between font-bold text-navy border-t border-line pt-2">
               <span>Total TTC</span>
               <span>{fmtEuros(devis.total_ttc ?? 0)}</span>
             </div>
-            <div className="flex justify-between text-gray-600 pt-1">
+            <div className="flex justify-between text-ink pt-1">
               <span>Acompte ({Math.round(devis.acompte_taux * 100)}%)</span>
               <span>{fmtEuros((devis.total_ttc ?? 0) * devis.acompte_taux)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-ink">
               <span>Solde</span>
               <span>{fmtEuros((devis.total_ttc ?? 0) * (1 - devis.acompte_taux))}</span>
             </div>
@@ -476,8 +518,8 @@ function StepValidation({
 
           {devis.message_client && (
             <div>
-              <p className="text-xs text-gray-400 mb-1">Message de l&apos;établissement</p>
-              <p className="text-sm text-gray-700 bg-white rounded-lg p-3 border border-gray-100 italic">
+              <p className="text-xs text-ink mb-1.5">Message de l&apos;établissement</p>
+              <p className="text-sm text-navy/80 bg-mist rounded-2xl p-4 border border-line italic">
                 {devis.message_client}
               </p>
             </div>
@@ -504,7 +546,7 @@ function StepValidation({
           {devis.statut === 'envoye' && showRefusForm && (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-1.5">
+                <label className="block text-xs text-ink mb-1.5">
                   Motif du refus <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -512,9 +554,9 @@ function StepValidation({
                   onChange={(e) => setMotifRefus(e.target.value)}
                   placeholder="Expliquez la raison du refus à l'établissement…"
                   rows={3}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-red-300/30 focus:border-red-300 resize-none"
+                  className="w-full px-3 py-2.5 text-sm border border-line rounded-xl outline-none focus:ring-2 focus:ring-red-300/30 focus:border-red-300 resize-none"
                 />
-                <p className={`text-xs mt-1 ${motifRefus.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                <p className={`text-xs mt-1 ${motifRefus.trim().length < 20 ? 'text-red-400' : 'text-ink/50'}`}>
                   {motifRefus.trim().length} / 20 caractères minimum
                 </p>
               </div>
@@ -522,7 +564,7 @@ function StepValidation({
                 <button
                   type="button"
                   onClick={() => { setShowRefusForm(false); setMotifRefus('') }}
-                  className="flex-1 bg-gray-50 text-navy font-semibold rounded-xl py-3 px-6 hover:bg-gray-100 transition-colors border border-gray-200 text-sm"
+                  className="flex-1 bg-mist text-navy font-semibold rounded-xl py-3 px-6 hover:bg-line/60 transition-colors border border-line text-sm"
                 >
                   Annuler
                 </button>
@@ -571,7 +613,7 @@ function StepAcompte({
   evenementId: string
   calLink: string | null
 }) {
-  if (!reservation) return <p className="text-sm text-gray-500">Aucune réservation en cours.</p>
+  if (!reservation) return <p className="text-sm text-ink">Aucune réservation en cours.</p>
   const acomptePaiement = reservation.paiements.find((p) => p.type === 'acompte') ?? null
 
   return (
@@ -579,7 +621,7 @@ function StepAcompte({
       <StepCard icon={<IconCreditCard />} title="Paiement de l'acompte" subtitle="Réglez l'acompte pour confirmer">
         <div className="space-y-4">
           {reservation.statut === 'en_attente_acompte' && reservation.expire_at && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
               <div className="flex items-center justify-between gap-4">
                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Délai de paiement</p>
                 <CountdownTimer expireAt={reservation.expire_at} />
@@ -589,14 +631,14 @@ function StepAcompte({
               </p>
             </div>
           )}
-          <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center justify-between">
+          <div className="bg-mist/60 rounded-2xl border border-line p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Montant acompte</p>
+              <p className="text-xs text-ink mb-0.5">Montant acompte</p>
               <p className="text-lg font-bold text-navy">{fmtEuros(reservation.acompte_montant)}</p>
             </div>
             {reservation.statut === 'confirmee' || acomptePaiement?.confirme ? (
-              <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">
-                Acompte reçu ✅
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-success/10 text-success">
+                <IconCheckMini /> Acompte reçu
               </span>
             ) : (
               <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">
@@ -626,19 +668,28 @@ function StepAcompte({
       </StepCard>
 
       {reservation.statut === 'en_attente_acompte' && calLink && (
-        <div className="rounded-2xl border border-navy/10 bg-navy/5 p-6 space-y-3">
-          <p className="text-sm font-bold text-navy">📞 Prochaine étape — Réserver un appel avec notre équipe</p>
-          <p className="text-sm text-gray-600">
-            Notre équipe vous accompagne dans l&apos;organisation de votre événement. Prenez rendez-vous pour préparer la suite.
-          </p>
-          <a
-            href={calLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 bg-brand text-white font-semibold rounded-xl py-3 px-6 hover:bg-brand/90 transition-colors text-sm"
-          >
-            Prendre rendez-vous
-          </a>
+        <div className="rounded-3xl border border-navy/10 bg-navy/[0.04] p-6">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-navy/5 text-navy flex items-center justify-center flex-shrink-0">
+              <IconPhone />
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-bold text-navy">Prochaine étape — Réserver un appel avec notre équipe</p>
+                <p className="text-sm text-ink mt-1">
+                  Notre équipe vous accompagne dans l&apos;organisation de votre événement. Prenez rendez-vous pour préparer la suite.
+                </p>
+              </div>
+              <a
+                href={calLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-brand text-white font-semibold rounded-xl py-3 px-6 hover:bg-brand/90 transition-colors text-sm"
+              >
+                Prendre rendez-vous
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -659,17 +710,19 @@ function StepAcomptePaye({
   return (
     <div className="flex flex-col gap-5">
       <StepCard icon={<IconCheckCircle />} title="Acompte payé" subtitle="Votre acompte a bien été reçu" tone="green">
-        <p className="text-sm text-gray-600">
-          {reservation ? `Acompte de ${fmtEuros(reservation.acompte_montant)} confirmé. ✅` : 'Acompte confirmé.'}
+        <p className="text-sm text-ink">
+          {reservation ? `Acompte de ${fmtEuros(reservation.acompte_montant)} confirmé.` : 'Acompte confirmé.'}
         </p>
       </StepCard>
 
       {montant && montant > 0 && (() => {
         const paliers = [0.25, 0.5, 0.75, 1]
         return (
-          <div className="rounded-2xl border border-amber-200 shadow-sm bg-amber-50 p-6">
-            <div className="flex items-start gap-3 mb-4">
-              <span className="text-xl">🔒</span>
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
+            <div className="flex items-start gap-3.5 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-700 flex items-center justify-center flex-shrink-0">
+                <IconLockClosed />
+              </div>
               <div>
                 <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">Caution solidaire BDE</h2>
                 <p className="text-sm text-amber-700 mt-1">
@@ -677,7 +730,7 @@ function StepAcomptePaye({
                 </p>
               </div>
             </div>
-            <div className="bg-white/60 rounded-lg p-4 space-y-2 mb-4">
+            <div className="bg-white/60 rounded-2xl p-4 space-y-2 mb-4">
               <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider mb-2">Chèques à préparer</p>
               {paliers.map((ratio) => (
                 <div key={ratio} className="flex justify-between text-sm text-amber-700">
@@ -729,11 +782,11 @@ function StepDevisPresta({
   return (
     <StepCard icon={<IconUsers />} title="Devis prestataires" subtitle="Prestataires externes à valider">
       {devis_prestataires.length === 0 ? (
-          <p className="text-sm text-gray-500">Aucun devis prestataire pour le moment.</p>
+          <p className="text-sm text-ink">Aucun devis prestataire pour le moment.</p>
         ) : (
           <>
             {dpError && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3">
                 {dpError}
               </div>
             )}
@@ -741,7 +794,7 @@ function StepDevisPresta({
               {devis_prestataires.map((dp) => {
                 const badgeCls =
                   dp.statut === 'signe'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-success/10 text-success'
                     : dp.statut === 'refuse'
                       ? 'bg-red-100 text-red-700'
                       : 'bg-amber-100 text-amber-700'
@@ -755,11 +808,11 @@ function StepDevisPresta({
                       : 'Autre'
 
                 return (
-                  <div key={dp.id} className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+                  <div key={dp.id} className="bg-mist/60 rounded-2xl border border-line p-4">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white text-ink border border-line">
                             {typeLabel}
                           </span>
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badgeCls}`}>
@@ -768,7 +821,7 @@ function StepDevisPresta({
                         </div>
                         <p className="text-sm font-semibold text-navy">{dp.nom}</p>
                         {dp.montant != null && (
-                          <p className="text-xs text-gray-500 mt-0.5">{fmtEuros(dp.montant)}</p>
+                          <p className="text-xs text-ink mt-0.5">{fmtEuros(dp.montant)}</p>
                         )}
                       </div>
                       <a
@@ -783,10 +836,10 @@ function StepDevisPresta({
 
                     {dp.statut === 'en_attente' && (
                       dpRefusModalId === dp.id ? (
-                        <div className="pt-3 border-t border-gray-100 space-y-3">
+                        <div className="pt-3 border-t border-line space-y-3">
                           <div>
                             <p className="text-sm font-semibold text-navy">Contacter le support LINKHO</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Expliquez pourquoi vous souhaitez refuser ce devis</p>
+                            <p className="text-xs text-ink mt-0.5">Expliquez pourquoi vous souhaitez refuser ce devis</p>
                           </div>
                           <div>
                             <textarea
@@ -794,9 +847,9 @@ function StepDevisPresta({
                               onChange={(e) => setDpRefusMotif(e.target.value)}
                               placeholder="Décrivez la raison de votre refus…"
                               rows={3}
-                              className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                              className="w-full px-3 py-2 text-xs border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
                             />
-                            <p className={`text-xs mt-1 ${dpRefusMotif.trim().length < 20 ? 'text-red-400' : 'text-gray-400'}`}>
+                            <p className={`text-xs mt-1 ${dpRefusMotif.trim().length < 20 ? 'text-red-400' : 'text-ink/50'}`}>
                               {dpRefusMotif.trim().length} / 20 caractères minimum
                             </p>
                           </div>
@@ -807,7 +860,7 @@ function StepDevisPresta({
                             <button
                               type="button"
                               onClick={onAnnulerRefus}
-                              className="flex-1 bg-gray-50 text-navy border border-gray-200 text-xs font-semibold rounded-xl py-2.5 px-4 hover:bg-gray-100 transition-colors"
+                              className="flex-1 bg-white text-navy border border-line text-xs font-semibold rounded-xl py-2.5 px-4 hover:bg-mist transition-colors"
                             >
                               Annuler
                             </button>
@@ -822,7 +875,7 @@ function StepDevisPresta({
                           </div>
                         </div>
                       ) : (
-                        <div className="flex gap-2 pt-3 border-t border-gray-100">
+                        <div className="flex gap-2 pt-3 border-t border-line">
                           <button
                             onClick={() => onSigner(dp.id)}
                             disabled={isPending}
@@ -832,7 +885,7 @@ function StepDevisPresta({
                           </button>
                           <button
                             onClick={() => onOuvrirRefus(dp.id)}
-                            className="bg-gray-50 border border-gray-200 text-navy text-xs font-semibold rounded-xl py-2.5 px-4 hover:bg-gray-100 transition-colors"
+                            className="bg-white border border-line text-navy text-xs font-semibold rounded-xl py-2.5 px-4 hover:bg-mist transition-colors"
                           >
                             Refuser / Contacter le support
                           </button>
@@ -849,31 +902,46 @@ function StepDevisPresta({
   )
 }
 
+// ─── Sous-composant — ligne de statut de signature EDL ────────────────────────
+
+function EdlSignataire({ label, signe }: { label: string; signe: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs font-medium ${signe ? 'text-success' : 'text-ink/50'}`}>
+      <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0
+        ${signe ? 'bg-success text-white' : 'border border-line bg-white'}`}>
+        {signe && <IconCheckMini />}
+      </span>
+      {label}
+    </span>
+  )
+}
+
 // ─── Étape 7 — État des lieux d'arrivée ────────────────────────────────────────
 
 function StepEdlArrivee({ etats_des_lieux }: { etats_des_lieux: EvenementComplet['etats_des_lieux'] }) {
   const edlArrivee = etats_des_lieux.find((e) => e.type === 'arrivee') ?? null
   return (
     <StepCard icon={<IconKey />} title="État des lieux d'arrivée" subtitle="À signer le jour de votre arrivée">
-      <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
+      <div className="bg-mist/60 rounded-2xl border border-line p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             {!edlArrivee && (
-              <p className="text-xs text-gray-400">L&apos;établissement lancera cet état des lieux le jour J.</p>
+              <p className="text-xs text-ink/70">L&apos;établissement lancera cet état des lieux le jour J.</p>
             )}
             {edlArrivee?.statut === 'en_attente_signature' && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 inline-block">
                   En attente de signature
                 </span>
-                <p className="text-xs text-gray-500">
-                  BDE {edlArrivee.bde_signe_le ? '✓ signé' : '○ en attente'} · Établissement {edlArrivee.etab_signe_le ? '✓ signé' : '○ en attente'}
-                </p>
+                <div className="flex items-center gap-3">
+                  <EdlSignataire label="BDE" signe={!!edlArrivee.bde_signe_le} />
+                  <EdlSignataire label="Établissement" signe={!!edlArrivee.etab_signe_le} />
+                </div>
               </div>
             )}
             {edlArrivee?.statut === 'signe' && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 inline-block">
-                Signé par les deux parties ✓
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success">
+                <IconCheckMini /> Signé par les deux parties
               </span>
             )}
           </div>
@@ -900,29 +968,30 @@ function StepEdlDepart({ etats_des_lieux }: { etats_des_lieux: EvenementComplet[
   const edlDepart = etats_des_lieux.find((e) => e.type === 'depart') ?? null
   return (
     <StepCard icon={<IconDoorExit />} title="État des lieux de départ" subtitle="À signer avant de quitter le lieu">
-      <div className="bg-gray-50 rounded-xl border border-gray-100 p-4">
+      <div className="bg-mist/60 rounded-2xl border border-line p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             {!edlDepart && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-ink/70">
                 {edlArrivee?.statut === 'signe'
                   ? "L'établissement lancera cet état des lieux en fin d'événement."
                   : "Disponible après signature de l'état des lieux d'arrivée."}
               </p>
             )}
             {edlDepart?.statut === 'en_attente_signature' && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 inline-block">
                   En attente de signature
                 </span>
-                <p className="text-xs text-gray-500">
-                  BDE {edlDepart.bde_signe_le ? '✓ signé' : '○ en attente'} · Établissement {edlDepart.etab_signe_le ? '✓ signé' : '○ en attente'}
-                </p>
+                <div className="flex items-center gap-3">
+                  <EdlSignataire label="BDE" signe={!!edlDepart.bde_signe_le} />
+                  <EdlSignataire label="Établissement" signe={!!edlDepart.etab_signe_le} />
+                </div>
               </div>
             )}
             {edlDepart?.statut === 'signe' && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 inline-block">
-                Signé par les deux parties ✓
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-success/10 text-success">
+                <IconCheckMini /> Signé par les deux parties
               </span>
             )}
           </div>
@@ -953,20 +1022,20 @@ function StepSolde({
   evenementId: string
   edlDepartSigne: boolean
 }) {
-  if (!reservation) return <p className="text-sm text-gray-500">Aucune réservation en cours.</p>
+  if (!reservation) return <p className="text-sm text-ink">Aucune réservation en cours.</p>
   const soldePaiement = reservation.paiements.find((p) => p.type === 'solde') ?? null
 
   return (
     <StepCard icon={<IconBanknotes />} title="Paiement du solde" subtitle="Dernière étape avant la clôture">
       <div className="space-y-4">
-        <div className="bg-white rounded-lg border border-gray-100 p-4 flex items-center justify-between">
+        <div className="bg-mist/60 rounded-2xl border border-line p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Montant solde</p>
+            <p className="text-xs text-ink mb-0.5">Montant solde</p>
             <p className="text-lg font-bold text-navy">{fmtEuros(reservation.solde_montant)}</p>
           </div>
           {reservation.statut_solde === 'paye' || soldePaiement?.confirme ? (
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-700">
-              Solde reçu ✅
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-success/10 text-success">
+              <IconCheckMini /> Solde reçu
             </span>
           ) : (
             <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">
@@ -975,7 +1044,7 @@ function StepSolde({
           )}
         </div>
         {reservation.solde_expire_at && reservation.statut_solde !== 'paye' && !soldePaiement?.confirme && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4">
             <p className="text-xs text-amber-800 font-medium">
               Réglez le solde de <span className="font-bold">{fmtEuros(reservation.solde_montant)}</span> avant cette date pour finaliser votre réservation.
             </p>
@@ -993,7 +1062,7 @@ function StepSolde({
           </Link>
         )}
         {!soldePaiement?.confirme && reservation.statut_solde === 'en_attente' && !edlDepartSigne && (
-          <p className="text-xs text-gray-400 text-center py-2">
+          <p className="text-xs text-ink/60 text-center py-2">
             Le paiement du solde sera débloqué après signature de l&apos;état des lieux de départ.
           </p>
         )}
@@ -1041,23 +1110,23 @@ function StepTermine({
     <div className="flex flex-col gap-5">
       <StepCard icon={<IconTrophy />} title="Clôture" subtitle="Événement clôturé avec succès" tone="green">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">Votre événement est terminé. Merci d&apos;avoir utilisé LINKHO !</p>
+          <p className="text-sm text-ink">Votre événement est terminé. Merci d&apos;avoir utilisé LINKHO !</p>
           {reservation && (
-            <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-2 text-sm">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Résumé financier</p>
-              <div className="flex justify-between text-gray-600">
+            <div className="bg-mist/60 rounded-2xl border border-line p-4 space-y-2 text-sm">
+              <p className="text-xs font-semibold text-ink/70 uppercase tracking-wide mb-3">Résumé financier</p>
+              <div className="flex justify-between text-ink">
                 <span>Total TTC</span>
                 <span>{fmtEuros(reservation.montant_ttc)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-ink">
                 <span>Acompte versé</span>
                 <span>{fmtEuros(reservation.acompte_montant)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-ink">
                 <span>Solde versé</span>
                 <span>{fmtEuros(reservation.solde_montant)}</span>
               </div>
-              <div className="flex justify-between text-gray-500 pt-1 border-t border-gray-100">
+              <div className="flex justify-between text-ink/70 pt-1 border-t border-line">
                 <span>Commission LINKHO</span>
                 <span>{fmtEuros(reservation.commission_montant)}</span>
               </div>
@@ -1073,49 +1142,51 @@ function StepTermine({
           subtitle="Aidez les autres BDE à choisir ce lieu"
         >
           {avis_lieu || avisSubmitted ? (
-            <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+            <div className="bg-mist/60 rounded-2xl border border-line p-4">
               <div className="flex items-center gap-1 mb-2">
                 {Array.from({ length: 5 }, (_, i) => (
-                  <span key={i} className={`text-xl ${i < (avis_lieu?.note ?? avisNote) ? 'text-brand' : 'text-gray-300'}`}>★</span>
+                  <span key={i} className={`text-xl ${i < (avis_lieu?.note ?? avisNote) ? 'text-brand' : 'text-line'}`}>★</span>
                 ))}
               </div>
               {(avis_lieu?.commentaire || avisCommentaire) && (
-                <p className="text-sm text-gray-600">{avis_lieu?.commentaire ?? avisCommentaire}</p>
+                <p className="text-sm text-ink">{avis_lieu?.commentaire ?? avisCommentaire}</p>
               )}
-              <p className="text-xs text-green-600 font-medium mt-2">✓ Avis enregistré</p>
+              <p className="inline-flex items-center gap-1.5 text-xs text-success font-medium mt-2">
+                <IconCheckMini /> Avis enregistré
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-gray-500 mb-2">Note</p>
+                <p className="text-xs text-ink mb-2">Note</p>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
                       type="button"
                       onClick={() => setAvisNote(n)}
-                      className={`text-3xl transition-colors ${n <= avisNote ? 'text-brand' : 'text-gray-300 hover:text-brand/60'}`}
+                      className={`text-3xl transition-colors ${n <= avisNote ? 'text-brand' : 'text-line hover:text-brand/60'}`}
                       aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
                     >
                       ★
                     </button>
                   ))}
                   {avisNote > 0 && (
-                    <span className="ml-2 text-sm text-gray-500">{avisNote}/5</span>
+                    <span className="ml-2 text-sm text-ink">{avisNote}/5</span>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Commentaire <span className="text-gray-400">(optionnel)</span>
+                <label className="block text-xs text-ink mb-1">
+                  Commentaire <span className="text-ink/50">(optionnel)</span>
                 </label>
                 <textarea
                   value={avisCommentaire}
                   onChange={(e) => setAvisCommentaire(e.target.value)}
                   rows={3}
                   placeholder="Partagez votre expérience avec ce lieu…"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
+                  className="w-full px-3 py-2 text-sm border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none"
                 />
               </div>
 
@@ -1170,9 +1241,9 @@ function InscritsPanel({ evenementId, formulaireId }: { evenementId: string; for
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="rounded-2xl border border-line bg-white shadow-sm p-6 sm:p-8">
         {loading ? (
-          <p className="text-sm text-gray-400">Chargement des inscrits…</p>
+          <p className="text-sm text-ink/60">Chargement des inscrits…</p>
         ) : error ? (
           <p className="text-sm text-red-500">{error}</p>
         ) : (
@@ -1225,9 +1296,9 @@ function FormulairePanel({ formulaireId }: { formulaireId: string }) {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="rounded-2xl border border-line bg-white shadow-sm p-6 sm:p-8">
         {loading ? (
-          <p className="text-sm text-gray-400">Chargement du formulaire…</p>
+          <p className="text-sm text-ink/60">Chargement du formulaire…</p>
         ) : error ? (
           <p className="text-sm text-red-500">{error}</p>
         ) : formulaireRow ? (
@@ -1236,7 +1307,7 @@ function FormulairePanel({ formulaireId }: { formulaireId: string }) {
               <div className="flex gap-3 mb-6">
                 <button
                   onClick={() => navigator.clipboard.writeText(inscriptionUrl)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-navy text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-mist hover:bg-line/60 text-navy text-sm font-semibold rounded-xl border border-line transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1245,7 +1316,7 @@ function FormulairePanel({ formulaireId }: { formulaireId: string }) {
                 </button>
                 <button
                   onClick={() => window.open(inscriptionUrl, '_blank')}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-navy text-sm font-semibold rounded-xl border border-gray-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-mist hover:bg-line/60 text-navy text-sm font-semibold rounded-xl border border-line transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1375,74 +1446,74 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
     })
   }
 
+  const statutLabels: Record<string, { label: string; dot: string }> = {
+    annulee: { label: 'Annulée', dot: 'bg-red-400' },
+    en_attente_acompte: { label: 'Acompte à régler', dot: 'bg-amber-400' },
+    acompte_confirme: { label: 'Acompte payé', dot: 'bg-blue-400' },
+    confirmee: { label: 'Solde à régler', dot: 'bg-orange-400' },
+    en_cours: { label: 'Événement terminé', dot: 'bg-success' },
+    terminee: { label: 'Clôturé', dot: 'bg-ink/30' },
+    commission_reversee: { label: 'Clôturé', dot: 'bg-ink/30' },
+  }
+  const statutDisplay = reservation ? (statutLabels[reservation.statut] ?? { label: reservation.statut, dot: 'bg-ink/30' }) : null
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header pleine largeur */}
-      <div className="bg-navy w-full px-8 py-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-start justify-between gap-6">
-            <div>
+      {/* En-tête + timeline fusionnés dans un même bloc navy sticky */}
+      <div className="bg-navy rounded-2xl mx-6 mt-6 overflow-hidden">
+        {/* Infos événement */}
+        <div className="max-w-6xl mx-auto px-6 lg:px-10 pt-6 pb-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
               {demande?.etablissement && (
-                <p className="text-white/50 text-xs font-medium uppercase tracking-widest mb-2">
+                <p className="text-white/50 text-xs uppercase tracking-widest mb-1">
                   {demande.etablissement.nom}
                   {demande.etablissement.ville ? ` · ${demande.etablissement.ville}` : ''}
                 </p>
               )}
-              <h1 className="text-2xl font-bold text-white mb-1">{evenement.nom}</h1>
-              <p className="text-white/60 text-sm">
+              <h1 className="text-xl font-bold text-white">{evenement.nom}</h1>
+              <p className="inline-flex items-center gap-1.5 text-white/60 text-sm mt-0.5">
+                <IconCalendarPlain />
                 {fmtDate(evenement.date_debut)} → {fmtDate(evenement.date_fin)}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-3">
-              {reservation && (() => {
-                const statutLabels: Record<string, { label: string; cls: string }> = {
-                  annulee: { label: 'Annulée', cls: 'bg-red-100 text-red-700' },
-                  en_attente_acompte: { label: 'Acompte à régler', cls: 'bg-amber-100 text-amber-700' },
-                  acompte_confirme: { label: 'Acompte payé', cls: 'bg-blue-100 text-blue-700' },
-                  confirmee: { label: 'Solde à régler', cls: 'bg-orange-100 text-orange-700' },
-                  en_cours: { label: 'Événement terminé', cls: 'bg-green-100 text-green-700' },
-                  terminee: { label: 'Clôturé', cls: 'bg-gray-100 text-gray-600' },
-                  commission_reversee: { label: 'Clôturé', cls: 'bg-gray-100 text-gray-600' },
-                }
-                const statutDisplay = statutLabels[reservation.statut] ?? { label: reservation.statut, cls: 'bg-gray-100 text-gray-600' }
-                return (
-                  <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${statutDisplay.cls}`}>
-                    {statutDisplay.label}
-                  </span>
-                )
-              })()}
-              <p className="text-white/40 text-xs">Étape {currentStep} sur 10</p>
+            <div className="flex flex-col items-end gap-2">
+              {statutDisplay && (
+                <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 text-white ring-1 ring-white/15">
+                  <span className={`w-1.5 h-1.5 rounded-full ${statutDisplay.dot}`} />
+                  {statutDisplay.label}
+                </span>
+              )}
+              <p className="text-white/40 text-xs whitespace-nowrap">Étape {currentStep} / 10</p>
             </div>
           </div>
 
           {showSection4 && (
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => setActiveView('inscrits')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-colors border
-                  ${activeView === 'inscrits'
-                    ? 'bg-white text-navy border-white'
-                    : 'bg-white/10 hover:bg-white/20 text-white border-white/20'}`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Gérer les inscrits
-              </button>
-              {formulaire && (
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              <div className="inline-flex items-center gap-1 bg-white/10 rounded-2xl p-1">
                 <button
-                  onClick={() => setActiveView('formulaire')}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-colors border
-                    ${activeView === 'formulaire'
-                      ? 'bg-white text-navy border-white'
-                      : 'bg-white/10 hover:bg-white/20 text-white border-white/20'}`}
+                  onClick={() => setActiveView('inscrits')}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-colors
+                    ${activeView === 'inscrits' ? 'bg-white text-navy' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  Gérer le formulaire
+                  Gérer les inscrits
                 </button>
-              )}
+                {formulaire && (
+                  <button
+                    onClick={() => setActiveView('formulaire')}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-colors
+                      ${activeView === 'formulaire' ? 'bg-white text-navy' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Gérer le formulaire
+                  </button>
+                )}
+              </div>
               {!formulaire && (
                 <button
                   onClick={handleCreerFormulaire}
@@ -1454,26 +1525,31 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
             </div>
           )}
         </div>
+
+        {/* Séparateur subtil */}
+        <div className="border-t border-white/10 mx-6 lg:mx-10" />
+
+        {/* Timeline dans le même bloc navy */}
+        <div className="max-w-6xl mx-auto px-6 lg:px-10 py-4">
+          <RoadmapTimeline
+            currentStep={currentStep}
+            selectedStep={activeView}
+            onSelect={setActiveView}
+            cancelled={reservation?.statut === 'annulee'}
+          />
+        </div>
       </div>
 
-      {/* Timeline sticky pleine largeur */}
-      <RoadmapTimeline
-        currentStep={currentStep}
-        selectedStep={activeView}
-        onSelect={setActiveView}
-        cancelled={reservation?.statut === 'annulee'}
-      />
-
-      {/* Contenu centré */}
-      <div className="w-full px-8 py-8 flex flex-col gap-6">
+      {/* Contenu */}
+      <main className="mx-6 py-8 sm:py-10">
         {actionError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-2xl px-4 py-3 mb-6">
             {actionError}
           </div>
         )}
 
         {reservation?.statut === 'annulee' && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-2">
+          <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 space-y-2 mb-6">
             <p className="text-sm font-semibold text-red-700 mb-0.5">Réservation annulée</p>
             <p className="text-sm text-red-600">
               Cette réservation a été annulée suite au non-paiement de l&apos;acompte dans les 72h.
@@ -1488,77 +1564,76 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
           </div>
         )}
 
-        {/* Contenu de la vue active */}
-        <div>
-        {typeof activeView === 'number' && activeView === 1 && (
-          <StepDemande
-            demande={demande}
-            dateDebut={evenement.date_debut}
-            dateFin={evenement.date_fin}
-            suggestions={suggestions}
-          />
-        )}
-        {typeof activeView === 'number' && activeView === 2 && <StepDispo demande={demande} />}
-        {typeof activeView === 'number' && activeView === 3 && (
-          <StepValidation
-            devis={devis}
-            reservation={reservation}
-            isPending={isPending}
-            showRefusForm={showRefusForm}
-            setShowRefusForm={setShowRefusForm}
-            motifRefus={motifRefus}
-            setMotifRefus={setMotifRefus}
-            onAccepter={handleAccepterDevis}
-            onRefuser={handleRefus}
-            onReserver={handleReserver}
-          />
-        )}
-        {typeof activeView === 'number' && activeView === 4 && (
-          <StepAcompte reservation={reservation} evenementId={evenement.id} calLink={cal_link} />
-        )}
-        {typeof activeView === 'number' && activeView === 5 && <StepAcomptePaye reservation={reservation} demande={demande} />}
-        {typeof activeView === 'number' && activeView === 6 && (
-          <StepDevisPresta
-            devis_prestataires={devis_prestataires}
-            dpError={dpError}
-            dpPendingId={dpPendingId}
-            dpRefusModalId={dpRefusModalId}
-            dpRefusMotif={dpRefusMotif}
-            isPending={isPending}
-            setDpRefusMotif={setDpRefusMotif}
-            onSigner={handleSignerDp}
-            onOuvrirRefus={handleOuvrirRefusDp}
-            onAnnulerRefus={handleAnnulerRefusDp}
-            onEnvoyerRefus={handleEnvoyerRefusDp}
-          />
-        )}
-        {typeof activeView === 'number' && activeView === 7 && <StepEdlArrivee etats_des_lieux={evenement.etats_des_lieux} />}
-        {typeof activeView === 'number' && activeView === 8 && <StepEdlDepart etats_des_lieux={evenement.etats_des_lieux} />}
-        {typeof activeView === 'number' && activeView === 9 && (
-          <StepSolde reservation={reservation} evenementId={evenement.id} edlDepartSigne={edlDepartSigne} />
-        )}
-        {typeof activeView === 'number' && activeView === 10 && (
-          <StepTermine
-            reservation={reservation}
-            avis_lieu={avis_lieu}
-            avisNote={avisNote}
-            setAvisNote={setAvisNote}
-            avisCommentaire={avisCommentaire}
-            setAvisCommentaire={setAvisCommentaire}
-            avisSubmitted={avisSubmitted}
-            avisError={avisError}
-            isPending={isPending}
-            onEnvoyerAvis={handleEnvoyerAvis}
-          />
-        )}
-        {activeView === 'inscrits' && (
-          <InscritsPanel evenementId={evenement.id} formulaireId={formulaire?.id ?? null} />
-        )}
-        {activeView === 'formulaire' && formulaire && (
-          <FormulairePanel formulaireId={formulaire.id} />
-        )}
+        <div className="flex flex-col gap-6">
+          {typeof activeView === 'number' && activeView === 1 && (
+            <StepDemande
+              demande={demande}
+              dateDebut={evenement.date_debut}
+              dateFin={evenement.date_fin}
+              suggestions={suggestions}
+            />
+          )}
+          {typeof activeView === 'number' && activeView === 2 && <StepDispo demande={demande} />}
+          {typeof activeView === 'number' && activeView === 3 && (
+            <StepValidation
+              devis={devis}
+              reservation={reservation}
+              isPending={isPending}
+              showRefusForm={showRefusForm}
+              setShowRefusForm={setShowRefusForm}
+              motifRefus={motifRefus}
+              setMotifRefus={setMotifRefus}
+              onAccepter={handleAccepterDevis}
+              onRefuser={handleRefus}
+              onReserver={handleReserver}
+            />
+          )}
+          {typeof activeView === 'number' && activeView === 4 && (
+            <StepAcompte reservation={reservation} evenementId={evenement.id} calLink={cal_link} />
+          )}
+          {typeof activeView === 'number' && activeView === 5 && <StepAcomptePaye reservation={reservation} demande={demande} />}
+          {typeof activeView === 'number' && activeView === 6 && (
+            <StepDevisPresta
+              devis_prestataires={devis_prestataires}
+              dpError={dpError}
+              dpPendingId={dpPendingId}
+              dpRefusModalId={dpRefusModalId}
+              dpRefusMotif={dpRefusMotif}
+              isPending={isPending}
+              setDpRefusMotif={setDpRefusMotif}
+              onSigner={handleSignerDp}
+              onOuvrirRefus={handleOuvrirRefusDp}
+              onAnnulerRefus={handleAnnulerRefusDp}
+              onEnvoyerRefus={handleEnvoyerRefusDp}
+            />
+          )}
+          {typeof activeView === 'number' && activeView === 7 && <StepEdlArrivee etats_des_lieux={evenement.etats_des_lieux} />}
+          {typeof activeView === 'number' && activeView === 8 && <StepEdlDepart etats_des_lieux={evenement.etats_des_lieux} />}
+          {typeof activeView === 'number' && activeView === 9 && (
+            <StepSolde reservation={reservation} evenementId={evenement.id} edlDepartSigne={edlDepartSigne} />
+          )}
+          {typeof activeView === 'number' && activeView === 10 && (
+            <StepTermine
+              reservation={reservation}
+              avis_lieu={avis_lieu}
+              avisNote={avisNote}
+              setAvisNote={setAvisNote}
+              avisCommentaire={avisCommentaire}
+              setAvisCommentaire={setAvisCommentaire}
+              avisSubmitted={avisSubmitted}
+              avisError={avisError}
+              isPending={isPending}
+              onEnvoyerAvis={handleEnvoyerAvis}
+            />
+          )}
+          {activeView === 'inscrits' && (
+            <InscritsPanel evenementId={evenement.id} formulaireId={formulaire?.id ?? null} />
+          )}
+          {activeView === 'formulaire' && formulaire && (
+            <FormulairePanel formulaireId={formulaire.id} />
+          )}
         </div>
-      </div>
+      </main>
     </div>
   )
 }
