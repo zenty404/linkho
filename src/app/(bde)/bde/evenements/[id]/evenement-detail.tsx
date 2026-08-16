@@ -555,6 +555,37 @@ export default function EvenementDetail({ evenement, suggestions }: Props) {
         </div>
       )}
 
+      {/* CAUTION SOLIDAIRE BDE */}
+      {showSection4 && demande?.etablissement?.caution_montant && demande.etablissement.caution_montant > 0 && (() => {
+        const montant = demande.etablissement.caution_montant!
+        const paliers = [0.25, 0.5, 0.75, 1]
+        return (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-xl">🔒</span>
+              <div>
+                <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">Caution solidaire BDE</h2>
+                <p className="text-sm text-amber-700 mt-1">
+                  Vous devrez apporter <strong>{montant.toLocaleString('fr-FR')} €</strong> de caution sous forme de chèques à remettre à l&apos;établissement le jour J à votre arrivée.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/60 rounded-lg p-4 space-y-2 mb-4">
+              <p className="text-xs font-semibold text-amber-800 uppercase tracking-wider mb-2">Chèques à préparer</p>
+              {paliers.map((ratio) => (
+                <div key={ratio} className="flex justify-between text-sm text-amber-700">
+                  <span>Chèque de {Math.round(ratio * 100)}%</span>
+                  <span className="font-bold">{Math.round(montant * ratio).toLocaleString('fr-FR')} €</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-amber-600">
+              En cas de dégâts constatés à l&apos;état des lieux de départ, seul le chèque le plus proche du montant des dégâts sera encaissé. Les autres vous seront rendus.
+            </p>
+          </div>
+        )
+      })()}
+
       {/* CAL.COM — RDV équipe, visible pendant l'attente de l'acompte */}
       {reservation?.statut === 'en_attente_acompte' && cal_link && (
         <div className="rounded-xl border border-navy/10 bg-navy/5 p-6 space-y-3">

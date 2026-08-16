@@ -97,7 +97,7 @@ export type EvenementComplet = {
     type_evenement: string
     nb_participants: number
     message: string | null
-    etablissement: { nom: string; ville: string | null; adresse: string | null; iban: string | null; bic: string | null; titulaire_compte: string | null } | null
+    etablissement: { nom: string; ville: string | null; adresse: string | null; iban: string | null; bic: string | null; titulaire_compte: string | null; caution_montant: number | null } | null
   } | null
   devis: {
     id: string
@@ -178,7 +178,7 @@ export async function getEvenementComplet(id: string): Promise<ActionResult<Even
   const { data: demande } = evt.demande_id
     ? await supabase
         .from('demandes_devis')
-        .select('*, etablissement:etablissement_profiles(nom, ville, adresse, iban, bic, titulaire_compte)')
+        .select('*, etablissement:etablissement_profiles(nom, ville, adresse, iban, bic, titulaire_compte, caution_montant)')
         .eq('id', evt.demande_id)
         .maybeSingle()
     : { data: null }
