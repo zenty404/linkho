@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   GripVertical, AlignLeft, AlignJustify, Mail, Phone, Calendar, Hash,
   ToggleLeft, Disc, CheckSquare, ChevronDown, Paperclip, Minus,
-  Copy, Trash2, Eye, Plus, X, Check, LoaderCircle,
+  Copy, Trash2, Plus, X, Check, LoaderCircle,
 } from 'lucide-react'
 import { updateFormulaire, publierFormulaire, depublierFormulaire } from '@/lib/actions/formulaires'
 import type { ChampFormulaire, PaiementDetails, MoyenPaiement } from '@/lib/actions/formulaires'
@@ -654,14 +654,6 @@ export function FormBuilder({ formulaire }: { formulaire: Formulaire }) {
               {saveStatus === 'pending' && 'Modifications…'}
               {saveStatus === 'error' && <span className="text-red-500">Erreur de sauvegarde</span>}
             </span>
-
-            <button
-              type="button"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              title="Fonctionnalité à venir"
-            >
-              <Eye size={13} /> Aperçu
-            </button>
 
             {publie ? (
               <button
