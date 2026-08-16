@@ -89,6 +89,7 @@ interface Props {
   evenementId: string | null
   evenement: Evenement | null
   formulaireId: string | null
+  onSelect?: (id: string) => void
 }
 
 // ─── Composant principal ─────────────────────────────────────────────────────
@@ -99,6 +100,7 @@ export function InscriptionsClient({
   evenementId,
   evenement,
   formulaireId,
+  onSelect,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -454,13 +456,24 @@ export function InscriptionsClient({
                     <span className="text-xs text-gray-400">{fmtDate(i.created_at)}</span>
 
                     {/* Action */}
-                    <Link
-                      href={`/bde/inscriptions/${i.id}`}
-                      className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-navy transition-colors"
-                      title="Voir le détail"
-                    >
-                      <ArrowRightIcon />
-                    </Link>
+                    {onSelect ? (
+                      <button
+                        type="button"
+                        onClick={() => onSelect(i.id)}
+                        className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-navy transition-colors"
+                        title="Voir le détail"
+                      >
+                        <ArrowRightIcon />
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/bde/inscriptions/${i.id}`}
+                        className="flex items-center justify-center p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-navy transition-colors"
+                        title="Voir le détail"
+                      >
+                        <ArrowRightIcon />
+                      </Link>
+                    )}
                   </div>
                 )
               })

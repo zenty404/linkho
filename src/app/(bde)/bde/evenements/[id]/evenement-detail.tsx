@@ -2,17 +2,25 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useTransition } from 'react'
+import { useCallback, useEffect, useState, useTransition } from 'react'
 import { getEvenementById, type EvenementComplet } from '@/lib/actions/evenements'
 import type { LieuPublic } from '@/lib/actions/public'
 import { accepterDevis, refuserDevis } from '@/lib/actions/devis'
 import { sendMessage } from '@/lib/actions/messages'
 import { creerReservation } from '@/lib/actions/reservations'
-import { creerFormulaire } from '@/lib/actions/formulaires'
+import { creerFormulaire, getFormulaireById, type ChampFormulaire } from '@/lib/actions/formulaires'
 
 import { initierSignatureYousign } from '@/lib/actions/devis-prestataires'
 import { laisserAvisLieu } from '@/lib/actions/avis'
-import { getInscriptionsByEvenement, type InscriptionWithDetails } from '@/lib/actions/inscriptions'
+import {
+  getInscriptionsByEvenement,
+  getInscriptionById,
+  validerInscription,
+  refuserInscription,
+  ajouterEcheance,
+  confirmerEcheance,
+  type InscriptionWithDetails,
+} from '@/lib/actions/inscriptions'
 import { CountdownTimer } from '@/components/ui/countdown-timer'
 import { InscriptionsClient } from '@/app/(bde)/bde/inscriptions/inscriptions-client'
 import { FormBuilder } from '@/app/(bde)/bde/formulaires/[id]/form-builder-client'
@@ -1217,6 +1225,7 @@ function InscritsPanel({ evenementId, formulaireId }: { evenementId: string; for
   const [error, setError] = useState<string | null>(null)
   const [inscriptions, setInscriptions] = useState<InscriptionWithDetails[]>([])
   const [evenementRow, setEvenementRow] = useState<EvenementRow | null>(null)
+  const [selectedInscriptionId, setSelectedInscriptionId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -1242,7 +1251,12 @@ function InscritsPanel({ evenementId, formulaireId }: { evenementId: string; for
   return (
     <div className="w-full">
       <div className="rounded-2xl border border-line bg-white shadow-sm p-6 sm:p-8">
-        {loading ? (
+        {selectedInscriptionId ? (
+          <InlineInscriptionDetail
+            inscriptionId={selectedInscriptionId}
+            onBack={() => setSelectedInscriptionId(null)}
+          />
+        ) : loading ? (
           <p className="text-sm text-ink/60">Chargement des inscrits…</p>
         ) : error ? (
           <p className="text-sm text-red-500">{error}</p>
@@ -1253,9 +1267,400 @@ function InscritsPanel({ evenementId, formulaireId }: { evenementId: string; for
             evenementId={evenementId}
             evenement={evenementRow}
             formulaireId={formulaireId}
+            onSelect={setSelectedInscriptionId}
           />
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Détail d'inscription inline ─────────────────────────────────────────────
+
+const INSCRIPTION_STATUT_META: Record<string, { label: string; cls: string }> = {
+  en_attente: { label: 'En attente', cls: 'bg-amber-100 text-amber-700' },
+  validee: { label: 'Validée', cls: 'bg-success/10 text-success' },
+  annulee: { label: 'Annulée', cls: 'bg-red-100 text-red-700' },
+  refusee: { label: 'Refusée', cls: 'bg-red-100 text-red-700' },
+}
+
+const INSCRIPTION_PAIEMENT_META: Record<string, { label: string; cls: string }> = {
+  en_attente: { label: 'Non payé', cls: 'bg-mist text-ink' },
+  partiel: { label: 'Partiel', cls: 'bg-amber-100 text-amber-700' },
+  paye_total: { label: 'Payé', cls: 'bg-success/10 text-success' },
+}
+
+function fmtShortDate(s: string | null) {
+  return s ? new Date(s).toLocaleDateString('fr-FR') : '—'
+}
+
+function renderChampReponse(champ: ChampFormulaire, reponses: Record<string, unknown>): string {
+  const val = reponses[champ.id]
+  if (val === undefined || val === null || val === '') return '—'
+  if (Array.isArray(val)) return val.join(', ')
+  if (champ.type === 'oui_non') return val === 'true' || val === true ? 'Oui' : 'Non'
+  return String(val)
+}
+
+function InscriptionBadge({
+  statut,
+  meta,
+}: {
+  statut: string
+  meta: Record<string, { label: string; cls: string }>
+}) {
+  const m = meta[statut] ?? { label: statut, cls: 'bg-mist text-ink' }
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${m.cls}`}>
+      {m.label}
+    </span>
+  )
+}
+
+function InscriptionSectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-mist/60 rounded-2xl border border-line">
+      <div className="px-5 py-3.5 border-b border-line">
+        <h3 className="text-xs font-semibold text-ink uppercase tracking-widest">{title}</h3>
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  )
+}
+
+function InlineInscriptionDetail({
+  inscriptionId,
+  onBack,
+}: {
+  inscriptionId: string
+  onBack: () => void
+}) {
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [inscription, setInscription] = useState<InscriptionWithDetails | null>(null)
+  const [champs, setChamps] = useState<ChampFormulaire[]>([])
+
+  const [isPending, startTransition] = useTransition()
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [showAddEcheance, setShowAddEcheance] = useState(false)
+  const [montant, setMontant] = useState('')
+  const [dateEcheance, setDateEcheance] = useState('')
+
+  const loadInscription = useCallback(() => {
+    setLoading(true)
+    setLoadError(null)
+    getInscriptionById(inscriptionId).then(async (insRes) => {
+      if (insRes.error || !insRes.data) {
+        setLoadError(insRes.error ?? 'Inscription introuvable.')
+        setLoading(false)
+        return
+      }
+      setInscription(insRes.data)
+      const formRes = await getFormulaireById(insRes.data.formulaire_id)
+      setChamps((formRes.data?.champs ?? []) as unknown as ChampFormulaire[])
+      setLoading(false)
+    })
+  }, [inscriptionId])
+
+  useEffect(() => {
+    loadInscription()
+  }, [loadInscription])
+
+  function handleValider() {
+    if (!inscription) return
+    setActionError(null)
+    startTransition(async () => {
+      const res = await validerInscription(inscription.id)
+      if (res.error) setActionError(res.error)
+      else loadInscription()
+    })
+  }
+
+  function handleRefuser() {
+    if (!inscription) return
+    setActionError(null)
+    startTransition(async () => {
+      const res = await refuserInscription(inscription.id)
+      if (res.error) setActionError(res.error)
+      else loadInscription()
+    })
+  }
+
+  function handleAjouterEcheance(e: React.FormEvent) {
+    e.preventDefault()
+    if (!inscription) return
+    setActionError(null)
+    const fd = new FormData()
+    fd.append('montant', montant)
+    if (dateEcheance) fd.append('date_echeance', dateEcheance)
+    startTransition(async () => {
+      const res = await ajouterEcheance(inscription.id, fd)
+      if (res.error) {
+        setActionError(res.error)
+      } else {
+        setMontant('')
+        setDateEcheance('')
+        setShowAddEcheance(false)
+        loadInscription()
+      }
+    })
+  }
+
+  function handleConfirmerEcheance(echeanceId: string) {
+    setActionError(null)
+    startTransition(async () => {
+      const res = await confirmerEcheance(echeanceId)
+      if (res.error) setActionError(res.error)
+      else loadInscription()
+    })
+  }
+
+  const visibleChamps = champs.filter((c) => c.type !== 'separateur')
+  const sortedEcheances = inscription ? [...inscription.echeances].sort((a, b) => a.numero - b.numero) : []
+  const totalPaye = sortedEcheances.filter((e) => e.paye).reduce((s, e) => s + e.montant, 0)
+  const totalEcheances = sortedEcheances.reduce((s, e) => s + e.montant, 0)
+
+  return (
+    <div className="flex flex-col gap-5">
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex items-center gap-1.5 text-sm text-ink hover:text-navy transition-colors self-start"
+      >
+        ← Retour
+      </button>
+
+      {loading ? (
+        <p className="text-sm text-ink/60">Chargement de l&apos;inscription…</p>
+      ) : loadError || !inscription ? (
+        <p className="text-sm text-red-500">{loadError ?? 'Inscription introuvable.'}</p>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="bg-white rounded-2xl border border-line px-6 py-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-xl font-bold text-navy">
+                  {inscription.prenom} {inscription.nom}
+                </h2>
+                <p className="text-sm text-ink mt-0.5">{inscription.email}</p>
+                <p className="text-xs text-ink/60 mt-1">Inscrit le {fmtShortDate(inscription.created_at)}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <InscriptionBadge statut={inscription.statut} meta={INSCRIPTION_STATUT_META} />
+                <InscriptionBadge statut={inscription.statut_paiement} meta={INSCRIPTION_PAIEMENT_META} />
+              </div>
+            </div>
+
+            {actionError && (
+              <div className="mt-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+                {actionError}
+              </div>
+            )}
+
+            {inscription.statut === 'en_attente' && (
+              <div className="mt-5 pt-4 border-t border-line flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleValider}
+                  disabled={isPending}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-success hover:bg-success/90 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Valider l&apos;inscription
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRefuser}
+                  disabled={isPending}
+                  className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  Refuser l&apos;inscription
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Carte étudiante */}
+          {inscription.carte_etudiante_url && (
+            <InscriptionSectionCard title="Carte étudiante">
+              <div className="flex items-center gap-3">
+                <span className="text-ink/50 flex-shrink-0">
+                  <IconDocumentText />
+                </span>
+                <span className="text-sm text-ink">{inscription.carte_etudiante_nom ?? 'Document'}</span>
+                <a
+                  href={`/api/carte-etudiante/${inscription.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto text-sm font-semibold text-brand hover:text-brand-light transition-colors"
+                >
+                  Voir la carte →
+                </a>
+              </div>
+            </InscriptionSectionCard>
+          )}
+
+          {/* Informations */}
+          <InscriptionSectionCard title="Informations">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+              <div>
+                <p className="text-xs text-ink mb-0.5">Montant total</p>
+                <p className="text-sm font-medium text-navy tabular-nums">{fmtEuros(inscription.montant_total)}</p>
+              </div>
+              {inscription.caution_montant !== null && (
+                <div>
+                  <p className="text-xs text-ink mb-0.5">Caution</p>
+                  <p className="text-sm font-medium text-navy tabular-nums">
+                    {fmtEuros(inscription.caution_montant)}{' '}
+                    <span className={inscription.caution_payee ? 'text-success' : 'text-amber-600'}>
+                      ({inscription.caution_payee ? 'payée' : 'non payée'})
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+          </InscriptionSectionCard>
+
+          {/* Réponses au formulaire */}
+          {visibleChamps.length > 0 && (
+            <InscriptionSectionCard title="Réponses au formulaire">
+              <div className="space-y-4">
+                {visibleChamps.map((champ) => (
+                  <div key={champ.id}>
+                    <p className="text-xs text-ink mb-0.5">
+                      {champ.libelle}
+                      {champ.obligatoire && <span className="text-red-400 ml-0.5">*</span>}
+                    </p>
+                    <p className="text-sm font-medium text-navy">
+                      {renderChampReponse(champ, inscription.reponses as Record<string, unknown>)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </InscriptionSectionCard>
+          )}
+
+          {/* Échéances de paiement */}
+          <InscriptionSectionCard title="Échéances de paiement">
+            {sortedEcheances.length === 0 ? (
+              <p className="text-sm text-ink/60 mb-4">Aucune échéance définie.</p>
+            ) : (
+              <>
+                <div className="space-y-2 mb-3">
+                  {sortedEcheances.map((ech) => (
+                    <div
+                      key={ech.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-xl border border-line"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${ech.paye ? 'bg-success' : 'bg-line'}`} />
+                        <div>
+                          <p className="text-sm font-medium text-navy tabular-nums">
+                            Versement {ech.numero} — {fmtEuros(ech.montant)}
+                          </p>
+                          {ech.date_echeance && (
+                            <p className="text-xs text-ink/60">
+                              Échéance&nbsp;: {fmtShortDate(ech.date_echeance)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        {ech.paye ? (
+                          <span className="text-xs text-success font-medium">
+                            Payé le {fmtShortDate(ech.paye_le)}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmerEcheance(ech.id)}
+                            disabled={isPending}
+                            className="px-3 py-1.5 text-xs font-semibold text-success border border-success/30 rounded-xl hover:bg-success/5 transition-colors disabled:opacity-50"
+                          >
+                            Confirmer le paiement
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between py-2.5 border-t border-line">
+                  <span className="text-xs text-ink">Total versé</span>
+                  <span className="text-sm font-bold text-navy tabular-nums">
+                    {fmtEuros(totalPaye)}{' '}
+                    <span className="font-normal text-ink/60">/ {fmtEuros(totalEcheances)}</span>
+                  </span>
+                </div>
+              </>
+            )}
+
+            {!showAddEcheance ? (
+              <button
+                type="button"
+                onClick={() => setShowAddEcheance(true)}
+                className="mt-2 text-sm text-brand hover:text-brand-light font-medium transition-colors"
+              >
+                + Ajouter une échéance
+              </button>
+            ) : (
+              <form
+                onSubmit={handleAjouterEcheance}
+                className="mt-4 p-4 border border-line rounded-xl space-y-3"
+              >
+                <p className="text-xs font-semibold text-ink uppercase tracking-wide">
+                  Nouvelle échéance
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-ink mb-1">
+                      Montant (€) <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      value={montant}
+                      onChange={(e) => setMontant(e.target.value)}
+                      placeholder="50.00"
+                      className="w-full px-3 py-2 text-sm border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-ink mb-1">Date d&apos;échéance</label>
+                    <input
+                      type="date"
+                      value={dateEcheance}
+                      onChange={(e) => setDateEcheance(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-line rounded-xl outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand-light rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    Ajouter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddEcheance(false)
+                      setActionError(null)
+                    }}
+                    className="px-4 py-2 text-sm font-semibold text-ink hover:text-navy transition-colors"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </form>
+            )}
+          </InscriptionSectionCard>
+        </>
+      )}
     </div>
   )
 }
