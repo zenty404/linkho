@@ -3,30 +3,35 @@ import { getEvenementsByBde, getEvenementComplet } from '@/lib/actions/evenement
 import type { EvenementComplet } from '@/lib/actions/evenements'
 
 const STEPS = [
-  { key: 1, label: 'Demande envoyée' },
-  { key: 2, label: 'Dispo confirmée' },
-  { key: 3, label: 'Validée LINKHO' },
-  { key: 4, label: 'Acompte payé' },
-  { key: 5, label: 'Terminé' },
+  { key: 1, label: 'Demande' },
+  { key: 2, label: 'Dispo' },
+  { key: 3, label: 'Validée' },
+  { key: 4, label: 'Acompte' },
+  { key: 5, label: 'Payé' },
+  { key: 6, label: 'Presta' },
+  { key: 7, label: 'EDL arr.' },
+  { key: 8, label: 'EDL dép.' },
+  { key: 9, label: 'Solde' },
+  { key: 10, label: 'Terminé' },
 ]
 
 function getStepInfo(evt: EvenementComplet): { step: number; error: boolean } {
-  const { reservation, demande } = evt
-
-  if (demande?.statut === 'refusee') return { step: 2, error: true }
-  if (reservation?.statut === 'annulee') return { step: 4, error: true }
-
-  if (reservation?.statut === 'en_cours') return { step: 5, error: false }
-  if (reservation?.statut === 'terminee') return { step: 5, error: false }
-  if (reservation?.statut === 'commission_reversee') return { step: 5, error: false }
-  if (reservation?.statut === 'confirmee') return { step: 4, error: false }
-  if (reservation?.statut === 'acompte_confirme') return { step: 4, error: false }
-  if (reservation?.statut === 'en_attente_acompte') return { step: 3, error: false }
-  if (demande?.statut_disponibilite === 'disponible') return { step: 3, error: false }
-  if (demande?.statut_disponibilite === 'non_disponible') return { step: 2, error: true }
-  if (demande) return { step: 2, error: false }
-
-  return { step: 1, error: false }
+  const { demande, reservation, etats_des_lieux, devis_prestataires } = evt
+  if (!demande) return { step: 1, error: false }
+  if (reservation?.statut === 'annulee') return { step: 1, error: true }
+  if (demande.statut_disponibilite !== 'disponible') return { step: 1, error: false }
+  if (!reservation) return { step: 2, error: false }
+  const acompte = reservation.paiements?.find(p => p.type === 'acompte')
+  if (!acompte?.confirme) return { step: 4, error: false }
+  const devisTraites = devis_prestataires.length === 0 || devis_prestataires.every(dp => dp.statut !== 'en_attente')
+  if (!devisTraites) return { step: 6, error: false }
+  const edlArrivee = etats_des_lieux?.find(e => e.type === 'arrivee')
+  if (!edlArrivee || edlArrivee.statut !== 'signe') return { step: 7, error: false }
+  const edlDepart = etats_des_lieux?.find(e => e.type === 'depart')
+  if (!edlDepart || edlDepart.statut !== 'signe') return { step: 8, error: false }
+  const solde = reservation.paiements?.find(p => p.type === 'solde')
+  if (!solde?.confirme) return { step: 9, error: false }
+  return { step: 10, error: false }
 }
 
 function ProgressTracker({ evt }: { evt: EvenementComplet }) {
