@@ -47,14 +47,19 @@ function getGroupe(d: DemandeComplete): 'action' | 'en_cours' | 'termine' {
 }
 
 function DemandeCard({ d }: { d: DemandeComplete }) {
+  const nbNuits = Math.round(
+    (new Date(d.date_fin).getTime() - new Date(d.date_debut).getTime()) / 86_400_000
+  )
   return (
     <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center gap-4">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-navy truncate">
           {d.bde?.nom ?? '—'} <span className="font-normal text-gray-400">· {d.bde?.ecole}</span>
         </p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          {fmtDate(d.date_debut)} → {fmtDate(d.date_fin)} · {d.nb_participants} pers. · {TYPE_LABELS[d.type_evenement] ?? d.type_evenement}
+        <p className="text-xs text-gray-500 mt-0.5">Arrivée le {fmtDate(d.date_debut)}</p>
+        <p className="text-xs text-gray-500">Départ le {fmtDate(d.date_fin)}</p>
+        <p className="text-gray-400 text-xs">
+          Durée : {nbNuits} nuit{nbNuits > 1 ? 's' : ''} · {d.nb_participants} pers. · {TYPE_LABELS[d.type_evenement] ?? d.type_evenement}
         </p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">

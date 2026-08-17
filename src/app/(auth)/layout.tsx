@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10">
           <Link href="/">
             <Image
-              src="/LOGO ENTIER VF FULL BLANC.svg"
+              src="/LOGO ENTIER VF BLANC.svg"
               alt="LINKHO"
               width={140}
               height={44}

@@ -123,13 +123,15 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
               <div>
                 <MotionSection direction="left" delay={0}>
                   <div className="mb-10">
-                    <Image
-                      src="/LOGO ENTIER VF BLANC.svg"
-                      alt="LINKHO"
-                      width={160}
-                      height={50}
-                      priority
-                    />
+                    <Link href="/">
+                      <Image
+                        src="/LOGO ENTIER VF BLANC.svg"
+                        alt="LINKHO"
+                        width={160}
+                        height={50}
+                        priority
+                      />
+                    </Link>
                   </div>
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                     Vos événements étudiants,{' '}

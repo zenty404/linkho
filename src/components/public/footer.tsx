@@ -49,7 +49,9 @@ export default function Footer() {
 
             {/* Marque */}
             <div className="flex flex-col gap-4 lg:w-80 lg:shrink-0">
-              <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={120} height={38} />
+              <Link href="/">
+                <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={120} height={38} />
+              </Link>
               <p className="text-sm text-navy/60 leading-relaxed max-w-xs font-poppins">
                 La plateforme qui connecte les BDE avec les meilleurs lieux événementiels.
               </p>

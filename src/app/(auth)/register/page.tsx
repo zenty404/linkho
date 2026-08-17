@@ -30,7 +30,9 @@ export default function RegisterPage() {
     <div className="w-full max-w-sm">
       {/* Logo mobile uniquement */}
       <div className="lg:hidden mb-8 flex justify-center">
-        <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={120} height={38} />
+        <Link href="/">
+          <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={120} height={38} />
+        </Link>
       </div>
 
       <div className="mb-6">

@@ -285,7 +285,11 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {disponibilites.map((d) => (
+            {disponibilites.map((d) => {
+              const nbNuits = Math.round(
+                (new Date(d.date_fin).getTime() - new Date(d.date_debut).getTime()) / 86_400_000
+              )
+              return (
               <div key={d.id} className="bg-white rounded-xl border border-green-200 px-5 py-4">
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-1">
@@ -298,8 +302,10 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                     {' → '}
                     <span className="font-normal text-gray-600">{d.bde?.nom} · {d.bde?.ecole}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {fmtDate(d.date_debut)} → {fmtDate(d.date_fin)} · {d.nb_participants} pers.
+                  <p className="text-xs text-gray-500 mt-0.5">Arrivée le {fmtDate(d.date_debut)}</p>
+                  <p className="text-xs text-gray-500">Départ le {fmtDate(d.date_fin)}</p>
+                  <p className="text-gray-400 text-xs">
+                    Durée : {nbNuits} nuit{nbNuits > 1 ? 's' : ''} · {d.nb_participants} pers.
                   </p>
                 </div>
                 <div className="flex items-end gap-3">
@@ -326,7 +332,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   <p className="text-xs text-red-500 mt-2">{valideError}</p>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
@@ -348,7 +355,11 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {aCloturer.map((r) => (
+            {aCloturer.map((r) => {
+              const nbNuits = Math.round(
+                (new Date(r.date_fin).getTime() - new Date(r.date_debut).getTime()) / 86_400_000
+              )
+              return (
               <div key={r.id} className="bg-white rounded-xl border border-orange-200 bg-orange-50/30 px-5 py-4 flex items-center gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -362,8 +373,10 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                     {' '}→ <span className="font-medium">{r.etablissement?.nom}</span>
                     {r.etablissement?.ville ? `, ${r.etablissement.ville}` : ''}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {fmtDate(r.date_debut)} → {fmtDate(r.date_fin)}
+                  <p className="text-xs text-gray-500 mt-0.5">Arrivée le {fmtDate(r.date_debut)}</p>
+                  <p className="text-xs text-gray-500">Départ le {fmtDate(r.date_fin)}</p>
+                  <p className="text-gray-400 text-xs">
+                    Durée : {nbNuits} nuit{nbNuits > 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -388,7 +401,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>
@@ -412,7 +426,11 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
               <span>Statut</span>
               <span></span>
             </div>
-            {historique.map((r) => (
+            {historique.map((r) => {
+              const nbNuits = Math.round(
+                (new Date(r.date_fin).getTime() - new Date(r.date_debut).getTime()) / 86_400_000
+              )
+              return (
               <div
                 key={r.id}
                 className="grid grid-cols-[auto_1fr_1fr_auto_auto_auto_auto] gap-x-4 px-5 py-3.5 border-b border-gray-50 last:border-0 items-center text-sm"
@@ -426,9 +444,13 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   <p className="text-navy truncate">{r.etablissement?.nom}</p>
                   <p className="text-xs text-gray-400">{r.etablissement?.ville}</p>
                 </div>
-                <p className="text-xs text-gray-500 whitespace-nowrap">
-                  {fmtDate(r.date_debut)} → {fmtDate(r.date_fin)}
-                </p>
+                <div className="whitespace-nowrap">
+                  <p className="text-xs text-gray-500">Arrivée le {fmtDate(r.date_debut)}</p>
+                  <p className="text-xs text-gray-500">Départ le {fmtDate(r.date_fin)}</p>
+                  <p className="text-gray-400 text-xs">
+                    Durée : {nbNuits} nuit{nbNuits > 1 ? 's' : ''}
+                  </p>
+                </div>
                 <p className="text-right font-semibold text-navy">{fmtEuros(r.montant_ttc)}</p>
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${getBadge(r.statut, RESERVATION_STATUTS).cls}`}>
                   {getBadge(r.statut, RESERVATION_STATUTS).label}
@@ -488,7 +510,8 @@ export default function ReservationsAdminClient({ reservations, error, disponibi
                   ) : null}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>

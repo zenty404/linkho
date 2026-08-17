@@ -22,7 +22,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const RES_STATUS: Record<string, { label: string; cls: string }> = {
   devis_signe:      { label: 'Devis signé',  cls: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200' },
-  acompte_confirme: { label: 'Acompte reçu', cls: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200' },
+  acompte_confirme: { label: 'Acompte envoyé', cls: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200' },
   confirmee:        { label: 'Confirmée',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200' },
   en_cours:         { label: 'En cours',     cls: 'bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200' },
   terminee:         { label: 'Terminée',     cls: 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-200' },

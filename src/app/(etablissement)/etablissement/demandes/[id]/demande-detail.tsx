@@ -85,6 +85,10 @@ export default function DemandeDetail({ demande }: Props) {
   const edlArrivee = demande.etats_des_lieux.find((e) => e.type === 'arrivee') ?? null
   const edlDepart = demande.etats_des_lieux.find((e) => e.type === 'depart') ?? null
 
+  const nbNuits = demande.date_debut && demande.date_fin
+    ? Math.round((new Date(demande.date_fin).getTime() - new Date(demande.date_debut).getTime()) / 86_400_000)
+    : 0
+
   return (
     <div className="max-w-2xl flex flex-col gap-5">
       {/* Header */}
@@ -94,9 +98,15 @@ export default function DemandeDetail({ demande }: Props) {
             <h1 className="text-xl font-bold text-navy">{demande.bde?.nom ?? '—'}</h1>
             <p className="text-sm text-gray-500 mt-0.5">{demande.bde?.ecole}</p>
             <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
-              <span>{fmtDate(demande.date_debut)} → {fmtDate(demande.date_fin)}</span>
               <span>{demande.nb_participants} participants</span>
               <span>{TYPE_LABELS[demande.type_evenement] ?? demande.type_evenement}</span>
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              <p>Arrivée le {fmtDate(demande.date_debut)}</p>
+              <p>Départ le {fmtDate(demande.date_fin)}</p>
+              <p className="text-gray-400 text-sm">
+                Durée : {nbNuits} nuit{nbNuits > 1 ? 's' : ''}
+              </p>
             </div>
             {demande.message && (
               <p className="mt-3 text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-100 italic">

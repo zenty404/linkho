@@ -646,7 +646,7 @@ function StepAcompte({
             </div>
             {reservation.statut === 'confirmee' || acomptePaiement?.confirme ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-success/10 text-success">
-                <IconCheckMini /> Acompte reçu
+                <IconCheckMini /> Acompte envoyé
               </span>
             ) : (
               <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-700">
