@@ -30,35 +30,17 @@ export async function getComptesEnAttente(): Promise<ActionResult<CompteEnAttent
   const { data: role } = await supabase.rpc('get_user_role')
   if (role !== 'admin') return { data: null, error: 'Non autorisé.' }
 
-  const [bdeResult, etabResult] = await Promise.all([
-    supabase
-      .from('bde_profiles')
-      .select('id, nom, ecole, ville, created_at, user_id, users(email)')
-      .eq('compte_valide', false)
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('etablissement_profiles')
-      .select('id, nom, ville, adresse, capacite_max, created_at, user_id, users(email)')
-      .eq('compte_valide', false)
-      .order('created_at', { ascending: true }),
-  ])
+  const etabResult = await supabase
+    .from('etablissement_profiles')
+    .select('id, nom, ville, adresse, capacite_max, created_at, user_id, users(email)')
+    .eq('compte_valide', false)
+    .order('created_at', { ascending: true })
 
-  if (bdeResult.error) return { data: null, error: bdeResult.error.message }
   if (etabResult.error) return { data: null, error: etabResult.error.message }
 
   type UserRow = { email: string }
 
   const comptes: CompteEnAttente[] = [
-    ...(bdeResult.data ?? []).map((b) => ({
-      userId: b.user_id,
-      profileId: b.id,
-      email: (b.users as UserRow | null)?.email ?? '',
-      role: 'bde' as const,
-      nom: b.nom,
-      ecole: b.ecole,
-      ville: b.ville,
-      createdAt: b.created_at,
-    })),
     ...(etabResult.data ?? []).map((e) => ({
       userId: e.user_id,
       profileId: e.id,
@@ -82,12 +64,12 @@ export async function getPendingAccountsCount(): Promise<number> {
   const { data: role } = await supabase.rpc('get_user_role')
   if (role !== 'admin') return 0
 
-  const [bdeResult, etabResult] = await Promise.all([
-    supabase.from('bde_profiles').select('id', { count: 'exact', head: true }).eq('compte_valide', false),
-    supabase.from('etablissement_profiles').select('id', { count: 'exact', head: true }).eq('compte_valide', false),
-  ])
+  const etabResult = await supabase
+    .from('etablissement_profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('compte_valide', false)
 
-  return (bdeResult.count ?? 0) + (etabResult.count ?? 0)
+  return etabResult.count ?? 0
 }
 
 export async function validerCompte(

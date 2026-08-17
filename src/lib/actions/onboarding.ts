@@ -28,13 +28,13 @@ export async function creerProfilBde(
 
   const { error } = await supabase
     .from('bde_profiles')
-    .insert({ user_id: user.id, nom, ecole, ville, telephone })
+    .insert({ user_id: user.id, nom, ecole, ville, telephone, compte_valide: true })
 
   if (error) {
     return { error: error.message }
   }
 
-  redirect('/en-attente')
+  redirect('/bde/dashboard')
 }
 
 export async function creerProfilEtablissement(
