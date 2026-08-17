@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppSidebar } from '@/components/shared/app-sidebar'
 import { DashboardHeader } from '@/components/shared/dashboard-header'
+import { DashboardIntro } from '@/components/shared/dashboard-intro'
 
 export default async function EtablissementLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,12 +18,14 @@ export default async function EtablissementLayout({ children }: { children: Reac
     'Utilisateur'
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <AppSidebar space="etablissement" displayName={displayName} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <DashboardHeader />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <DashboardIntro>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <AppSidebar space="etablissement" displayName={displayName} />
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <DashboardHeader />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </DashboardIntro>
   )
 }
