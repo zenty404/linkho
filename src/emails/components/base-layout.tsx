@@ -1,4 +1,4 @@
-import { Body, Container, Head, Hr, Html, Preview, Section, Text } from '@react-email/components'
+import { Body, Container, Head, Hr, Html, Img, Preview, Section, Text } from '@react-email/components'
 import type { ReactNode } from 'react'
 
 export function BaseLayout({ children, previewText = '' }: { children: ReactNode; previewText?: string }) {
@@ -8,10 +8,13 @@ export function BaseLayout({ children, previewText = '' }: { children: ReactNode
       <Preview>{previewText}</Preview>
       <Body style={{ backgroundColor: '#f5f5f5', fontFamily: 'Helvetica, Arial, sans-serif', margin: '0', padding: '40px 0' }}>
         <Container style={{ backgroundColor: '#ffffff', maxWidth: '600px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
-          <Section style={{ backgroundColor: '#071634', padding: '20px 32px', borderBottom: '4px solid #f49915' }}>
-            <Text style={{ fontSize: '22px', fontWeight: '800', color: '#ffffff', margin: '0', letterSpacing: '3px' }}>
-              LINKHO
-            </Text>
+          <Section style={{ backgroundColor: '#ffffff', padding: '24px 32px', borderBottom: '4px solid #f49915' }}>
+            <Img
+              src="https://linkho.fr/LOGO%20PRINCIPAL.svg"
+              alt="LINKHO"
+              width="130"
+              height="40"
+            />
           </Section>
           <Section style={{ padding: '32px' }}>
             {children}
