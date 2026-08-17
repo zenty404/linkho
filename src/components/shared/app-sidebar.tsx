@@ -20,8 +20,6 @@ import { usePathname } from 'next/navigation'
 import { signOut } from '@/lib/actions/auth'
 import { getUnreadCount } from '@/lib/actions/messages'
 import { getPendingAccountsCount } from '@/lib/actions/admin'
-import { useIntroLogoTargetRef } from './intro-logo-context'
-import { useIntro } from './dashboard-intro'
 
 type Space = 'bde' | 'etablissement' | 'admin'
 
@@ -75,8 +73,6 @@ type Props = {
 export function AppSidebar({ space, displayName }: Props) {
   const { roleLabel } = SPACE_META[space]
   const pathname = usePathname()
-  const introLogoTargetRef = useIntroLogoTargetRef()
-  const { isAnimating } = useIntro()
   const [unread, setUnread] = useState(0)
   const [pendingCount, setPendingCount] = useState(0)
   const [expanded, setExpanded] = useState(true)
@@ -125,10 +121,7 @@ export function AppSidebar({ space, displayName }: Props) {
       {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-gray-100 shrink-0">
         {expanded ? (
-          <div
-            ref={introLogoTargetRef}
-            className={`shrink-0 transition-opacity duration-500 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}
-          >
+          <div className="shrink-0">
             <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={110} height={34} />
           </div>
         ) : (

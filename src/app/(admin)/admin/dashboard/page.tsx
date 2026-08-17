@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FadeUp } from '@/components/shared/fade-up'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminDashboardPage() {
@@ -20,12 +21,14 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-lg font-bold text-navy">Dashboard Admin</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de la plateforme LINKHO</p>
-      </div>
+      <FadeUp delay={0}>
+        <div>
+          <h1 className="text-lg font-bold text-navy">Dashboard Admin</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de la plateforme LINKHO</p>
+        </div>
+      </FadeUp>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <FadeUp delay={0.1} className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard
           label="Total réservations"
           value={total ?? 0}
@@ -47,10 +50,10 @@ export default async function AdminDashboardPage() {
           value={ca.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
           color="text-navy"
         />
-      </div>
+      </FadeUp>
 
       {(enAttenteClôture ?? 0) > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
+        <FadeUp delay={0.2} className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between">
           <p className="text-sm text-amber-800 font-medium">
             {enAttenteClôture} réservation{(enAttenteClôture ?? 0) > 1 ? 's' : ''} en attente de clôture
           </p>
@@ -60,17 +63,17 @@ export default async function AdminDashboardPage() {
           >
             Voir les réservations à clôturer →
           </Link>
-        </div>
+        </FadeUp>
       )}
 
-      <div className="flex">
+      <FadeUp delay={0.3} className="flex">
         <Link
           href="/admin/reservations"
           className="px-4 py-2 bg-brand hover:bg-brand-light text-navy text-sm font-semibold rounded-lg transition-colors"
         >
           Gérer les réservations
         </Link>
-      </div>
+      </FadeUp>
     </div>
   )
 }

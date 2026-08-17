@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FadeUp } from '@/components/shared/fade-up'
 import { getDashboardEtablissement } from '@/lib/actions/dashboard'
 import type {
   ReservationEtab,
@@ -214,13 +215,15 @@ export default async function EtablissementDashboardPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-lg font-bold text-navy">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de votre activité</p>
-      </div>
+      <FadeUp delay={0}>
+        <div>
+          <h1 className="text-lg font-bold text-navy">Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de votre activité</p>
+        </div>
+      </FadeUp>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <FadeUp delay={0.1} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <KpiCard
           icon={<CalendarIcon />}
           label="Réservations en cours"
@@ -246,10 +249,10 @@ export default async function EtablissementDashboardPage() {
           value={String(d.paiementsEnAttente)}
           iconCls="bg-amber-500"
         />
-      </div>
+      </FadeUp>
 
       {/* Sections (2 colonnes sur grand écran) */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <FadeUp delay={0.2} className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* Prochaines réservations */}
         <SectionCard
           title="Prochaines réservations"
@@ -271,20 +274,22 @@ export default async function EtablissementDashboardPage() {
             d.recentDevis.map((dv) => <DevisEtabRow key={dv.id} d={dv} />)
           )}
         </SectionCard>
-      </div>
+      </FadeUp>
 
       {/* Paiements à confirmer */}
-      <SectionCard
-        title="Paiements à confirmer"
-        href="/etablissement/reservations"
-        linkLabel="Voir tout →"
-      >
-        {d.paiementsAConfirmer.length === 0 ? (
-          <EmptyRow text="Aucun paiement en attente." />
-        ) : (
-          d.paiementsAConfirmer.map((p) => <PaiementRow key={p.id} p={p} />)
-        )}
-      </SectionCard>
+      <FadeUp delay={0.3}>
+        <SectionCard
+          title="Paiements à confirmer"
+          href="/etablissement/reservations"
+          linkLabel="Voir tout →"
+        >
+          {d.paiementsAConfirmer.length === 0 ? (
+            <EmptyRow text="Aucun paiement en attente." />
+          ) : (
+            d.paiementsAConfirmer.map((p) => <PaiementRow key={p.id} p={p} />)
+          )}
+        </SectionCard>
+      </FadeUp>
     </div>
   )
 }

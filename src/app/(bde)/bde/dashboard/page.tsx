@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FadeUp } from '@/components/shared/fade-up'
 import { getDashboardBde } from '@/lib/actions/dashboard'
 import type {
   ReservationRecente,
@@ -227,13 +228,15 @@ export default async function BdeDashboardPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-lg font-bold text-navy">Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de votre activité</p>
-      </div>
+      <FadeUp delay={0}>
+        <div>
+          <h1 className="text-lg font-bold text-navy">Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Vue d&apos;ensemble de votre activité</p>
+        </div>
+      </FadeUp>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <FadeUp delay={0.1} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <KpiCard
           icon={<CalendarIcon />}
           label="Réservations en cours"
@@ -259,10 +262,10 @@ export default async function BdeDashboardPage() {
           value={String(d.inscriptionsTotal)}
           color="green"
         />
-      </div>
+      </FadeUp>
 
       {/* Sections (2 colonnes sur grand écran) */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <FadeUp delay={0.2} className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* Réservations récentes */}
         <SectionCard title="Réservations récentes" href="/bde/reservations">
           {d.recentReservations.length === 0 ? (
@@ -280,16 +283,18 @@ export default async function BdeDashboardPage() {
             d.recentDevis.map((dv) => <DevisBdeRow key={dv.id} d={dv} />)
           )}
         </SectionCard>
-      </div>
+      </FadeUp>
 
       {/* Événements */}
-      <SectionCard title="Mes événements" href="/bde/evenements" linkLabel="Voir tous les événements →">
-        {d.recentEvenements.length === 0 ? (
-          <EmptyRow text="Aucun événement." />
-        ) : (
-          d.recentEvenements.map((e) => <EvenementRow key={e.id} e={e} />)
-        )}
-      </SectionCard>
+      <FadeUp delay={0.3}>
+        <SectionCard title="Mes événements" href="/bde/evenements" linkLabel="Voir tous les événements →">
+          {d.recentEvenements.length === 0 ? (
+            <EmptyRow text="Aucun événement." />
+          ) : (
+            d.recentEvenements.map((e) => <EvenementRow key={e.id} e={e} />)
+          )}
+        </SectionCard>
+      </FadeUp>
     </div>
   )
 }
