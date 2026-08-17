@@ -1,7 +1,7 @@
 'use client'
 import 'react-day-picker/dist/style.css'
 import { useState, useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { DayPicker } from 'react-day-picker'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
 import Footer from '@/components/public/footer'
 import { PublicLoader } from '@/components/public/public-loader'
+import { useLoader } from '@/components/shared/loader-context'
 import { MotionSection } from '@/components/public/motion-section'
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal'
 import { Highlighter } from '@/components/ui/highlighter'
@@ -49,6 +50,27 @@ type Props = {
   heroPhotos: string[]
   lieuxAffiches: LieuCard[]
   avisLinkho: AvisLinkho[]
+}
+
+// Rendu comme enfant de PublicLoader (donc de LoaderProvider) afin de pouvoir
+// consommer useLoader() — HomeClient lui-même instancie PublicLoader et n'y a pas accès.
+function HomeContent({ children }: { children: React.ReactNode }) {
+  const { isLoaderFinished: loaderFinished } = useLoader()
+
+  return (
+    <AnimatePresence>
+      {loaderFinished && (
+        <motion.div
+          key="homepage"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
 }
 
 export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Props) {
@@ -112,6 +134,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
 
   return (
     <PublicLoader>
+      <HomeContent>
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -843,6 +866,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       </section>
 
       <Footer />
+      </HomeContent>
     </PublicLoader>
   )
 }
