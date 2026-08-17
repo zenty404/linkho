@@ -2,11 +2,12 @@
 
 import 'react-day-picker/dist/style.css'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import type { DateRange } from 'react-day-picker'
-import type { LieuDetail, PeriodeOccupee } from '@/lib/actions/public'
+import type { LieuDetail, LieuPublic, PeriodeOccupee } from '@/lib/actions/public'
 import type { AvisLieu } from '@/lib/actions/avis'
 import DevisWidget from './devis-widget'
 import { MotionSection } from '@/components/public/motion-section'
@@ -39,6 +40,7 @@ type Props = {
   reservationsOccupees: PeriodeOccupee[]
   initialDates: { date_debut: string; date_fin: string; participants: string; type: string }
   avis: AvisLieu[]
+  suggestions: LieuPublic[]
 }
 
 function Stars({ note, size = 'md' }: { note: number; size?: 'sm' | 'md' }) {
@@ -52,7 +54,7 @@ function Stars({ note, size = 'md' }: { note: number; size?: 'sm' | 'md' }) {
   )
 }
 
-export default function LieuDetailClient({ lieu, reservationsOccupees, initialDates, avis }: Props) {
+export default function LieuDetailClient({ lieu, reservationsOccupees, initialDates, avis, suggestions }: Props) {
   const noteMoyenne =
     avis.length > 0
       ? Math.round((avis.reduce((s, a) => s + a.note, 0) / avis.length) * 10) / 10
@@ -383,6 +385,50 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
             </section>
           </MotionSection>
         </div>
+
+        {/* ── Lieux similaires ── */}
+        {suggestions.length > 0 && (
+          <section className="mt-12 border-t border-gray-100 pt-10 pb-16">
+            <h2 className="text-xl font-bold text-navy mb-6">
+              D&apos;autres lieux qui pourraient vous plaire
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {suggestions.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/lieux/${s.id}`}
+                  className="group block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {/* Photo */}
+                  <div className="relative h-44 bg-gray-100">
+                    {s.photo_url ? (
+                      <Image src={s.photo_url} fill className="object-cover group-hover:scale-105 transition-transform duration-300" alt={s.nom} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth={1} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {/* Infos */}
+                  <div className="p-4">
+                    <p className="font-bold text-navy text-sm truncate">{s.nom}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{s.ville}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-xs text-gray-500">Jusqu&apos;à {s.capacite_max} pers.</p>
+                      {s.prix_base && (
+                        <p className="text-sm font-bold text-navy">
+                          {s.prix_base.toLocaleString('fr-FR')} € <span className="text-xs font-normal text-gray-400">/nuit</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* ── Modal toutes les photos ── */}

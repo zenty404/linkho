@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getLieuById, getReservationsOccupees } from '@/lib/actions/public'
+import { getLieuById, getLieuxSuggeres, getReservationsOccupees } from '@/lib/actions/public'
 import { getAvisLieu } from '@/lib/actions/avis'
 import LieuDetailClient from './lieu-detail-client'
 
@@ -13,10 +13,17 @@ export default async function Page({
   const { id } = await params
   const sp = await searchParams
 
-  const [lieu, reservationsOccupees, avisResult] = await Promise.all([
+  const [lieu, reservationsOccupees, avisResult, suggestions] = await Promise.all([
     getLieuById(id),
     getReservationsOccupees(id),
     getAvisLieu(id),
+    getLieuxSuggeres({
+      lieuExcluId: id,
+      typeEvenement: '',
+      dateDebut: new Date().toISOString().split('T')[0],
+      dateFin: new Date(Date.now() + 86400000 * 30).toISOString().split('T')[0],
+      nbParticipants: 1,
+    }),
   ])
 
   if (!lieu) notFound()
@@ -32,6 +39,7 @@ export default async function Page({
       reservationsOccupees={reservationsOccupees}
       initialDates={{ date_debut, date_fin, participants, type }}
       avis={avisResult.data ?? []}
+      suggestions={suggestions}
     />
   )
 }
