@@ -230,16 +230,16 @@ export default function DevisWidget({
       {/* ── Widget ── */}
       <div className="sticky top-24 bg-white shadow-xl rounded-2xl overflow-hidden">
         {/* En-tête prix */}
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100">
-          <h3 className="text-base font-bold text-navy">Vérifier les disponibilités</h3>
+        <div className="px-5 pt-5 pb-4 bg-navy">
+          <h3 className="text-base font-bold text-white">Vérifier les disponibilités</h3>
           {prixBase != null && (
             <p className="text-2xl font-bold text-brand mt-1">
               {prixBase.toLocaleString('fr-FR')} €
-              <span className="text-sm font-normal text-gray-400"> /nuit</span>
+              <span className="text-sm font-normal text-white/50"> /nuit</span>
             </p>
           )}
           {estimation != null && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-white/70 mt-1">
               {nuits} nuit{nuits > 1 ? 's' : ''} ·{' '}
               <span className="font-semibold text-brand">
                 ~{estimation.toLocaleString('fr-FR')} €
@@ -277,7 +277,7 @@ export default function DevisWidget({
                 <div className="flex justify-between items-start text-sm">
                   <span className="text-gray-500">Acompte estimé (30%)</span>
                   {acompteEstime != null ? (
-                    <span className="font-bold text-brand text-base">
+                    <span className="font-bold text-navy text-base">
                       ~{acompteEstime.toLocaleString('fr-FR')} €
                     </span>
                   ) : (
@@ -326,7 +326,7 @@ export default function DevisWidget({
                 disabled={isSubmitting}
                 className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
                   !isSubmitting
-                    ? 'bg-brand hover:bg-brand-light text-navy cursor-pointer'
+                    ? 'bg-brand hover:bg-brand-light text-navy shadow-lg cursor-pointer'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
@@ -404,7 +404,7 @@ export default function DevisWidget({
               disabled={!canSubmit}
               className={`w-full py-3 rounded-lg text-sm font-semibold transition-colors ${
                 canSubmit
-                  ? 'bg-brand hover:bg-brand-light text-navy cursor-pointer'
+                  ? 'bg-brand hover:bg-brand-light text-navy shadow-lg cursor-pointer'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >

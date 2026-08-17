@@ -152,7 +152,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
         </div>
 
         {/* ── Header ── */}
-        <div className="mt-8 pb-8 border-b border-gray-100">
+        <div className="mt-8 mb-8 rounded-2xl bg-navy/5 border border-navy/10 px-6 py-6">
           <div className="flex items-start gap-3 flex-wrap mb-2">
             <h1 className="text-3xl font-bold text-navy leading-tight">{lieu.nom}</h1>
             {lieu.type_lieu && (
@@ -252,7 +252,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
                     <h2 className="text-lg font-bold text-navy mb-4">Types d&apos;événements acceptés</h2>
                     <div className="flex flex-wrap gap-2">
                       {lieu.types_evenements.map((type) => (
-                        <span key={type} className="px-3 py-1.5 bg-navy/5 text-navy text-sm font-medium rounded-full border border-navy/10">
+                        <span key={type} className="px-3 py-1.5 bg-navy text-white text-sm font-medium rounded-full border border-navy">
                           {type}
                         </span>
                       ))}
@@ -271,7 +271,7 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
             {/* Disponibilités */}
             <div className="flex-1 min-w-0">
               <section>
-                <h2 className="text-xl font-bold text-navy mb-5">Disponibilités</h2>
+                <h2 className="text-xl font-bold text-navy mb-5 border-l-4 border-navy pl-3">Disponibilités</h2>
                 <style>{`
                   .rdp-day_selected:not([disabled]) { background-color: #f49915 !important; color: white !important; }
                   .rdp-day_range_start:not([disabled]),
@@ -333,17 +333,17 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
         <div className="pb-16">
           <MotionSection direction="up" delay={50}>
             <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-navy">
+              <div className="flex items-center justify-between mb-6 bg-navy text-white rounded-xl px-4 py-3">
+                <h2 className="text-xl font-bold text-white">
                   Avis des BDE
                   {avis.length > 0 && (
-                    <span className="ml-2 text-base font-normal text-gray-400">({avis.length})</span>
+                    <span className="ml-2 text-base font-normal text-white/60">({avis.length})</span>
                   )}
                 </h2>
                 {noteMoyenne !== null && (
                   <div className="flex items-center gap-2">
                     <Stars note={Math.round(noteMoyenne)} />
-                    <span className="text-sm font-bold text-navy">{noteMoyenne.toFixed(1)}/5</span>
+                    <span className="text-sm font-bold text-white">{noteMoyenne.toFixed(1)}/5</span>
                   </div>
                 )}
               </div>
@@ -467,8 +467,8 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
 
 function Carac({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 bg-gray-50 rounded-2xl p-4 border border-gray-100">
-      <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
+    <div className="flex items-start gap-3 bg-navy/5 rounded-2xl p-4 border border-navy/10">
+      <div className="w-9 h-9 rounded-xl bg-navy text-white flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div>
