@@ -3,33 +3,34 @@
 import {
   Home,
   Calendar,
-  Users,
-  FileText,
-  CreditCard,
   MessageSquare,
-  File,
-  UsersRound,
   Settings,
-  Building2,
   Inbox,
   Bookmark,
-  Receipt,
-  Star,
-  Percent,
   Search,
   UserCheck,
   ChevronRight,
   LogOut,
+  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { SidebarNav, type NavItem } from '@/components/ui/sidebar-nav'
+import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { signOut } from '@/lib/actions/auth'
 import { getUnreadCount } from '@/lib/actions/messages'
 import { getPendingAccountsCount } from '@/lib/actions/admin'
 
 type Space = 'bde' | 'etablissement' | 'admin'
 
-const BASE_NAV: Record<Space, NavItem[]> = {
+type NavItem = {
+  label: string
+  href: string
+  icon: LucideIcon
+  badge?: number
+}
+
+const BASE_NAV: Record<Space, Omit<NavItem, 'badge'>[]> = {
   bde: [
     { label: 'Tableau de bord', href: '/bde/dashboard', icon: Home },
     { label: 'Événements', href: '/bde/evenements', icon: Calendar },
@@ -52,10 +53,10 @@ const BASE_NAV: Record<Space, NavItem[]> = {
   ],
 }
 
-const SPACE_META: Record<Space, { label: string; roleLabel: string }> = {
-  bde: { label: 'ESPACE BDE', roleLabel: 'BDE' },
-  etablissement: { label: 'ESPACE LIEU', roleLabel: 'Établissement' },
-  admin: { label: 'ESPACE ADMIN', roleLabel: 'Admin LINKHO' },
+const SPACE_META: Record<Space, { roleLabel: string }> = {
+  bde: { roleLabel: 'BDE' },
+  etablissement: { roleLabel: 'Établissement' },
+  admin: { roleLabel: 'Admin LINKHO' },
 }
 
 function getInitials(name: string) {
@@ -70,9 +71,11 @@ type Props = {
 }
 
 export function AppSidebar({ space, displayName }: Props) {
-  const { label: spaceLabel, roleLabel } = SPACE_META[space]
+  const { roleLabel } = SPACE_META[space]
+  const pathname = usePathname()
   const [unread, setUnread] = useState(0)
   const [pendingCount, setPendingCount] = useState(0)
+  const [expanded, setExpanded] = useState(true)
   const initials = getInitials(displayName)
 
   useEffect(() => {
@@ -94,56 +97,95 @@ export function AppSidebar({ space, displayName }: Props) {
     return () => clearInterval(interval)
   }, [space])
 
-  const items = BASE_NAV[space].map((item) => {
+  const items: NavItem[] = BASE_NAV[space].map((item) => {
     if (item.href.includes('/messagerie')) return { ...item, badge: unread || undefined }
     if (space === 'admin' && item.href.includes('/comptes')) return { ...item, badge: pendingCount || undefined }
     return item
   })
 
   return (
-    <aside className="w-[210px] bg-navy flex flex-col shrink-0 h-screen sticky top-0">
+    <aside
+      className={`relative flex flex-col bg-navy h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out
+        ${expanded ? 'w-60' : 'w-16'}`}
+    >
+      {/* Toggle */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="absolute -right-3 top-7 z-10 w-6 h-6 rounded-full bg-navy border border-white/15 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-colors"
+        aria-label={expanded ? 'Réduire la barre latérale' : 'Étendre la barre latérale'}
+      >
+        <ChevronRight size={12} className={`transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+
       {/* Logo */}
-      <div className="px-5 pt-7 pb-4">
-        <span className="text-xl font-bold">
-          <span className="text-white">LIN</span>
-          <span className="text-brand">KHO</span>
-        </span>
+      <div className="flex items-center h-16 px-4 border-b border-white/10 shrink-0">
+        {expanded ? (
+          <Image src="/LOGO ENTIER VF BLANC.svg" alt="LINKHO" width={110} height={34} className="shrink-0" />
+        ) : (
+          <Image src="/SOUS LOGO V2.svg" alt="LINKHO" width={28} height={28} className="shrink-0" />
+        )}
       </div>
 
-      {/* Space label */}
-      <div className="px-5 pb-4">
-        <span className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.12em]">
-          {spaceLabel}
-        </span>
-      </div>
-
-      {/* Nav items */}
-      <div className="flex-1 px-3 overflow-y-auto">
-        <SidebarNav items={items} />
-      </div>
-
-      {/* Profile card */}
-      <div className="p-3 border-t border-white/10">
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-brand">
-            <span className="text-xs font-semibold text-white">{initials}</span>
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-white truncate leading-none">{displayName}</p>
-            <p className="text-[11px] text-white/40 mt-0.5">{roleLabel}</p>
-          </div>
-          <ChevronRight size={14} className="text-white/25 shrink-0" />
+      {/* Navigation */}
+      <nav className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col gap-0.5 px-2">
+          {items.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(item.href + '/')
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors relative
+                  ${active ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
+                <span
+                  className={`text-sm font-medium whitespace-nowrap transition-opacity duration-200 overflow-hidden
+                    ${expanded ? 'opacity-100' : 'opacity-0 w-0'}`}
+                >
+                  {item.label}
+                </span>
+                {item.badge != null && item.badge > 0 && (
+                  <span
+                    className={`absolute min-w-[18px] h-[18px] px-1 rounded-full bg-brand text-white text-[10px] font-bold flex items-center justify-center
+                      ${expanded ? 'right-3 top-1/2 -translate-y-1/2' : 'right-1 top-1'}`}
+                  >
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </Link>
+            )
+          })}
         </div>
+      </nav>
 
-        <form action={signOut} className="mt-0.5">
-          <button
-            type="submit"
-            className="flex items-center gap-2 w-full px-2 py-1.5 text-[11px] text-white/35 hover:text-white/60 transition-colors rounded-md"
-          >
-            <LogOut size={12} strokeWidth={1.75} />
-            Déconnexion
-          </button>
-        </form>
+      {/* Profil */}
+      <div className="border-t border-white/10 p-3 shrink-0">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-xl">
+          <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            {initials}
+          </div>
+          {expanded && (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white truncate leading-none">{displayName}</p>
+                <p className="text-[11px] text-white/40 mt-1 truncate">{roleLabel}</p>
+              </div>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="text-white/40 hover:text-white transition-colors p-1"
+                  aria-label="Déconnexion"
+                  title="Déconnexion"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={1.75} />
+                </button>
+              </form>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   )
