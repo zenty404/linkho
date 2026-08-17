@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/public/navbar'
 import Footer from '@/components/public/footer'
+import { PublicLoader } from '@/components/public/public-loader'
 import { MotionSection } from '@/components/public/motion-section'
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal'
 import { Highlighter } from '@/components/ui/highlighter'
@@ -110,7 +111,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
   }
 
   return (
-    <>
+    <PublicLoader>
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -842,6 +843,6 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       </section>
 
       <Footer />
-    </>
+    </PublicLoader>
   )
 }

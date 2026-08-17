@@ -10,12 +10,15 @@ type StartupLoaderProps = {
   logoAlt?: string;
   /** Total duration of the progress animation, in ms. */
   duration?: number;
+  /** sessionStorage key used to remember that this loader has already played. */
+  storageKey?: string;
 };
 
 export function StartupLoader({
   logoSrc = "/logo.png",
   logoAlt = "Logo",
   duration = 2500,
+  storageKey = "hasVisited",
 }: StartupLoaderProps) {
   const [progress, setProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -34,7 +37,7 @@ export function StartupLoader({
         clearInterval(timer);
         setTimeout(() => {
           setIsVisible(false);
-          sessionStorage.setItem("hasVisited", "true");
+          sessionStorage.setItem(storageKey, "true");
         }, 500); // Longer pause at 100% to appreciate it
       } else {
         // Ease-out curve: starts fast, slows down towards 100%
@@ -46,7 +49,7 @@ export function StartupLoader({
     return () => {
       clearInterval(timer);
     };
-  }, [duration, setLoaderFinished]);
+  }, [duration, setLoaderFinished, storageKey]);
 
   // Format the progress as "0 9 9" with leading zeros and spaces
   const formattedProgress = Math.floor(progress)
@@ -60,8 +63,8 @@ export function StartupLoader({
       {isVisible && (
         <motion.div
           initial={{ y: 0 }}
-          exit={{ y: "-100%" }}
-          transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1] }}
+          exit={{ opacity: 0, y: "-100%" }}
+          transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
           className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-navy text-white"
         >
           <div className="relative z-10 flex flex-col items-center">
