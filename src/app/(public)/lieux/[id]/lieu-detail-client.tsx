@@ -178,20 +178,6 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
             </div>
           )}
 
-          {lieu.equipements && lieu.equipements.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {lieu.equipements.slice(0, 7).map((eq) => (
-                <span key={eq} className="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                  {eq}
-                </span>
-              ))}
-              {lieu.equipements.length > 7 && (
-                <span className="text-xs font-medium bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
-                  +{lieu.equipements.length - 7}
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* ── Sections infos ── */}
@@ -236,39 +222,41 @@ export default function LieuDetailClient({ lieu, reservationsOccupees, initialDa
             </section>
           </MotionSection>
 
-          {/* Équipements */}
-          {lieu.equipements && lieu.equipements.length > 0 && (
+          {/* Options & équipements */}
+          {((lieu.tags_equipements && lieu.tags_equipements.length > 0) ||
+            (lieu.types_evenements && lieu.types_evenements.length > 0)) && (
             <MotionSection direction="up" delay={50}>
-              <section>
-                <h2 className="text-xl font-bold text-navy mb-5">Équipements</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4">
-                  {lieu.equipements.map((eq) => (
-                    <div key={eq} className="flex items-center gap-2.5 text-sm text-gray-700">
-                      <div className="w-5 h-5 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3 h-3 text-brand" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                      </div>
-                      {eq}
+              <section className="space-y-8">
+                {lieu.tags_equipements && lieu.tags_equipements.length > 0 && (
+                  <div className="border-t border-gray-100 pt-6">
+                    <h2 className="text-lg font-bold text-navy mb-4">Options &amp; équipements</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {lieu.tags_equipements.map((eq) => (
+                        <div key={eq} className="flex items-center gap-2.5 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="w-7 h-7 rounded-lg bg-navy/5 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-4 h-4 text-navy/60" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-navy/80">{eq}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </section>
-            </MotionSection>
-          )}
+                  </div>
+                )}
 
-          {/* Types d'événements */}
-          {lieu.types_evenements && lieu.types_evenements.length > 0 && (
-            <MotionSection direction="up" delay={50}>
-              <section>
-                <h2 className="text-xl font-bold text-navy mb-4">Types d&apos;événements acceptés</h2>
-                <div className="flex flex-wrap gap-2">
-                  {lieu.types_evenements.map((t) => (
-                    <span key={t} className="text-sm font-medium bg-navy/5 text-navy px-4 py-2 rounded-full">
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                {lieu.types_evenements && lieu.types_evenements.length > 0 && (
+                  <div className="border-t border-gray-100 pt-6">
+                    <h2 className="text-lg font-bold text-navy mb-4">Types d&apos;événements acceptés</h2>
+                    <div className="flex flex-wrap gap-2">
+                      {lieu.types_evenements.map((type) => (
+                        <span key={type} className="px-3 py-1.5 bg-navy/5 text-navy text-sm font-medium rounded-full border border-navy/10">
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
             </MotionSection>
           )}
