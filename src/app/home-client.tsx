@@ -149,7 +149,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       <Navbar />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative bg-navy min-h-[85vh] pt-16 flex flex-col">
+      <section className="relative bg-navy min-h-[100vh] pt-16 flex flex-col">
         <div className="flex-1 flex items-center">
           <div className="max-w-7xl mx-auto px-6 py-10 w-full">
 
