@@ -368,7 +368,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 )}
               </div>
               {/* Bouton */}
-              <div className="px-3 py-3">
+              <div className="px-3 py-3 flex-shrink-0">
                 <button
                   type="submit"
                   className="w-full md:w-auto bg-brand text-white font-bold px-6 py-3 rounded-xl hover:bg-brand/90 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
