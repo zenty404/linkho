@@ -1,6 +1,6 @@
 'use client'
 import 'react-day-picker/dist/style.css'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DayPicker } from 'react-day-picker'
 import { fr } from 'date-fns/locale'
@@ -85,6 +85,16 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
   const calFinRef = useRef<HTMLDivElement>(null)
   const typeRef = useRef<HTMLDivElement>(null)
 
+  const titles = useMemo(() => ['inoubliables.', 'organisés.', 'réussis.', 'sécurisés.', 'épiques.'], [])
+  const [titleNumber, setTitleNumber] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTitleNumber((prev) => (prev === titles.length - 1 ? 0 : prev + 1))
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [titles])
+
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
       if (calDebutRef.current && !calDebutRef.current.contains(e.target as Node)) setCalDebutOpen(false)
@@ -159,9 +169,23 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                   </div>
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                     Vos événements étudiants,{' '}
-                    <span className="block">
-                      simplement{' '}
-                      <span className="text-brand">réussis.</span>
+                    <span className="block">simplement</span>
+                    <span className="relative flex h-[1.3em] overflow-hidden">
+                      {titles.map((title, index) => (
+                        <motion.span
+                          key={index}
+                          className="absolute text-brand font-bold"
+                          initial={{ opacity: 0, y: 150 }}
+                          transition={{ type: 'spring', stiffness: 50 }}
+                          animate={
+                            titleNumber === index
+                              ? { y: 0, opacity: 1 }
+                              : { y: titleNumber > index ? -150 : 150, opacity: 0 }
+                          }
+                        >
+                          {title}
+                        </motion.span>
+                      ))}
                     </span>
                   </h1>
                 </MotionSection>
