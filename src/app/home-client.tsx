@@ -154,7 +154,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
           <div className="max-w-7xl mx-auto px-6 py-10 w-full">
 
             {/* Texte */}
-            <div>
+            <div className="max-w-lg lg:max-w-2xl">
               <MotionSection direction="left" delay={0}>
                 <div className="mb-10">
                   <Link href="/">
@@ -167,9 +167,8 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                     />
                   </Link>
                 </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                  Vos événements étudiants,{' '}
-                  <span className="block">simplement</span>
+                <h1 className="text-4xl md:text-6xl lg:text-6xl font-bold text-white leading-tight mb-6">
+                  Vos événements <span className="whitespace-nowrap">étudiants, simplement</span>
                   <span className="relative flex h-[1.3em] overflow-hidden">
                     {titles.map((title, index) => (
                       <motion.span
@@ -195,7 +194,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 </p>
               </MotionSection>
               <MotionSection direction="left" delay={200}>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex gap-3">
                   {[
                     {
                       label: 'Prix transparents',
