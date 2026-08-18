@@ -242,29 +242,53 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
 
             {/* Photos flottantes */}
             <MotionSection direction="right" delay={100} className="hidden md:block">
-              <div className="relative" style={{ height: '480px' }}>
+              <div className="relative" style={{ height: '560px' }}>
+
+                {/* Décoration fond : points et ronds orange */}
+                <div className="absolute -top-2 -right-4 grid grid-cols-[repeat(16,minmax(0,1fr))] gap-4" style={{ zIndex: 0 }}>
+                  {Array.from({ length: 256 }).map((_, i) => (
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-brand/50" />
+                  ))}
+                </div>
+                <div className="absolute -bottom-16 right-0 w-64 h-64 rounded-full bg-brand/30" style={{ zIndex: 0 }} />
+
                 {heroPhotos[0] && (
                   <div className="absolute rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
-                    style={{ width: '55%', height: '65%', top: '8%', left: '0%', transform: 'rotate(-2deg)', zIndex: 2 }}>
-                    <Image src={heroPhotos[0]} fill className="object-cover" alt="Lieu" />
+                    style={{ width: '46%', height: '82%', top: '12%', left: '16%', transform: 'rotate(-3deg)', zIndex: 2 }}>
+                    <Image src={heroPhotos[0]} fill className="object-cover" alt="Chalet - Alpes" />
+                    <svg className="absolute top-4 right-4 w-6 h-6 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                    <div className="absolute bottom-4 left-4 bg-white rounded-xl px-4 py-2 shadow-md">
+                      <p className="text-navy font-bold text-sm leading-tight">Chalet – Alpes</p>
+                      <p className="text-gray-500 text-xs">120 couchages</p>
+                    </div>
                   </div>
                 )}
                 {heroPhotos[1] && (
                   <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '40%', height: '38%', top: '0%', right: '0%', transform: 'rotate(2deg)', zIndex: 3 }}>
-                    <Image src={heroPhotos[1]} fill className="object-cover" alt="Lieu" />
+                    style={{ width: '36%', height: '48%', top: '0%', right: '2%', transform: 'rotate(3deg)', zIndex: 3 }}>
+                    <Image src={heroPhotos[1]} fill className="object-cover" alt="Soirée" />
+                    <svg className="absolute top-3 right-3 w-5 h-5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                    <div className="absolute bottom-3 left-3 bg-white rounded-lg px-3 py-1.5 shadow-md">
+                      <p className="text-navy font-bold text-xs leading-tight">Soirée</p>
+                      <p className="text-gray-500 text-[10px]">DJ &amp; matériel</p>
+                    </div>
                   </div>
                 )}
                 {heroPhotos[2] && (
                   <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '38%', height: '36%', top: '32%', right: '2%', transform: 'rotate(-1.5deg)', zIndex: 3 }}>
-                    <Image src={heroPhotos[2]} fill className="object-cover" alt="Lieu" />
-                  </div>
-                )}
-                {heroPhotos[3] && (
-                  <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                    style={{ width: '42%', height: '34%', bottom: '0%', right: '8%', transform: 'rotate(1deg)', zIndex: 4 }}>
-                    <Image src={heroPhotos[3]} fill className="object-cover" alt="Lieu" />
+                    style={{ width: '34%', height: '52%', top: '46%', right: '0%', transform: 'rotate(-2deg)', zIndex: 3 }}>
+                    <Image src={heroPhotos[2]} fill className="object-cover" alt="Péniche - Paris" />
+                    <svg className="absolute top-3 right-3 w-5 h-5 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733C11.285 4.876 9.623 3.75 7.688 3.75 5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                    <div className="absolute bottom-3 left-3 bg-white rounded-lg px-3 py-1.5 shadow-md">
+                      <p className="text-navy font-bold text-xs leading-tight">Péniche – Paris</p>
+                      <p className="text-gray-500 text-[10px]">150 personnes</p>
+                    </div>
                   </div>
                 )}
               </div>
