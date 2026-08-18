@@ -13,6 +13,7 @@ import { useLoader } from '@/components/shared/loader-context'
 import { MotionSection } from '@/components/public/motion-section'
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal'
 import { Highlighter } from '@/components/ui/highlighter'
+import ScrollGallerySection from '@/components/ui/scroll-gallery-section'
 import type { AvisLinkho } from '@/lib/actions/avis'
 
 function ConnectorLine({ delay }: { delay: number }) {
@@ -151,135 +152,94 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       <section className="relative bg-navy min-h-[85vh] pt-16 flex flex-col">
         <div className="flex-1 flex items-center">
           <div className="max-w-7xl mx-auto px-6 py-10 w-full">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
 
-              {/* Texte */}
-              <div>
-                <MotionSection direction="left" delay={0}>
-                  <div className="mb-10">
-                    <Link href="/">
-                      <Image
-                        src="/LOGO ENTIER VF BLANC.svg"
-                        alt="LINKHO"
-                        width={160}
-                        height={50}
-                        priority
-                      />
-                    </Link>
-                  </div>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                    Vos événements étudiants,{' '}
-                    <span className="block">simplement</span>
-                    <span className="relative flex h-[1.3em] overflow-hidden">
-                      {titles.map((title, index) => (
-                        <motion.span
-                          key={index}
-                          className="absolute text-brand font-bold"
-                          initial={{ opacity: 0, y: 150 }}
-                          transition={{ type: 'spring', stiffness: 50 }}
-                          animate={
-                            titleNumber === index
-                              ? { y: 0, opacity: 1 }
-                              : { y: titleNumber > index ? -150 : 150, opacity: 0 }
-                          }
-                        >
-                          {title}
-                        </motion.span>
-                      ))}
-                    </span>
-                  </h1>
-                </MotionSection>
-                <MotionSection direction="left" delay={100}>
-                  <p className="text-white/70 text-lg mb-10 leading-relaxed max-w-lg">
-                    On a organisé nos propres WEI. On sait ce qui coince. Un seul endroit pour votre lieu, votre transport et vos animations.
-                  </p>
-                </MotionSection>
-                <MotionSection direction="left" delay={200}>
-                  <div className="flex flex-wrap gap-3">
-                    {[
-                      {
-                        label: 'Prix transparents',
-                        icon: (
-                          <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                          </svg>
-                        ),
-                      },
-                      {
-                        label: 'Zéro marge cachée',
-                        icon: (
-                          <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
-                        ),
-                      },
-                      {
-                        label: 'Fait par des étudiants',
-                        icon: (
-                          <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                          </svg>
-                        ),
-                      },
-                      {
-                        label: 'Tout en un seul endroit',
-                        icon: (
-                          <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
-                          </svg>
-                        ),
-                      },
-                    ].map(({ label, icon }) => (
-                      <span
-                        key={label}
-                        className="inline-flex items-center gap-2 text-white/80 text-sm"
+            {/* Texte */}
+            <div>
+              <MotionSection direction="left" delay={0}>
+                <div className="mb-10">
+                  <Link href="/">
+                    <Image
+                      src="/LOGO ENTIER VF BLANC.svg"
+                      alt="LINKHO"
+                      width={160}
+                      height={50}
+                      priority
+                    />
+                  </Link>
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+                  Vos événements étudiants,{' '}
+                  <span className="block">simplement</span>
+                  <span className="relative flex h-[1.3em] overflow-hidden">
+                    {titles.map((title, index) => (
+                      <motion.span
+                        key={index}
+                        className="absolute text-brand font-bold"
+                        initial={{ opacity: 0, y: 150 }}
+                        transition={{ type: 'spring', stiffness: 50 }}
+                        animate={
+                          titleNumber === index
+                            ? { y: 0, opacity: 1 }
+                            : { y: titleNumber > index ? -150 : 150, opacity: 0 }
+                        }
                       >
-                        {icon}
-                        {label}
-                      </span>
+                        {title}
+                      </motion.span>
                     ))}
-                  </div>
-                </MotionSection>
-              </div>
-
-              {/* Mosaïque photos */}
-              <MotionSection direction="right" delay={100} className="hidden md:block">
-                <div className="relative" style={{ height: '480px' }}>
-                  {heroPhotos[0] && (
-                    <div
-                      className="absolute rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
-                      style={{ width: '55%', height: '65%', top: '8%', left: '0%', transform: 'rotate(-2deg)', zIndex: 2 }}
+                  </span>
+                </h1>
+              </MotionSection>
+              <MotionSection direction="left" delay={100}>
+                <p className="text-white/70 text-lg mb-10 leading-relaxed max-w-lg">
+                  On a organisé nos propres WEI. On sait ce qui coince. Un seul endroit pour votre lieu, votre transport et vos animations.
+                </p>
+              </MotionSection>
+              <MotionSection direction="left" delay={200}>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    {
+                      label: 'Prix transparents',
+                      icon: (
+                        <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Zéro marge cachée',
+                      icon: (
+                        <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Fait par des étudiants',
+                      icon: (
+                        <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                        </svg>
+                      ),
+                    },
+                    {
+                      label: 'Tout en un seul endroit',
+                      icon: (
+                        <svg className="w-4 h-4 text-brand flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                        </svg>
+                      ),
+                    },
+                  ].map(({ label, icon }) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-2 text-white/80 text-sm"
                     >
-                      <Image src={heroPhotos[0]} fill className="object-cover" alt="Lieu" />
-                    </div>
-                  )}
-                  {heroPhotos[1] && (
-                    <div
-                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                      style={{ width: '40%', height: '38%', top: '0%', right: '0%', transform: 'rotate(2deg)', zIndex: 3 }}
-                    >
-                      <Image src={heroPhotos[1]} fill className="object-cover" alt="Lieu" />
-                    </div>
-                  )}
-                  {heroPhotos[2] && (
-                    <div
-                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                      style={{ width: '38%', height: '36%', top: '32%', right: '2%', transform: 'rotate(-1.5deg)', zIndex: 3 }}
-                    >
-                      <Image src={heroPhotos[2]} fill className="object-cover" alt="Lieu" />
-                    </div>
-                  )}
-                  {heroPhotos[3] && (
-                    <div
-                      className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
-                      style={{ width: '42%', height: '34%', bottom: '0%', right: '8%', transform: 'rotate(1deg)', zIndex: 4 }}
-                    >
-                      <Image src={heroPhotos[3]} fill className="object-cover" alt="Lieu" />
-                    </div>
-                  )}
+                      {icon}
+                      {label}
+                    </span>
+                  ))}
                 </div>
               </MotionSection>
-
             </div>
           </div>
         </div>
@@ -440,6 +400,19 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
           </svg>
         </div>
       </section>
+
+      {/* ── TYPES D'ÉVÉNEMENTS ──────────────────────────────────────────── */}
+      <ScrollGallerySection
+        badge="Nos lieux"
+        titleLines={['Un lieu pour', 'chaque occasion']}
+        description="Châteaux, domaines, salles de prestige — LINKHO vous trouve le lieu parfait pour chaque type d'événement."
+        items={[
+          { image: heroPhotos[0] ?? '', tag: 'WEI', titre: "Week-end d'intégration", description: "Accueillez vos nouveaux membres dans un lieu d'exception. Piscine, grands espaces, hébergement — tout pour un WEI inoubliable." },
+          { image: heroPhotos[1] ?? '', tag: 'Soirée', titre: 'Soirées & galas', description: "Des lieux d'exception pour vos soirées étudiantes. Scène, sono, bar — des espaces pensés pour faire la fête." },
+          { image: heroPhotos[2] ?? '', tag: 'Séminaire', titre: 'Séminaires & intégration', description: "Des espaces calmes et équipés pour vos séminaires, team buildings et journées d'intégration." },
+          { image: heroPhotos[3] ?? '', tag: 'Gala', titre: "Galas de fin d'année", description: "Célébrez la fin de l'année dans un cadre somptueux. Château, domaine, salle de prestige." },
+        ]}
+      />
 
       {/* ── COMMENT ÇA MARCHE ────────────────────────────────────────────── */}
       <section id="comment-ca-marche" className="pt-16 pb-24 px-6 bg-gray-50">
