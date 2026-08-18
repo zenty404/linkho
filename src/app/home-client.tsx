@@ -13,7 +13,6 @@ import { useLoader } from '@/components/shared/loader-context'
 import { MotionSection } from '@/components/public/motion-section'
 import { VerticalCutReveal } from '@/components/ui/vertical-cut-reveal'
 import { Highlighter } from '@/components/ui/highlighter'
-import ScrollGallerySection from '@/components/ui/scroll-gallery-section'
 import type { AvisLinkho } from '@/lib/actions/avis'
 
 function ConnectorLine({ delay }: { delay: number }) {
@@ -151,7 +150,7 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative bg-navy min-h-[100vh] pt-16 flex flex-col">
         <div className="flex-1 flex items-center">
-          <div className="max-w-7xl mx-auto px-6 py-10 w-full">
+          <div className="max-w-7xl mx-auto px-6 py-10 w-full grid md:grid-cols-2 gap-8 items-center">
 
             {/* Texte */}
             <div className="max-w-lg lg:max-w-2xl">
@@ -240,6 +239,36 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
                 </div>
               </MotionSection>
             </div>
+
+            {/* Photos flottantes */}
+            <MotionSection direction="right" delay={100} className="hidden md:block">
+              <div className="relative" style={{ height: '480px' }}>
+                {heroPhotos[0] && (
+                  <div className="absolute rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20"
+                    style={{ width: '55%', height: '65%', top: '8%', left: '0%', transform: 'rotate(-2deg)', zIndex: 2 }}>
+                    <Image src={heroPhotos[0]} fill className="object-cover" alt="Lieu" />
+                  </div>
+                )}
+                {heroPhotos[1] && (
+                  <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                    style={{ width: '40%', height: '38%', top: '0%', right: '0%', transform: 'rotate(2deg)', zIndex: 3 }}>
+                    <Image src={heroPhotos[1]} fill className="object-cover" alt="Lieu" />
+                  </div>
+                )}
+                {heroPhotos[2] && (
+                  <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                    style={{ width: '38%', height: '36%', top: '32%', right: '2%', transform: 'rotate(-1.5deg)', zIndex: 3 }}>
+                    <Image src={heroPhotos[2]} fill className="object-cover" alt="Lieu" />
+                  </div>
+                )}
+                {heroPhotos[3] && (
+                  <div className="absolute rounded-xl overflow-hidden shadow-xl border-2 border-white/20"
+                    style={{ width: '42%', height: '34%', bottom: '0%', right: '8%', transform: 'rotate(1deg)', zIndex: 4 }}>
+                    <Image src={heroPhotos[3]} fill className="object-cover" alt="Lieu" />
+                  </div>
+                )}
+              </div>
+            </MotionSection>
           </div>
         </div>
 
@@ -401,18 +430,34 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
       </section>
 
       {/* ── TYPES D'ÉVÉNEMENTS ──────────────────────────────────────────── */}
-      <section className="bg-[#f9fafb]">
-        <ScrollGallerySection
-          badge="Nos lieux"
-          titleLines={['Un lieu pour', 'chaque occasion']}
-          description="Châteaux, domaines, salles de prestige — LINKHO vous trouve le lieu parfait pour chaque type d'événement."
-          items={[
-            { image: '/gala.png', tag: 'WEI', titre: "Week-end d'intégration", description: "Accueillez vos nouveaux membres dans un lieu d'exception. Piscine, grands espaces, hébergement — tout pour un WEI inoubliable." },
-            { image: '/soiree.png', tag: 'Soirée', titre: 'Soirées & galas', description: "Des lieux d'exception pour vos soirées étudiantes. Scène, sono, bar — des espaces pensés pour faire la fête." },
-            { image: '/sem.png', tag: 'Séminaire', titre: 'Séminaires & intégration', description: "Des espaces calmes et équipés pour vos séminaires, team buildings et journées d'intégration." },
-            { image: '/wei.png', tag: 'Gala', titre: "Galas de fin d'année", description: "Célébrez la fin de l'année dans un cadre somptueux. Château, domaine, salle de prestige." },
-          ]}
-        />
+      <section className="bg-gray-50 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="px-3 py-1 bg-brand/10 text-brand text-xs font-bold rounded-full">Nos lieux</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-navy mt-4 mb-3">
+              Un lieu pour<br />chaque occasion
+            </h2>
+            <p className="text-gray-500 max-w-xl mx-auto">Châteaux, domaines, salles de prestige — LINKHO vous trouve le lieu parfait pour chaque type d&apos;événement.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            {[
+              { image: '/wei.png', tag: 'WEI', titre: "Week-end d'intégration", description: "Accueillez vos nouveaux membres dans un lieu d'exception." },
+              { image: '/soiree.png', tag: 'Soirée', titre: 'Soirées & galas', description: "Des lieux d'exception pour vos soirées étudiantes." },
+              { image: '/sem.png', tag: 'Séminaire', titre: 'Séminaires & intégration', description: "Des espaces calmes et équipés pour vos séminaires." },
+              { image: '/gala.png', tag: 'Gala', titre: "Galas de fin d'année", description: "Célébrez la fin de l'année dans un cadre somptueux." },
+            ].filter(item => item.image).map((item) => (
+              <div key={item.tag} className="relative rounded-2xl overflow-hidden group cursor-pointer" style={{ height: '320px' }}>
+                <Image src={item.image!} fill className="object-cover group-hover:scale-105 transition-transform duration-500" alt={item.titre} />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <span className="px-2 py-1 bg-brand text-white text-xs font-bold rounded-full mb-2 inline-block">{item.tag}</span>
+                  <h3 className="text-white font-bold text-lg">{item.titre}</h3>
+                  <p className="text-white/70 text-sm mt-1">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── COMMENT ÇA MARCHE ────────────────────────────────────────────── */}
