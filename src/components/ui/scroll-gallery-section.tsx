@@ -75,7 +75,7 @@ function getAnimationValues(width: number) {
       textTranslateY: '-180px',
       textOpacity: 0,
       textScale: 0.75,
-      divScale: 0.75
+      divScale: 0.85
     }
   } else if (width >= 1024) {
     return {
@@ -90,7 +90,7 @@ function getAnimationValues(width: number) {
       textTranslateY: '-180px',
       textOpacity: 0,
       textScale: 0.75,
-      divScale: 0.75
+      divScale: 0.85
     }
   } else if (width >= 945) {
     return {
@@ -105,7 +105,7 @@ function getAnimationValues(width: number) {
       textTranslateY: '-180px',
       textOpacity: 0,
       textScale: 0.75,
-      divScale: 0.75
+      divScale: 0.85
     }
   } else if (width >= 884) {
     return {
@@ -120,7 +120,7 @@ function getAnimationValues(width: number) {
       textTranslateY: '-180px',
       textOpacity: 0,
       textScale: 0.75,
-      divScale: 0.75
+      divScale: 0.85
     }
   } else if (width >= 768) {
     return {
@@ -135,7 +135,7 @@ function getAnimationValues(width: number) {
       textTranslateY: '-180px',
       textOpacity: 0,
       textScale: 0.75,
-      divScale: 0.75
+      divScale: 0.85
     }
   } else {
     // Mobile - animation disabled, cards render statically in place

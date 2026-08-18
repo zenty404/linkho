@@ -406,10 +406,10 @@ export default function HomeClient({ heroPhotos, lieuxAffiches, avisLinkho }: Pr
         titleLines={['Un lieu pour', 'chaque occasion']}
         description="Châteaux, domaines, salles de prestige — LINKHO vous trouve le lieu parfait pour chaque type d'événement."
         items={[
-          { image: '/wei.png', tag: 'WEI', titre: "Week-end d'intégration", description: "Accueillez vos nouveaux membres dans un lieu d'exception. Piscine, grands espaces, hébergement — tout pour un WEI inoubliable." },
+          { image: '/gala.png', tag: 'WEI', titre: "Week-end d'intégration", description: "Accueillez vos nouveaux membres dans un lieu d'exception. Piscine, grands espaces, hébergement — tout pour un WEI inoubliable." },
           { image: '/soiree.png', tag: 'Soirée', titre: 'Soirées & galas', description: "Des lieux d'exception pour vos soirées étudiantes. Scène, sono, bar — des espaces pensés pour faire la fête." },
           { image: '/sem.png', tag: 'Séminaire', titre: 'Séminaires & intégration', description: "Des espaces calmes et équipés pour vos séminaires, team buildings et journées d'intégration." },
-          { image: '/gala.png', tag: 'Gala', titre: "Galas de fin d'année", description: "Célébrez la fin de l'année dans un cadre somptueux. Château, domaine, salle de prestige." },
+          { image: '/wei.png', tag: 'Gala', titre: "Galas de fin d'année", description: "Célébrez la fin de l'année dans un cadre somptueux. Château, domaine, salle de prestige." },
         ]}
       />
 

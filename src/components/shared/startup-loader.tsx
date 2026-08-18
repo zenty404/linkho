@@ -37,7 +37,6 @@ export function StartupLoader({
         clearInterval(timer);
         setTimeout(() => {
           setIsVisible(false);
-          sessionStorage.setItem(storageKey, "true");
         }, 500); // Longer pause at 100% to appreciate it
       } else {
         // Ease-out curve: starts fast, slows down towards 100%
