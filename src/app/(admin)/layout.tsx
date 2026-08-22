@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <DashboardIntro>
       <div className="flex h-screen bg-gray-50 overflow-hidden">
         <AppSidebar space="admin" displayName={displayName} />
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <div className="relative z-10 flex flex-col flex-1 min-w-0 overflow-hidden">
           <DashboardHeader />
           <main className="flex-1 overflow-y-auto p-6">{children}</main>
         </div>

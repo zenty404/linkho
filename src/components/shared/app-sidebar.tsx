@@ -105,27 +105,27 @@ export function AppSidebar({ space, displayName }: Props) {
 
   return (
     <aside
-      className={`relative flex flex-col bg-white h-screen sticky top-0 shrink-0 border-r border-gray-100 transition-all duration-300 ease-in-out
+      className={`relative z-20 flex flex-col bg-navy h-screen sticky top-0 shrink-0 border-r border-white/10 transition-all duration-300 ease-in-out
         ${expanded ? 'w-60' : 'w-16'}`}
     >
       {/* Toggle */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="absolute -right-3 top-7 z-10 w-6 h-6 rounded-full bg-white border border-gray-100 flex items-center justify-center text-navy/40 hover:text-navy transition-colors"
+        className="absolute -right-3 top-6 z-50 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-navy/40 hover:text-navy transition-colors"
         aria-label={expanded ? 'Réduire la barre latérale' : 'Étendre la barre latérale'}
       >
         <ChevronRight size={12} className={`transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Logo */}
-      <div className="flex items-center h-16 px-4 border-b border-gray-100 shrink-0">
+      <div className="flex items-center h-16 px-4 border-b border-white/10 shrink-0">
         {expanded ? (
           <div className="shrink-0">
-            <Image src="/LOGO PRINCIPAL.svg" alt="LINKHO" width={110} height={34} />
+            <Image src="/LOGO ENTIER VF BLANC.svg" alt="LINKHO" width={120} height={37} />
           </div>
         ) : (
-          <Image src="/SOUS LOGO PRINCIPAL.svg" alt="LINKHO" width={28} height={28} className="shrink-0" />
+          <Image src="/SOUS LOGO V2.svg" alt="LINKHO" width={28} height={28} className="shrink-0" />
         )}
       </div>
 
@@ -140,7 +140,7 @@ export function AppSidebar({ space, displayName }: Props) {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors relative
-                  ${active ? 'bg-navy/5 text-navy' : 'text-navy/60 hover:text-navy hover:bg-navy/5'}`}
+                  ${active ? 'bg-white/10 text-white' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" strokeWidth={1.75} />
                 <span
@@ -164,7 +164,7 @@ export function AppSidebar({ space, displayName }: Props) {
       </nav>
 
       {/* Profil */}
-      <div className="border-t border-gray-100 p-3 shrink-0">
+      <div className="border-t border-white/10 p-3 shrink-0">
         <div className="flex items-center gap-3 px-2 py-2 rounded-xl">
           <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
             {initials}
@@ -172,13 +172,13 @@ export function AppSidebar({ space, displayName }: Props) {
           {expanded && (
             <>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-navy truncate leading-none">{displayName}</p>
-                <p className="text-[11px] text-navy/40 mt-1 truncate">{roleLabel}</p>
+                <p className="text-sm font-medium text-white truncate leading-none">{displayName}</p>
+                <p className="text-[11px] text-white/40 mt-1 truncate">{roleLabel}</p>
               </div>
               <form action={signOut}>
                 <button
                   type="submit"
-                  className="text-navy/40 hover:text-navy transition-colors p-1"
+                  className="text-white/40 hover:text-white transition-colors p-1"
                   aria-label="Déconnexion"
                   title="Déconnexion"
                 >
