@@ -2,27 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { ActionResult } from '@/lib/types/actions'
+import { getLastMonths, monthKey } from '@/lib/chart-months'
+
+export type MonthlyPoint = { name: string; value: number }
 
 // ─── Types BDE ────────────────────────────────────────────────────────────────
-
-export type ReservationRecente = {
-  id: string
-  reference: string
-  date_debut: string
-  date_fin: string
-  statut: string
-  montant_ttc: number
-  etablissement: { nom: string } | null
-}
-
-export type DevisRecentBde = {
-  id: string
-  numero: string
-  statut: string
-  total_ttc: number | null
-  sous_total_ht: number
-  etablissement: { nom: string } | null
-}
 
 export type EvenementRecent = {
   id: string
@@ -30,6 +14,7 @@ export type EvenementRecent = {
   type: string
   date_debut: string | null
   date_fin: string | null
+  statut: string
   nb_inscrits: number
 }
 
@@ -39,13 +24,13 @@ export type ProchaineReservation = {
 } | null
 
 export type DashboardBdeData = {
-  reservationsEnCours: number
-  devisEnAttente: number
+  evenementsEnCours: number
   prochaineReservation: ProchaineReservation
   inscriptionsTotal: number
-  recentReservations: ReservationRecente[]
-  recentDevis: DevisRecentBde[]
+  montantTotalDepense: number
   recentEvenements: EvenementRecent[]
+  prochainsEvenements: EvenementRecent[]
+  inscriptionsParMois: MonthlyPoint[]
 }
 
 // ─── Types Établissement ──────────────────────────────────────────────────────
@@ -59,31 +44,24 @@ export type ReservationEtab = {
   bde: { nom: string; ecole: string } | null
 }
 
-export type DevisRecentEtab = {
+export type DemandeRecente = {
   id: string
-  numero: string
+  type_evenement: string
+  date_debut: string
+  date_fin: string
+  nb_participants: number
   statut: string
-  total_ttc: number | null
-  sous_total_ht: number
-  bde: { nom: string } | null
-}
-
-export type PaiementAConfirmer = {
-  id: string
-  type: string
-  montant: number
-  reference_virement: string
-  reservation_id: string
+  bde: { nom: string; ecole: string } | null
 }
 
 export type DashboardEtablissementData = {
-  reservationsEnCours: number
-  devisEnAttente: number
-  chiffreAffairesTotal: number
-  paiementsEnAttente: number
+  demandesRecues: number
+  reservationsConfirmees: number
+  revenusNets: number
+  tauxOccupation: number
   prochainesReservations: ReservationEtab[]
-  recentDevis: DevisRecentEtab[]
-  paiementsAConfirmer: PaiementAConfirmer[]
+  recentDemandes: DemandeRecente[]
+  revenusParMois: MonthlyPoint[]
 }
 
 // ─── Dashboard BDE ────────────────────────────────────────────────────────────
@@ -96,29 +74,24 @@ export async function getDashboardBde(): Promise<ActionResult<DashboardBdeData>>
     return { data: null, error: 'Profil BDE introuvable.' }
   }
 
-  const today = new Date().toISOString()
+  const today = new Date().toISOString().slice(0, 10)
+  const months = getLastMonths(6)
+  const rangeStart = months[0].start.toISOString()
 
   const [
-    resEnCours,
-    devisEnAtt,
+    evtEnCours,
     prochaineRes,
     inscTotal,
-    recentRes,
-    recentDev,
+    depenses,
     recentEvt,
+    prochainsEvt,
+    inscMensuelles,
   ] = await Promise.all([
     supabase
-      .from('reservations')
+      .from('evenements')
       .select('id', { count: 'exact', head: true })
       .eq('bde_id', bdeId)
-      .neq('statut', 'terminee')
-      .neq('statut', 'annulee'),
-
-    supabase
-      .from('devis')
-      .select('id', { count: 'exact', head: true })
-      .eq('bde_id', bdeId)
-      .eq('statut', 'envoye'),
+      .in('statut', ['publie', 'complet']),
 
     supabase
       .from('reservations')
@@ -138,28 +111,50 @@ export async function getDashboardBde(): Promise<ActionResult<DashboardBdeData>>
 
     supabase
       .from('reservations')
-      .select('id, reference, date_debut, date_fin, statut, montant_ttc, etablissement:etablissement_profiles(nom)')
+      .select('montant_ttc')
       .eq('bde_id', bdeId)
-      .order('created_at', { ascending: false })
-      .limit(3),
+      .neq('statut', 'annulee'),
 
     supabase
-      .from('devis')
-      .select('id, numero, statut, total_ttc, sous_total_ht, etablissement:etablissement_profiles(nom)')
+      .from('evenements')
+      .select('id, nom, type, date_debut, date_fin, statut')
       .eq('bde_id', bdeId)
       .order('created_at', { ascending: false })
       .limit(3),
 
     supabase
       .from('evenements')
-      .select('id, nom, type, date_debut, date_fin')
+      .select('id, nom, type, date_debut, date_fin, statut')
       .eq('bde_id', bdeId)
-      .order('created_at', { ascending: false })
+      .gte('date_debut', today)
+      .not('statut', 'in', '(termine,annule)')
+      .order('date_debut', { ascending: true })
       .limit(3),
+
+    supabase
+      .from('inscriptions')
+      .select('created_at')
+      .eq('bde_id', bdeId)
+      .gte('created_at', rangeStart),
   ])
 
-  // Compter les inscrits pour les 3 événements récupérés
-  const eventIds = (recentEvt.data ?? []).map((e) => e.id)
+  const montantTotalDepense = (depenses.data ?? []).reduce((sum, r) => sum + r.montant_ttc, 0)
+
+  const inscMensuellesCounts: Record<string, number> = {}
+  for (const row of inscMensuelles.data ?? []) {
+    const k = monthKey(row.created_at)
+    inscMensuellesCounts[k] = (inscMensuellesCounts[k] ?? 0) + 1
+  }
+  const inscriptionsParMois: MonthlyPoint[] = months.map((m) => ({
+    name: m.label,
+    value: inscMensuellesCounts[m.key] ?? 0,
+  }))
+
+  // Compter les inscrits pour les événements récupérés (récents + à venir)
+  const eventIds = [
+    ...(recentEvt.data ?? []).map((e) => e.id),
+    ...(prochainsEvt.data ?? []).map((e) => e.id),
+  ]
   let inscCountMap: Record<string, number> = {}
   if (eventIds.length > 0) {
     const { data: inscByEvt } = await supabase
@@ -174,16 +169,19 @@ export async function getDashboardBde(): Promise<ActionResult<DashboardBdeData>>
 
   return {
     data: {
-      reservationsEnCours: resEnCours.count ?? 0,
-      devisEnAttente: devisEnAtt.count ?? 0,
+      evenementsEnCours: evtEnCours.count ?? 0,
       prochaineReservation: prochaineRes.data as ProchaineReservation,
       inscriptionsTotal: inscTotal.count ?? 0,
-      recentReservations: (recentRes.data ?? []) as unknown as ReservationRecente[],
-      recentDevis: (recentDev.data ?? []) as unknown as DevisRecentBde[],
+      montantTotalDepense,
       recentEvenements: (recentEvt.data ?? []).map((e) => ({
         ...e,
         nb_inscrits: inscCountMap[e.id] ?? 0,
       })),
+      prochainsEvenements: (prochainsEvt.data ?? []).map((e) => ({
+        ...e,
+        nb_inscrits: inscCountMap[e.id] ?? 0,
+      })),
+      inscriptionsParMois,
     },
     error: null,
   }
@@ -201,20 +199,20 @@ export async function getDashboardEtablissement(): Promise<
     return { data: null, error: 'Profil établissement introuvable.' }
   }
 
-  const today = new Date().toISOString()
+  const today = new Date().toISOString().slice(0, 10)
+  const months = getLastMonths(6)
+  const rangeStart = months[0].start.toISOString()
 
-  // Phase 1 — réservations + devis + prochaines réservations (tout en parallèle)
-  const [allRes, devisEnAtt, prochainesRes, recentDev] = await Promise.all([
+  const [demandesRecuesRes, allRes, prochainesRes, recentDem] = await Promise.all([
     supabase
-      .from('reservations')
-      .select('id, statut, montant_ttc')
+      .from('demandes_devis')
+      .select('id', { count: 'exact', head: true })
       .eq('etablissement_id', etablissementId),
 
     supabase
-      .from('devis')
-      .select('id', { count: 'exact', head: true })
-      .eq('etablissement_id', etablissementId)
-      .in('statut', ['envoye', 'accepte']),
+      .from('reservations')
+      .select('id, statut, montant_ttc, commission_montant, date_debut, date_fin')
+      .eq('etablissement_id', etablissementId),
 
     supabase
       .from('reservations')
@@ -226,54 +224,58 @@ export async function getDashboardEtablissement(): Promise<
       .limit(3),
 
     supabase
-      .from('devis')
-      .select('id, numero, statut, total_ttc, sous_total_ht, bde:bde_profiles(nom)')
+      .from('demandes_devis')
+      .select('id, type_evenement, date_debut, date_fin, nb_participants, statut, bde:bde_profiles(nom, ecole)')
       .eq('etablissement_id', etablissementId)
       .order('created_at', { ascending: false })
       .limit(3),
   ])
 
   const resRows = allRes.data ?? []
-  const resIds = resRows.map((r) => r.id)
-  const reservationsEnCours = resRows.filter(
-    (r) => r.statut !== 'terminee' && r.statut !== 'annulee',
+
+  const reservationsConfirmees = resRows.filter((r) =>
+    ['confirmee', 'en_cours', 'terminee', 'commission_reversee'].includes(r.statut),
   ).length
-  const chiffreAffairesTotal = resRows
-    .filter((r) => r.statut === 'terminee')
-    .reduce((s, r) => s + (r.montant_ttc ?? 0), 0)
 
-  // Phase 2 — paiements (nécessite les IDs de réservations)
-  let paiementsEnAttente = 0
-  let paiementsAConfirmer: PaiementAConfirmer[] = []
+  const revenusNets = resRows
+    .filter((r) => ['terminee', 'commission_reversee'].includes(r.statut))
+    .reduce((sum, r) => sum + (r.montant_ttc - r.commission_montant), 0)
 
+  const joursReserves = resRows
+    .filter((r) => r.statut !== 'annulee')
+    .reduce((sum, r) => {
+      const jours = (new Date(r.date_fin).getTime() - new Date(r.date_debut).getTime()) / 86_400_000
+      return sum + Math.max(0, jours)
+    }, 0)
+  const tauxOccupation = Math.min(100, Math.round((joursReserves / 365) * 100))
+
+  const resIds = resRows.map((r) => r.id)
+  let revenusParMois: MonthlyPoint[] = months.map((m) => ({ name: m.label, value: 0 }))
   if (resIds.length > 0) {
-    const [countPaie, fetchPaie] = await Promise.all([
-      supabase
-        .from('paiements')
-        .select('id', { count: 'exact', head: true })
-        .eq('confirme', false)
-        .in('reservation_id', resIds),
+    const { data: paiementsConfirmes } = await supabase
+      .from('paiements')
+      .select('montant, confirme_le, created_at')
+      .eq('confirme', true)
+      .in('reservation_id', resIds)
+      .gte('created_at', rangeStart)
 
-      supabase
-        .from('paiements')
-        .select('id, type, montant, reference_virement, reservation_id')
-        .eq('confirme', false)
-        .in('reservation_id', resIds)
-        .limit(5),
-    ])
-    paiementsEnAttente = countPaie.count ?? 0
-    paiementsAConfirmer = (fetchPaie.data ?? []) as PaiementAConfirmer[]
+    const sommesParMois: Record<string, number> = {}
+    for (const p of paiementsConfirmes ?? []) {
+      const k = monthKey(p.confirme_le ?? p.created_at)
+      sommesParMois[k] = (sommesParMois[k] ?? 0) + p.montant
+    }
+    revenusParMois = months.map((m) => ({ name: m.label, value: sommesParMois[m.key] ?? 0 }))
   }
 
   return {
     data: {
-      reservationsEnCours,
-      devisEnAttente: devisEnAtt.count ?? 0,
-      chiffreAffairesTotal,
-      paiementsEnAttente,
+      demandesRecues: demandesRecuesRes.count ?? 0,
+      reservationsConfirmees,
+      revenusNets,
+      tauxOccupation,
       prochainesReservations: (prochainesRes.data ?? []) as unknown as ReservationEtab[],
-      recentDevis: (recentDev.data ?? []) as unknown as DevisRecentEtab[],
-      paiementsAConfirmer,
+      recentDemandes: (recentDem.data ?? []) as unknown as DemandeRecente[],
+      revenusParMois,
     },
     error: null,
   }

@@ -29,6 +29,7 @@
     "react-dom": "19.2.4",
     "react-email": "^6.5.0",
     "react-hook-form": "^7.76.1",
+    "recharts": "^3.10.1",
     "resend": "^6.12.4",
     "rough-notation": "^0.5.1",
     "stripe": "^22.2.2",
