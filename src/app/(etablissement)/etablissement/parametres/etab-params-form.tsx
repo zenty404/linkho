@@ -17,6 +17,14 @@ import { PARAM_INIT } from '@/lib/types/params'
 import { signOut } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/supabase'
+import {
+  SettingsShell,
+  SectionCard,
+  settingsInputCls,
+  SettingsSaveButton,
+  SettingsStateMessages,
+  type SettingsTab,
+} from '@/components/shared/settings-shell'
 type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
 
 type EtabProfile = Database['public']['Tables']['etablissement_profiles']['Row']
@@ -62,21 +70,96 @@ const TYPES_LIEU = [
   { value: 'autre', label: 'Autre' },
 ]
 
-const inputCls =
-  'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg outline-none transition-colors focus:ring-2 focus:ring-brand/20 focus:border-brand'
+const inputCls = settingsInputCls
+
+// ─── Icônes ───────────────────────────────────────────────────────────────────
+
+const iconProps = {
+  width: 18,
+  height: 18,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.75,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+const ICONS = {
+  photos: (
+    <svg {...iconProps}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M8 5l1.5-2h5L16 5" />
+    </svg>
+  ),
+  lieu: (
+    <svg {...iconProps}>
+      <path d="M3 11l9-7 9 7" />
+      <path d="M5 9.5V20h14V9.5" />
+      <path d="M10 20v-6h4v6" />
+    </svg>
+  ),
+  disponibilites: (
+    <svg {...iconProps}>
+      <rect x="3" y="4.5" width="18" height="16" rx="2" />
+      <path d="M3 9.5h18" />
+      <path d="M8 3v3M16 3v3" />
+    </svg>
+  ),
+  tarifs: (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9 8.5h4.5a2 2 0 010 4H9m0 0h5m-5 0v3.5m0-7V7" />
+    </svg>
+  ),
+  localisation: (
+    <svg {...iconProps}>
+      <path d="M12 21s7-6.2 7-11.5A7 7 0 105 9.5C5 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  ),
+  banque: (
+    <svg {...iconProps}>
+      <path d="M3 10l9-6 9 6" />
+      <path d="M4.5 10v9M9.5 10v9M14.5 10v9M19.5 10v9" />
+      <path d="M3 19h18" />
+    </svg>
+  ),
+  caution: (
+    <svg {...iconProps}>
+      <rect x="4" y="10.5" width="16" height="10" rx="2" />
+      <path d="M7.5 10.5V7a4.5 4.5 0 019 0v3.5" />
+    </svg>
+  ),
+  legal: (
+    <svg {...iconProps}>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 12.5h6M9 16h6" />
+    </svg>
+  ),
+  compte: (
+    <svg {...iconProps}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+    </svg>
+  ),
+}
+
+const TABS: SettingsTab[] = [
+  { id: 'photos', label: 'Photos', icon: ICONS.photos },
+  { id: 'lieu', label: 'Mon lieu', icon: ICONS.lieu },
+  { id: 'disponibilites', label: 'Disponibilités', icon: ICONS.disponibilites },
+  { id: 'tarifs', label: 'Tarifs & capacités', icon: ICONS.tarifs },
+  { id: 'localisation', label: 'Localisation', icon: ICONS.localisation },
+  { id: 'banque', label: 'Coordonnées bancaires', icon: ICONS.banque },
+  { id: 'caution', label: 'Caution', icon: ICONS.caution },
+  { id: 'legal', label: 'Informations légales', icon: ICONS.legal },
+  { id: 'compte', label: 'Compte', icon: ICONS.compte },
+]
 
 // ─── Primitives partagés ──────────────────────────────────────────────────────
-
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="text-sm font-semibold text-navy">{title}</h2>
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  )
-}
 
 function Field({
   label,
@@ -115,33 +198,8 @@ function Field({
   )
 }
 
-function StateMessages({ success, error }: { success: boolean; error: string | null }) {
-  if (error)
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
-        {error}
-      </div>
-    )
-  if (success)
-    return (
-      <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg px-4 py-3">
-        Modifications enregistrées.
-      </div>
-    )
-  return null
-}
-
-function SaveButton({ pending, label = 'Enregistrer' }: { pending: boolean; label?: string }) {
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-    >
-      {pending ? 'Enregistrement…' : label}
-    </button>
-  )
-}
+const StateMessages = SettingsStateMessages
+const SaveButton = SettingsSaveButton
 
 // ─── Section Photos ───────────────────────────────────────────────────────────
 
@@ -205,10 +263,10 @@ function PhotosSection({
   }
 
   return (
-    <SectionCard title="Photos">
+    <SectionCard title="Photos" subtitle="La première photo ajoutée sera votre photo principale.">
       <div className="space-y-4">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
             {error}
           </div>
         )}
@@ -278,11 +336,6 @@ function PhotosSection({
           className="hidden"
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
         />
-        {photos.length === 0 && (
-          <p className="text-xs text-gray-400">
-            La première photo ajoutée sera la photo principale affichée dans le catalogue.
-          </p>
-        )}
       </div>
     </SectionCard>
   )
@@ -336,7 +389,7 @@ function TypesEvenementsSection({ initialTypes }: { initialTypes: string[] }) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+          className="px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60"
         >
           {saving ? 'Enregistrement…' : 'Enregistrer'}
         </button>
@@ -396,7 +449,7 @@ function EquipementsSection({ initialTags }: { initialTags: string[] }) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+          className="px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60"
         >
           {saving ? 'Enregistrement…' : 'Enregistrer'}
         </button>
@@ -460,7 +513,7 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
   }
 
   return (
-    <SectionCard title="Disponibilités">
+    <SectionCard title="Disponibilités" subtitle="Bloquez des périodes où votre lieu n'est pas disponible.">
       <div className="space-y-5">
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -498,7 +551,7 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
             />
           </div>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
               {error}
             </div>
           )}
@@ -506,7 +559,7 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
             type="button"
             onClick={handleAjouter}
             disabled={saving || !dateDebut || !dateFin}
-            className="px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? 'Enregistrement…' : 'Bloquer ces dates'}
           </button>
@@ -599,6 +652,7 @@ interface Props {
 
 export function EtabParamsForm({ etab, email, etablissementId, photos, indisponibilites }: Props) {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState('photos')
   const [infosState, infosAction, infosPending] = useActionState(
     updateProfilEtablissement,
     PARAM_INIT,
@@ -632,269 +686,285 @@ export function EtabParamsForm({ etab, email, etablissementId, photos, indisponi
   }, [cautionState?.success])
 
   return (
-    <div className="flex flex-col gap-5 max-w-3xl">
-      <div>
-        <h1 className="text-lg font-bold text-navy">Paramètres</h1>
-        <p className="text-sm text-gray-400 mt-0.5">Gérez votre fiche et votre compte</p>
-      </div>
+    <SettingsShell
+      title="Paramètres"
+      subtitle="Gérez votre fiche et votre compte"
+      tabs={TABS}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
+      {/* Photos */}
+      {activeTab === 'photos' && (
+        <PhotosSection etablissementId={etablissementId} initialPhotos={photos} />
+      )}
 
-      {/* 1. Photos */}
-      <PhotosSection etablissementId={etablissementId} initialPhotos={photos} />
-
-      {/* 2. Informations du lieu */}
-      <SectionCard title="Informations du lieu">
-        <form action={infosAction} className="space-y-4">
-          <Field
-            label="Nom du lieu"
-            name="nom"
-            required
-            defaultValue={etab?.nom}
-            placeholder="Château de la Loire"
-          />
-          <div>
-            <label htmlFor="description" className="block text-xs text-gray-500 mb-1.5">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={3}
-              defaultValue={etab?.description ?? ''}
-              placeholder="Décrivez votre lieu…"
-              className={inputCls + ' resize-none'}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Adresse" name="adresse" defaultValue={etab?.adresse} placeholder="12 rue des Vignes" />
-            <Field label="Ville" name="ville" defaultValue={etab?.ville} placeholder="Bordeaux" />
-            <Field label="Code postal" name="code_postal" defaultValue={etab?.code_postal} placeholder="33000" />
-            <Field label="Téléphone" name="telephone" type="tel" defaultValue={etab?.telephone} placeholder="05 00 00 00 00" />
-            <Field label="Email de contact" name="email_contact" type="email" defaultValue={etab?.email_contact} placeholder="contact@monlieu.fr" />
-            <Field label="Site web" name="site_web" type="url" defaultValue={etab?.site_web} placeholder="https://monlieu.fr" />
-          </div>
-          <StateMessages success={infosState.success} error={infosState.error} />
-          <div className="pt-1"><SaveButton pending={infosPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 3. Type et visibilité */}
-      <SectionCard title="Type et visibilité">
-        <form action={typeAction} className="space-y-5">
-          <div>
-            <label htmlFor="type_lieu" className="block text-xs text-gray-500 mb-1.5">
-              Type de lieu
-            </label>
-            <select
-              id="type_lieu"
-              name="type_lieu"
-              defaultValue={etab?.type_lieu ?? ''}
-              className={inputCls + ' cursor-pointer'}
-            >
-              {TYPES_LIEU.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <VisibleToggle name="visible" defaultChecked={etab?.visible ?? true} />
-
-          <StateMessages success={typeState.success} error={typeState.error} />
-          <div className="pt-1"><SaveButton pending={typePending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 4. Types d'événements acceptés */}
-      <TypesEvenementsSection initialTypes={etab?.types_evenements ?? []} />
-
-      {/* 5. Équipements */}
-      <EquipementsSection initialTags={etab?.tags_equipements ?? []} />
-
-      {/* 6. Disponibilités */}
-      <DisponibilitesSection initialIndispos={indisponibilites} />
-
-      {/* 7. Capacités et tarifs */}
-      <SectionCard title="Capacités et tarifs">
-        <form action={capAction} className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Capacité max" name="capacite_max" type="number" defaultValue={etab?.capacite_max} placeholder="200" />
-            <Field label="Nb couchages" name="nb_couchages" type="number" defaultValue={etab?.nb_couchages} placeholder="50" />
-            <Field label="Nb chambres" name="nb_chambres" type="number" defaultValue={etab?.nb_chambres} placeholder="25" />
-            <Field label="Nb salles de bain" name="nb_salles_de_bain" type="number" defaultValue={etab?.nb_salles_de_bain} placeholder="10" />
-            <Field label="Superficie (m²)" name="superficie_m2" type="number" defaultValue={etab?.superficie_m2} placeholder="500" />
-            <Field label="Prix de base (€)" name="prix_base" type="number" defaultValue={etab?.prix_base} placeholder="1500" hint="par nuit ou événement" />
-          </div>
-          <StateMessages success={capState.success} error={capState.error} />
-          <div className="pt-1"><SaveButton pending={capPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 8. Localisation */}
-      <SectionCard title="Localisation">
-        <form action={locAction} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Latitude" name="latitude" type="number" defaultValue={etab?.latitude} placeholder="44.837789" />
-            <Field label="Longitude" name="longitude" type="number" defaultValue={etab?.longitude} placeholder="-0.579180" />
-          </div>
-          <a
-            href="https://maps.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-light transition-colors"
-          >
-            Trouver mes coordonnées sur Google Maps →
-          </a>
-          <StateMessages success={locState.success} error={locState.error} />
-          <div className="pt-1"><SaveButton pending={locPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 9. Coordonnées bancaires */}
-      <SectionCard title="Coordonnées bancaires">
-        <form action={bancAction} className="space-y-4">
-          <Field
-            label="Titulaire du compte"
-            name="titulaire_compte"
-            defaultValue={(etab as unknown as Record<string, string>)?.titulaire_compte}
-            placeholder="SAS Château de la Loire"
-          />
-          <Field
-            label="IBAN"
-            name="iban"
-            defaultValue={etab?.iban}
-            placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-          />
-          <Field
-            label="BIC / SWIFT"
-            name="bic"
-            defaultValue={(etab as unknown as Record<string, string>)?.bic}
-            placeholder="XXXXXXXX"
-          />
-          <p className="text-xs text-gray-400 -mt-1">
-            Ces coordonnées seront affichées sur les factures envoyées aux BDE.
-          </p>
-          <StateMessages success={bancState.success} error={bancState.error} />
-          <div className="pt-1"><SaveButton pending={bancPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 10. Caution */}
-      <SectionCard title="Caution">
-        <form action={cautionAction} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-navy mb-1.5">
-              Caution (€)
-            </label>
-            <input
-              name="caution_montant"
-              type="number"
-              min="0"
-              step="100"
-              defaultValue={etab?.caution_montant ?? ''}
-              placeholder="ex: 4000"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition"
-            />
-            <p className="text-xs text-gray-400 mt-1.5">
-              Montant total de la caution solidaire BDE. Les chèques seront automatiquement calculés par paliers (25%, 50%, 75%, 100% du montant).
-            </p>
-          </div>
-          <StateMessages success={cautionState.success} error={cautionState.error} />
-          <div className="pt-1"><SaveButton pending={cautionPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 11. Taux de commission (lecture seule) */}
-      <SectionCard title="Taux de commission">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-2xl font-bold text-navy tabular-nums">
-              {etab?.taux_commission ?? 12} %
-            </p>
-            <p className="text-xs text-gray-400 mt-1.5">
-              Ce taux est défini par l&apos;équipe LINKHO. Contactez-nous pour toute modification.
-            </p>
-          </div>
-          <span className="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-500 rounded-full">
-            Lecture seule
-          </span>
-        </div>
-      </SectionCard>
-
-      {/* 12. Informations légales */}
-      <SectionCard title="Informations légales">
-        <form action={legalAction} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field
-              label="SIRET"
-              name="siret"
-              defaultValue={(etab as unknown as Record<string, string>)?.siret}
-              placeholder="12345678901234"
-            />
-            <Field
-              label="Forme juridique"
-              name="forme_juridique"
-              defaultValue={(etab as unknown as Record<string, string>)?.forme_juridique}
-              placeholder="SARL, SAS, Auto-entrepreneur…"
-            />
-            <Field
-              label="Capital social"
-              name="capital_social"
-              defaultValue={(etab as unknown as Record<string, string>)?.capital_social}
-              placeholder="10 000 €"
-            />
-            <Field
-              label="N° TVA intracommunautaire"
-              name="tva_intracommunautaire"
-              defaultValue={(etab as unknown as Record<string, string>)?.tva_intracommunautaire}
-              placeholder="FR12345678901"
-            />
-          </div>
-          <div>
-            <label htmlFor="conditions_paiement" className="block text-xs text-gray-500 mb-1.5">
-              Conditions de paiement
-            </label>
-            <textarea
-              id="conditions_paiement"
-              name="conditions_paiement"
-              rows={3}
-              defaultValue={(etab as unknown as Record<string, string>)?.conditions_paiement ?? ''}
-              placeholder="30% à la signature, 70% le jour J"
-              className={inputCls + ' resize-none'}
-            />
-          </div>
-          <Field
-            label="Délai de validité du devis (jours)"
-            name="delai_validite_devis"
-            type="number"
-            defaultValue={(etab as unknown as Record<string, number>)?.delai_validite_devis ?? 30}
-            placeholder="30"
-          />
-          <StateMessages success={legalState.success} error={legalState.error} />
-          <div className="pt-1"><SaveButton pending={legalPending} /></div>
-        </form>
-      </SectionCard>
-
-      {/* 13. Compte */}
-      <SectionCard title="Compte">
-        <div className="space-y-5">
-          <div>
-            <p className="text-xs text-gray-500 mb-1.5">Email</p>
-            <p className="text-sm font-medium text-navy">{email}</p>
-            <p className="text-xs text-gray-400 mt-1">L&apos;email ne peut pas être modifié ici.</p>
-          </div>
-          <div className="pt-1 border-t border-gray-100">
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="px-5 py-2.5 text-sm font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                Se déconnecter
-              </button>
+      {/* Mon lieu : infos + type/visibilité + équipements + types d'événements */}
+      {activeTab === 'lieu' && (
+        <>
+          <SectionCard title="Informations du lieu" subtitle="Les informations générales affichées sur votre fiche">
+            <form action={infosAction} className="space-y-4">
+              <Field
+                label="Nom du lieu"
+                name="nom"
+                required
+                defaultValue={etab?.nom}
+                placeholder="Château de la Loire"
+              />
+              <div>
+                <label htmlFor="description" className="block text-xs text-gray-500 mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  defaultValue={etab?.description ?? ''}
+                  placeholder="Décrivez votre lieu…"
+                  className={inputCls + ' resize-none'}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Adresse" name="adresse" defaultValue={etab?.adresse} placeholder="12 rue des Vignes" />
+                <Field label="Ville" name="ville" defaultValue={etab?.ville} placeholder="Bordeaux" />
+                <Field label="Code postal" name="code_postal" defaultValue={etab?.code_postal} placeholder="33000" />
+                <Field label="Téléphone" name="telephone" type="tel" defaultValue={etab?.telephone} placeholder="05 00 00 00 00" />
+                <Field label="Email de contact" name="email_contact" type="email" defaultValue={etab?.email_contact} placeholder="contact@monlieu.fr" />
+                <Field label="Site web" name="site_web" type="url" defaultValue={etab?.site_web} placeholder="https://monlieu.fr" />
+              </div>
+              <StateMessages success={infosState.success} error={infosState.error} />
+              <div className="pt-1"><SaveButton pending={infosPending} /></div>
             </form>
+          </SectionCard>
+
+          <SectionCard title="Type et visibilité" subtitle="Le type de lieu et sa visibilité dans le catalogue">
+            <form action={typeAction} className="space-y-5">
+              <div>
+                <label htmlFor="type_lieu" className="block text-xs text-gray-500 mb-1.5">
+                  Type de lieu
+                </label>
+                <select
+                  id="type_lieu"
+                  name="type_lieu"
+                  defaultValue={etab?.type_lieu ?? ''}
+                  className={inputCls + ' cursor-pointer'}
+                >
+                  {TYPES_LIEU.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <VisibleToggle name="visible" defaultChecked={etab?.visible ?? true} />
+
+              <StateMessages success={typeState.success} error={typeState.error} />
+              <div className="pt-1"><SaveButton pending={typePending} /></div>
+            </form>
+          </SectionCard>
+
+          <EquipementsSection initialTags={etab?.tags_equipements ?? []} />
+
+          <TypesEvenementsSection initialTypes={etab?.types_evenements ?? []} />
+        </>
+      )}
+
+      {/* Disponibilités */}
+      {activeTab === 'disponibilites' && (
+        <DisponibilitesSection initialIndispos={indisponibilites} />
+      )}
+
+      {/* Tarifs & capacités */}
+      {activeTab === 'tarifs' && (
+        <>
+          <SectionCard title="Capacités et tarifs" subtitle="Les capacités d'accueil et le tarif de base de votre lieu">
+            <form action={capAction} className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Capacité max" name="capacite_max" type="number" defaultValue={etab?.capacite_max} placeholder="200" />
+                <Field label="Nb couchages" name="nb_couchages" type="number" defaultValue={etab?.nb_couchages} placeholder="50" />
+                <Field label="Nb chambres" name="nb_chambres" type="number" defaultValue={etab?.nb_chambres} placeholder="25" />
+                <Field label="Nb salles de bain" name="nb_salles_de_bain" type="number" defaultValue={etab?.nb_salles_de_bain} placeholder="10" />
+                <Field label="Superficie (m²)" name="superficie_m2" type="number" defaultValue={etab?.superficie_m2} placeholder="500" />
+                <Field label="Prix de base (€)" name="prix_base" type="number" defaultValue={etab?.prix_base} placeholder="1500" hint="par nuit ou événement" />
+              </div>
+              <StateMessages success={capState.success} error={capState.error} />
+              <div className="pt-1"><SaveButton pending={capPending} /></div>
+            </form>
+          </SectionCard>
+
+          <SectionCard title="Taux de commission">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-navy tabular-nums">
+                  {etab?.taux_commission ?? 12} %
+                </p>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Ce taux est défini par l&apos;équipe LINKHO. Contactez-nous pour toute modification.
+                </p>
+              </div>
+              <span className="px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-500 rounded-full">
+                Lecture seule
+              </span>
+            </div>
+          </SectionCard>
+        </>
+      )}
+
+      {/* Localisation */}
+      {activeTab === 'localisation' && (
+        <SectionCard title="Localisation" subtitle="Les coordonnées GPS de votre lieu">
+          <form action={locAction} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Latitude" name="latitude" type="number" defaultValue={etab?.latitude} placeholder="44.837789" />
+              <Field label="Longitude" name="longitude" type="number" defaultValue={etab?.longitude} placeholder="-0.579180" />
+            </div>
+            <a
+              href="https://maps.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-light transition-colors"
+            >
+              Trouver mes coordonnées sur Google Maps →
+            </a>
+            <StateMessages success={locState.success} error={locState.error} />
+            <div className="pt-1"><SaveButton pending={locPending} /></div>
+          </form>
+        </SectionCard>
+      )}
+
+      {/* Coordonnées bancaires */}
+      {activeTab === 'banque' && (
+        <SectionCard title="Coordonnées bancaires" subtitle="Ces coordonnées seront affichées sur les factures envoyées aux BDE">
+          <form action={bancAction} className="space-y-4">
+            <Field
+              label="Titulaire du compte"
+              name="titulaire_compte"
+              defaultValue={(etab as unknown as Record<string, string>)?.titulaire_compte}
+              placeholder="SAS Château de la Loire"
+            />
+            <Field
+              label="IBAN"
+              name="iban"
+              defaultValue={etab?.iban}
+              placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+            />
+            <Field
+              label="BIC / SWIFT"
+              name="bic"
+              defaultValue={(etab as unknown as Record<string, string>)?.bic}
+              placeholder="XXXXXXXX"
+            />
+            <StateMessages success={bancState.success} error={bancState.error} />
+            <div className="pt-1"><SaveButton pending={bancPending} /></div>
+          </form>
+        </SectionCard>
+      )}
+
+      {/* Caution */}
+      {activeTab === 'caution' && (
+        <SectionCard title="Caution" subtitle="Le montant de la caution solidaire demandée aux BDE">
+          <form action={cautionAction} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-navy mb-1.5">
+                Caution (€)
+              </label>
+              <input
+                name="caution_montant"
+                type="number"
+                min="0"
+                step="100"
+                defaultValue={etab?.caution_montant ?? ''}
+                placeholder="ex: 4000"
+                className={inputCls}
+              />
+              <p className="text-xs text-gray-400 mt-1.5">
+                Montant total de la caution solidaire BDE. Les chèques seront automatiquement calculés par paliers (25%, 50%, 75%, 100% du montant).
+              </p>
+            </div>
+            <StateMessages success={cautionState.success} error={cautionState.error} />
+            <div className="pt-1"><SaveButton pending={cautionPending} /></div>
+          </form>
+        </SectionCard>
+      )}
+
+      {/* Informations légales */}
+      {activeTab === 'legal' && (
+        <SectionCard title="Informations légales" subtitle="Ces informations apparaissent sur les devis et factures">
+          <form action={legalAction} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field
+                label="SIRET"
+                name="siret"
+                defaultValue={(etab as unknown as Record<string, string>)?.siret}
+                placeholder="12345678901234"
+              />
+              <Field
+                label="Forme juridique"
+                name="forme_juridique"
+                defaultValue={(etab as unknown as Record<string, string>)?.forme_juridique}
+                placeholder="SARL, SAS, Auto-entrepreneur…"
+              />
+              <Field
+                label="Capital social"
+                name="capital_social"
+                defaultValue={(etab as unknown as Record<string, string>)?.capital_social}
+                placeholder="10 000 €"
+              />
+              <Field
+                label="N° TVA intracommunautaire"
+                name="tva_intracommunautaire"
+                defaultValue={(etab as unknown as Record<string, string>)?.tva_intracommunautaire}
+                placeholder="FR12345678901"
+              />
+            </div>
+            <div>
+              <label htmlFor="conditions_paiement" className="block text-xs text-gray-500 mb-1.5">
+                Conditions de paiement
+              </label>
+              <textarea
+                id="conditions_paiement"
+                name="conditions_paiement"
+                rows={3}
+                defaultValue={(etab as unknown as Record<string, string>)?.conditions_paiement ?? ''}
+                placeholder="30% à la signature, 70% le jour J"
+                className={inputCls + ' resize-none'}
+              />
+            </div>
+            <Field
+              label="Délai de validité du devis (jours)"
+              name="delai_validite_devis"
+              type="number"
+              defaultValue={(etab as unknown as Record<string, number>)?.delai_validite_devis ?? 30}
+              placeholder="30"
+            />
+            <StateMessages success={legalState.success} error={legalState.error} />
+            <div className="pt-1"><SaveButton pending={legalPending} /></div>
+          </form>
+        </SectionCard>
+      )}
+
+      {/* Compte */}
+      {activeTab === 'compte' && (
+        <SectionCard title="Compte" subtitle="Les informations de connexion associées à votre espace">
+          <div className="space-y-5">
+            <div>
+              <p className="text-xs text-gray-500 mb-1.5">Email</p>
+              <p className="text-sm font-medium text-navy">{email}</p>
+              <p className="text-xs text-gray-400 mt-1">L&apos;email ne peut pas être modifié ici.</p>
+            </div>
+            <div className="pt-1 border-t border-gray-100">
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-sm font-semibold text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-colors"
+                >
+                  Se déconnecter
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      </SectionCard>
-    </div>
+        </SectionCard>
+      )}
+    </SettingsShell>
   )
 }
