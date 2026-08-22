@@ -1,7 +1,11 @@
 'use client'
 
-import { useActionState, useEffect, useState, useRef } from 'react'
+import { useActionState, useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { DayPicker, type DateRange } from 'react-day-picker'
+import 'react-day-picker/dist/style.css'
+import { fr } from 'date-fns/locale'
+import { format, parseISO } from 'date-fns'
 import {
   updateProfilEtablissement,
   updateTagsEquipements,
@@ -26,6 +30,10 @@ import {
   type SettingsTab,
 } from '@/components/shared/settings-shell'
 type EtabPhoto = Database['public']['Tables']['etablissement_photos']['Row']
+type ReservationPeriode = Pick<
+  Database['public']['Tables']['reservations']['Row'],
+  'id' | 'date_debut' | 'date_fin'
+>
 
 type EtabProfile = Database['public']['Tables']['etablissement_profiles']['Row']
 
@@ -460,33 +468,44 @@ function EquipementsSection({ initialTags }: { initialTags: string[] }) {
 
 // ─── Section Disponibilités ───────────────────────────────────────────────────
 
-function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponibilite[] }) {
+function DisponibilitesSection({
+  initialIndispos,
+  reservations,
+}: {
+  initialIndispos: Indisponibilite[]
+  reservations: ReservationPeriode[]
+}) {
   const [indispos, setIndispos] = useState<Indisponibilite[]>(initialIndispos)
-  const [dateDebut, setDateDebut] = useState('')
-  const [dateFin, setDateFin] = useState('')
+  const [range, setRange] = useState<DateRange | undefined>(undefined)
   const [motif, setMotif] = useState('')
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  const today = new Date().toISOString().split('T')[0]
 
   function fmtDateCourt(s: string): string {
     const parts = s.split('-')
     return `${parts[2]}/${parts[1]}`
   }
 
+  const periodesBloquees = useMemo<DateRange[]>(
+    () => indispos.map((i) => ({ from: parseISO(i.date_debut), to: parseISO(i.date_fin) })),
+    [indispos],
+  )
+
+  const periodesReservees = useMemo<DateRange[]>(
+    () => reservations.map((r) => ({ from: parseISO(r.date_debut), to: parseISO(r.date_fin) })),
+    [reservations],
+  )
+
   async function handleAjouter() {
-    if (!dateDebut || !dateFin) {
-      setError('Veuillez saisir une date de début et de fin.')
-      return
-    }
-    if (dateFin < dateDebut) {
-      setError('La date de fin doit être après la date de début.')
+    if (!range?.from || !range?.to) {
+      setError('Veuillez sélectionner une période sur le calendrier.')
       return
     }
     setSaving(true)
     setError(null)
+    const dateDebut = format(range.from, 'yyyy-MM-dd')
+    const dateFin = format(range.to, 'yyyy-MM-dd')
     const result = await ajouterIndisponibilite(dateDebut, dateFin, motif || undefined)
     if (result.error) {
       setSaving(false)
@@ -496,8 +515,7 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
     const refreshed = await getIndisponibilites()
     setSaving(false)
     if (refreshed.data) setIndispos(refreshed.data)
-    setDateDebut('')
-    setDateFin('')
+    setRange(undefined)
     setMotif('')
   }
 
@@ -516,28 +534,38 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
     <SectionCard title="Disponibilités" subtitle="Bloquez des périodes où votre lieu n'est pas disponible.">
       <div className="space-y-5">
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Date de début</label>
-              <input
-                type="date"
-                value={dateDebut}
-                min={today}
-                onChange={(e) => setDateDebut(e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Date de fin</label>
-              <input
-                type="date"
-                value={dateFin}
-                min={dateDebut || today}
-                onChange={(e) => setDateFin(e.target.value)}
-                className={inputCls}
-              />
-            </div>
+          <input type="hidden" name="date_debut" value={range?.from ? format(range.from, 'yyyy-MM-dd') : ''} />
+          <input type="hidden" name="date_fin" value={range?.to ? format(range.to, 'yyyy-MM-dd') : ''} />
+
+          <div className="flex justify-center w-full overflow-x-auto">
+            <DayPicker
+              mode="range"
+              selected={range}
+              onSelect={setRange}
+              locale={fr}
+              numberOfMonths={2}
+              disabled={[...periodesBloquees, { before: new Date() }]}
+              modifiers={{
+                bloquee: periodesBloquees,
+                reservation: periodesReservees,
+              }}
+              modifiersClassNames={{
+                bloquee: 'rdp-day_bloquee',
+                reservation: 'rdp-day_reservation',
+              }}
+              className="border border-gray-100 rounded-2xl p-6 bg-white w-full"
+            />
           </div>
+
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-[#fee2e2]" /> Période bloquée
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-[#dbeafe]" /> Réservation confirmée
+            </span>
+          </div>
+
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">
               Motif <span className="text-gray-300">(optionnel)</span>
@@ -558,7 +586,7 @@ function DisponibilitesSection({ initialIndispos }: { initialIndispos: Indisponi
           <button
             type="button"
             onClick={handleAjouter}
-            disabled={saving || !dateDebut || !dateFin}
+            disabled={saving || !range?.from || !range?.to}
             className="px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? 'Enregistrement…' : 'Bloquer ces dates'}
@@ -646,11 +674,12 @@ interface Props {
   etablissementId: string | null
   photos: EtabPhoto[]
   indisponibilites: Indisponibilite[]
+  reservations: ReservationPeriode[]
 }
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
-export function EtabParamsForm({ etab, email, etablissementId, photos, indisponibilites }: Props) {
+export function EtabParamsForm({ etab, email, etablissementId, photos, indisponibilites, reservations }: Props) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('photos')
   const [infosState, infosAction, infosPending] = useActionState(
@@ -771,7 +800,7 @@ export function EtabParamsForm({ etab, email, etablissementId, photos, indisponi
 
       {/* Disponibilités */}
       {activeTab === 'disponibilites' && (
-        <DisponibilitesSection initialIndispos={indisponibilites} />
+        <DisponibilitesSection initialIndispos={indisponibilites} reservations={reservations} />
       )}
 
       {/* Tarifs & capacités */}

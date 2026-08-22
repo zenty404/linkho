@@ -45,3 +45,42 @@ body {
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* react-day-picker — calendrier des disponibilités établissement */
+.rdp {
+  --rdp-accent-color: var(--color-brand);
+  --rdp-background-color: color-mix(in srgb, var(--color-brand) 15%, white);
+  margin: 0;
+  width: 100%;
+}
+.rdp-months {
+  width: 100%;
+  justify-content: space-around;
+}
+.rdp-month {
+  width: 45%;
+}
+.rdp-month .rdp-table {
+  width: 100%;
+  max-width: none;
+  table-layout: fixed;
+}
+.rdp-month .rdp-cell,
+.rdp-month .rdp-head_cell {
+  width: auto;
+}
+.rdp-month .rdp-button {
+  width: 100%;
+  max-width: 44px;
+}
+.rdp-day_bloquee:not(.rdp-day_outside) {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  opacity: 1 !important;
+}
+.rdp-day_reservation:not(.rdp-day_outside) {
+  background-color: #dbeafe;
+  color: #071634;
+  border-radius: 4px;
+}
+
